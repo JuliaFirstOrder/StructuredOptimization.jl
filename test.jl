@@ -3,21 +3,29 @@
 # using PyPlot   ## install PyPlot package by running 'Pkg.add("PyPlot")'
 #                ## on a Julia terminal
 
+include("prox.jl")
+include("ista.jl")
 include("fista.jl")
 
 srand(123)                # initialize random seed
-m, n = 50, 100            # problem dimensions
+m, n = 200, 1500          # problem dimensions
 A = randn(m, n)           # create matrix
-x_orig = sprandn(100, 1, 0.2)  # create sparse vector
+x_orig = sprandn(n, 1, 0.2)  # create sparse vector
 sigma = 0.01              # noise std
 y = A*x_orig + sigma*randn(m)  # output y
 
 x_ls = A\y                # least squares solution
 lambda_max = norm(A'y, Inf) # when lambda = lambda_max then solution is x = 0
-lambda = 0.1*lambda_max   #
+lambda = 0.05*lambda_max   #
+tol = 1e-6
+maxit = 10000
 
 tic()
-x_lasso, it = fista(A, y, lambda)
+x_ista, it = ista(A, y, l1norm(lambda), zeros(n), maxit, tol, 1)
+toc()
+
+tic()
+x_fista, it = fista(A, y, l1norm(lambda), zeros(n), maxit, tol, 1)
 toc()
 
 return # to suppress output of last expression?

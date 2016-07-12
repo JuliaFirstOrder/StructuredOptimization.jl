@@ -1,14 +1,14 @@
 include("utils.jl")
 
-function fista(A::Array{Float64,2}, args...)
+function ista(A::Array{Float64,2}, args...)
 
 	L(y::Array{Float64}) = A*y
 	Ladj(y::Array{Float64}) = A'*y
-	fista(L, Ladj, args...)
+	ista(L, Ladj, args...)
 
 end
 
-function fista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, x::Array{Float64}, maxit=10000, tol=1e-5, verbose=1)
+function ista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, x::Array{Float64}, maxit=10000, tol=1e-5, verbose=1)
 
 	gamma = 100.0
 	z = xprev = x
@@ -17,23 +17,20 @@ function fista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, 
 
 	for k = 1:maxit
 
-		# extrapolation
-		y = x + k/(k+3) * (x - xprev)
-
 		# compute least squares residual and gradient
-		resy = L(y) - b
-		fy = 0.5*norm(resy)^2
-		grady = Ladj(resy)
+		resx = L(x) - b
+		fx = 0.5*norm(resx)^2
+		gradx = Ladj(resx)
 
 		# line search on gamma
 		for j = 1:32
-			gradstep = y - gamma*grady
+			gradstep = x - gamma*gradx
 			z, ~ = proxg(gradstep, gamma)
-			fpr = y-z
+			fpr = x-z
 			normfpr = norm(fpr)
 			resz = L(z) - b
 			fz = 0.5*norm(resz)^2
-			uppbnd = fy - dot(grady[:],fpr[:]) + 1/(2*gamma)*normfpr^2
+			uppbnd = fx - dot(gradx[:],fpr[:]) + 1/(2*gamma)*normfpr^2
 			if fz <= uppbnd; break; end
 			gamma = 0.5*gamma
 		end
@@ -45,7 +42,6 @@ function fista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, 
 		print_status(k, gamma, normfpr, verbose)
 
 		# update iterates
-		xprev = x
 		x = z
 
 	end
