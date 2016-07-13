@@ -48,9 +48,14 @@ end
 
 function l0ball(r::Int64)
   function proj_l0ball(x, gamma::Float64=1.0)
-    p = sortperm(abs(x))
-    y = copy(x)
-    y[p[1:end-r]] = 0.0
+    y = zeros(size(x))
+    if r < log2(length(x))
+      p = selectperm(abs(x), 1:r, rev=true)
+      y[p] = x[p]
+    else
+      p = sortperm(abs(x), rev=true)
+      y[p[1:r]] = x[p[1:r]]
+    end
     return y, 0.0
   end
 end
