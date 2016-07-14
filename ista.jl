@@ -19,7 +19,7 @@ function ista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, x
 
 		# compute least squares residual and gradient
 		resx = L(x) - b
-		fx = 0.5*norm(resx)^2
+		fx = 0.5*vecnorm(resx)^2
 		gradx = Ladj(resx)
 
 		# line search on gamma
@@ -27,9 +27,9 @@ function ista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, x
 			gradstep = x - gamma*gradx
 			z, ~ = proxg(gradstep, gamma)
 			fpr = x-z
-			normfpr = norm(fpr)
+			normfpr = vecnorm(fpr)
 			resz = L(z) - b
-			fz = 0.5*norm(resz)^2
+			fz = 0.5*vecnorm(resz)^2
 			uppbnd = fx - dot(gradx[:],fpr[:]) + 1/(2*gamma)*normfpr^2
 			if fz <= uppbnd; break; end
 			gamma = 0.5*gamma

@@ -22,7 +22,7 @@ function fista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, 
 
 		# compute least squares residual and gradient
 		resy = L(y) - b
-		fy = 0.5*norm(resy)^2
+		fy = 0.5*vecnorm(resy)^2
 		grady = Ladj(resy)
 
 		# line search on gamma
@@ -30,9 +30,9 @@ function fista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, 
 			gradstep = y - gamma*grady
 			z, ~ = proxg(gradstep, gamma)
 			fpr = y-z
-			normfpr = norm(fpr)
+			normfpr = vecnorm(fpr)
 			resz = L(z) - b
-			fz = 0.5*norm(resz)^2
+			fz = 0.5*vecnorm(resz)^2
 			uppbnd = fy - dot(grady[:],fpr[:]) + 1/(2*gamma)*normfpr^2
 			if fz <= uppbnd; break; end
 			gamma = 0.5*gamma
