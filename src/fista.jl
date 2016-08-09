@@ -8,6 +8,14 @@ function fista(A::Array{Float64,2}, args...)
 
 end
 
+function fista(A::SparseMatrixCSC, args...)
+
+	L(y::Array{Float64}) = A*y
+	Ladj(y::Array{Float64}) = A'*y
+	fista(L, Ladj, args...)
+
+end
+
 function fista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, x::Array{Float64}, maxit=10000, tol=1e-5, verbose=1)
 
 	gamma = 100.0
@@ -15,20 +23,29 @@ function fista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, 
 	normfpr = Inf
 	k = 0
 
+	# compute least squares residual and f(x)
+	resx = L(x) - b
+	fx = 0.5*vecnorm(resx)^2
+
+	# initialize variables
+	xprev = x
+	resxprev = resx
+	z = x
+	resz = resx
+
 	for k = 1:maxit
 
 		# extrapolation
 		y = x + k/(k+3) * (x - xprev)
+		resy = resx + k/(k+3) * (resx - resxprev)
 
-		# compute least squares residual and gradient
-		resy = L(y) - b
+		# compute gradient and f(y)
 		fy = 0.5*vecnorm(resy)^2
 		grady = Ladj(resy)
 
 		# line search on gamma
 		for j = 1:32
-			gradstep = y - gamma*grady
-			z, ~ = proxg(gradstep, gamma)
+			z, ~ = proxg(y - gamma*grady, gamma)
 			fpr = y-z
 			normfpr = vecnorm(fpr)
 			resz = L(z) - b
@@ -46,7 +63,9 @@ function fista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, 
 
 		# update iterates
 		xprev = x
+		resxprev = resx
 		x = z
+		resx = resz
 
 	end
 
