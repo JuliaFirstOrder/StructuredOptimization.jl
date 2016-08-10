@@ -6,5 +6,5 @@ To run the tests:
 
 Or, from the command line of Julia:
 
-	include("tests/runtests.jl")
+	include("test/runtests.jl")
 
