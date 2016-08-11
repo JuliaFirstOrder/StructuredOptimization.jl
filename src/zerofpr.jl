@@ -34,16 +34,16 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 
 	# compute least squares residual and gradient
 	resx = L(x) - b
-	fx = 0.5*norm(resx[:])^2
+	fx = 0.5*vecnorm(resx)^2
 	gradx = Ladj(resx)
 	xbar, gxbar = proxg(x-gamma*gradx, gamma)
 	r = x - xbar
-	normr = norm(r)
-	uppbnd = fx - dot(gradx[:],r[:]) + 1/(2*gamma)*normr^2
+	normr = vecnorm(r)
+	uppbnd = fx - vecdot(gradx,r) + 1/(2*gamma)*normr^2
 
 	for k = 1:maxit
 		resxbar = L(xbar) - b
-		fxbar = 0.5*norm(resxbar)^2
+		fxbar = 0.5*vecnorm(resxbar)^2
 
 		# line search on gamma
 		for j = 1:32
@@ -53,10 +53,10 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 			sigma = 2*sigma
 			xbar, gxbar = proxg(x-gamma*gradx, gamma)
 			r = x - xbar
-			normr = norm(r)
+			normr = vecnorm(r)
 			resxbar = L(xbar) - b
-			fxbar = 0.5*norm(resxbar)^2
-			uppbnd = fx - dot(gradx[:],r[:]) + 1/(2*gamma)*normr^2
+			fxbar = 0.5*vecnorm(resxbar)^2
+			uppbnd = fx - vecdot(gradx,r) + 1/(2*gamma)*normr^2
 		end
 
 		# evaluate FBE at x
@@ -70,7 +70,7 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 
 		# compute rbar
 		gradxbar = Ladj(resxbar)
-		xbarbar, ~ = proxg(xbar - gamma*gradxbar, gamma)
+		xbarbar, gxbarbar = proxg(xbar - gamma*gradxbar, gamma)
 		rbar = xbar - xbarbar
 
 		# compute direction according to L-BFGS
@@ -80,10 +80,11 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 		else
 			s = tau*d
 			y = r - rbar_prev
-			ys = dot(s[:],y[:])
+			ys = vecdot(s,y)
 			if ys > 0
-				H0 = ys/dot(y[:],y[:])
+				H0 = ys/vecdot(y,y)
 				LBFGS_push(lbfgs, s, y)
+			else @printf("y's = %7.4e\n", ys)
 			end
 			d = -LBFGS_matvec(lbfgs, H0, rbar)
 		end
@@ -100,12 +101,12 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 		for j = 1:32
 			x = xbar_prev + tau*d
 			resx = resxbar + tau*Ad
-			fx = 0.5*norm(resx[:])^2
+			fx = 0.5*vecnorm(resx)^2
 			gradx = gradxbar + tau*ATAd
 			xbar, gxbar = proxg(x - gamma*gradx, gamma)
 			r = x - xbar
-			normr = norm(r)
-			uppbnd = fx - dot(gradx[:],r[:]) + 1/(2*gamma)*normr^2
+			normr = vecnorm(r)
+			uppbnd = fx - vecdot(gradx,r) + 1/(2*gamma)*normr^2
 			if uppbnd + gxbar <= level break end
 			tau = 0.5*tau
 		end

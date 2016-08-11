@@ -1,11 +1,10 @@
-using Prox
 using Base.Test
 
 m, n = 300, 1000
 A = sprandn(m, n, 0.1)
 b = randn(m)
 lambda = 0.05*norm(A'*b, Inf)
-g = Prox.l1norm(lambda)
+g = l1norm(lambda)
 x0 = zeros(n)
 tol = 1e-8
 maxit = 100000

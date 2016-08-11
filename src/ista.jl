@@ -44,7 +44,7 @@ function ista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, x
 			normfpr = vecnorm(fpr)
 			resz = L(z) - b
 			fz = 0.5*vecnorm(resz)^2
-			uppbnd = fx - dot(gradx[:],fpr[:]) + 1/(2*gamma)*normfpr^2
+			uppbnd = fx - vecdot(gradx,fpr) + 1/(2*gamma)*normfpr^2
 			if fz <= uppbnd; break; end
 			gamma = 0.5*gamma
 		end

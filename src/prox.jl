@@ -2,21 +2,19 @@
 # prox.jl - library of nonsmooth functions and associated proximal mappings
 # ------------------------------------------------------------------------------
 
-module Prox
-
 # L2 norm (times a constant, or weighted)
 
 function l2norm(lambda::Float64=1.0)
   function prox_l2norm(x::Array{Float64}, gamma::Float64=1.0)
     y = x/(1+lambda*gamma)
-    return y, (lambda/2)*dot(y[:],y[:])
+    return y, (lambda/2)*vecdot(y,y)
   end
 end
 
 function l2norm(lambda::Array{Float64})
   function prox_l2norm(x::Array{Float64}, gamma::Float64=1.0)
     y = x./(1+lambda*gamma)
-    return y, 0.5*dot(lambda[:].*y[:],y[:])
+    return y, 0.5*vecdot(lambda.*y,y)
   end
 end
 
@@ -25,14 +23,14 @@ end
 function l1norm(lambda::Float64=1.0)
   function prox_l1norm(x::Array{Float64}, gamma::Float64=1.0)
     y = sign(x).*max(0.0, abs(x)-gamma*lambda)
-    return y, lambda*norm(y,1)
+    return y, lambda*vecnorm(y,1)
   end
 end
 
 function l1norm(lambda::Array{Float64})
   function prox_l1norm(x::Array{Float64}, gamma::Float64=1.0)
     y = sign(x).*max(0.0, abs(x)-gamma*lambda)
-    return y, norm(lambda.*y,1)
+    return y, vecnorm(lambda.*y,1)
   end
 end
 
@@ -41,8 +39,8 @@ end
 function l21norm(lambda::Float64=1.0, dim = 1)
 	function prox_l21group(x, gamma::Float64=1.0)
 		n = size(x,dim)
-		y = max(0 ,1-lambda*gamma./sqrt(sum(abs(x).^2,dim))).*x 
-		return y,lambda*norm(sqrt(sum(abs(y).^2,dim)'),1)
+		y = max(0, 1-lambda*gamma./sqrt(sum(abs(x).^2,dim))).*x
+		return y, lambda*norm(sqrt(sum(abs(y).^2,dim)'),1)
 	end
 end
 
@@ -94,6 +92,4 @@ end
 
 function linfball(r::Float64)
   box(-r, r)
-end
-
 end
