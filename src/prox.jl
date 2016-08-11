@@ -42,9 +42,8 @@ function l21norm(lambda::Float64=1.0, dim = 1)
 	function prox_l21group(x, gamma::Float64=1.0)
 		n = size(x,dim)
 		y = max(0 ,1-lambda*gamma./sqrt(sum(abs(x).^2,dim))).*x 
-		return y,lambda*norm(sqrt(sum(abs(x).^2,dim)'),1)
+		return y,lambda*norm(sqrt(sum(abs(y).^2,dim)'),1)
 	end
-
 end
 
 # L0 pseudo-norm (times a constant)
