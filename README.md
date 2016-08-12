@@ -8,11 +8,11 @@ where `A` is a linear operator and `g` is a regularization term.
 
 ## Installation
 
-From the Julia command line hit
+From the Julia command line hit:
 
 	Pkg.clone("https://github.com/nantonel/JuLiASSO.jl.git")
 	
-Once the package is installed you can update it with
+Once the package is installed you can update it with:
 
 	Pkg.update()
 
@@ -32,14 +32,20 @@ Argument `x0` is the initial approximation to the solution. Both `x0` and `b` mu
 
 ## Regularization
 
-Argument `g` in the examples above is the regularization term in the problem. The regularizers included in `JuLiASSO` are listed here
+Argument `g` in the examples above is the regularization term in the problem. The regularizers included in `JuLiASSO` are listed here.
 
-	indBallInf       normL0
-	indBallL0        normL1
-	IndBallRank      normL2
-	indBox           normL21
+Function        | Description
+----------------|------------------------------------
+`indBallInf`    | Indicator of an infinity-norm ball
+`indBallL0`     | Indicator of an L0 pseudo-norm ball
+`IndBallRank`   | Indicator of the set of matrices with given rank
+`indBox`        | Indicator of a box
+`normL0`        | L0 pseudo-norm
+`normL1`        | L1 norm
+`normL2`        | Euclidean norm
+`normL21`       | Sum-of-L2 norms
 
-The names of the available functions are meant to be somehow self-explicative. However, you can access the documentation of each of these from the command line of Julia directly:
+Each function can be customized with parameters. You can access the full documentation of each of these functions from the command line of Julia directly:
 
 	julia> ?
 	help?> JuLiASSO.normL1
