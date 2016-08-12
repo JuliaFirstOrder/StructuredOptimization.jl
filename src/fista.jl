@@ -14,7 +14,15 @@ function fista(A::SparseMatrixCSC, args...)
 
 end
 
-function fista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, x::Array{Float64}, maxit=10000, tol=1e-5, verbose=1)
+function fista(A::Array{Complex{Float64},2}, args...)
+
+	L(y::Array{Complex{Float64},1}) = A*y
+	Ladj(y::Array{Complex{Float64},1}) = A'*y
+	fista(L, Ladj, args...)
+
+end
+
+function fista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array, maxit=10000, tol=1e-5, verbose=1)
 
 	gamma = 100.0
 	z = xprev = x
@@ -48,7 +56,7 @@ function fista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, 
 			normfpr = vecnorm(fpr)
 			resz = L(z) - b
 			fz = 0.5*vecnorm(resz)^2
-			uppbnd = fy - vecdot(grady,fpr) + 1/(2*gamma)*normfpr^2
+			uppbnd = fy - real(vecdot(grady,fpr)) + 1/(2*gamma)*normfpr^2
 			if fz <= uppbnd; break; end
 			gamma = 0.5*gamma
 		end

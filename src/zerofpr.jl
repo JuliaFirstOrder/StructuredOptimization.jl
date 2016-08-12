@@ -14,7 +14,15 @@ function zerofpr(A::SparseMatrixCSC, args...)
 
 end
 
-function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, x::Array{Float64}, maxit=10000, tol=1e-5, verbose=1)
+function zerofpr(A::Array{Complex{Float64},2}, args...)
+
+	L(y::Array{Complex{Float64},1}) = A*y
+	Ladj(y::Array{Complex{Float64},1}) = A'*y
+	zerofpr(L, Ladj, args...)
+
+end
+
+function zerofpr(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array, maxit=10000, tol=1e-5, verbose=1)
 
 	Lf = 1e-2
 	beta = 0.05
@@ -23,11 +31,11 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 	normr = Inf
 	H0 = 1.0
 	tau = 1.0
-	d = zeros(size(x))
-	rbar_prev = zeros(size(x))
+	d = zeros(x)
+	rbar_prev = zeros(x)
 	k = 0
 
-	lbfgs = LBFGS.create(5)
+	lbfgs = LBFGS.create(5,typeof(x))
 
 	# compute least squares residual and gradient
 	resx = L(x) - b
@@ -36,7 +44,7 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 	xbar, gxbar = proxg(x-gamma*gradx, gamma)
 	r = x - xbar
 	normr = vecnorm(r)
-	uppbnd = fx - vecdot(gradx,r) + 1/(2*gamma)*normr^2
+	uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*gamma)*normr^2
 
 	for k = 1:maxit
 		resxbar = L(xbar) - b
@@ -53,7 +61,7 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 			normr = vecnorm(r)
 			resxbar = L(xbar) - b
 			fxbar = 0.5*vecnorm(resxbar)^2
-			uppbnd = fx - vecdot(gradx,r) + 1/(2*gamma)*normr^2
+			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*gamma)*normr^2
 		end
 
 		# evaluate FBE at x
@@ -77,9 +85,9 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 		else
 			s = tau*d
 			y = r - rbar_prev
-			ys = vecdot(s,y)
+			ys = real(vecdot(s,y))
 			if ys > 0
-				H0 = ys/vecdot(y,y)
+				H0 = ys/real(vecdot(y,y))
 				LBFGS.push(lbfgs, s, y)
 			end
 			d = -LBFGS.matvec(lbfgs, H0, rbar)
@@ -102,7 +110,7 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 			xbar, gxbar = proxg(x - gamma*gradx, gamma)
 			r = x - xbar
 			normr = vecnorm(r)
-			uppbnd = fx - vecdot(gradx,r) + 1/(2*gamma)*normr^2
+			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*gamma)*normr^2
 			if uppbnd + gxbar <= level break end
 			tau = 0.5*tau
 		end

@@ -41,7 +41,7 @@ col = 0; # last column of Sk, Yk that was filled in
 currmem = 0;
 H0 = 1.0
 
-lbfgs = LBFGS.create(mem)
+lbfgs = LBFGS.create(mem,Array{Float64,1})
 x_old = 0;
 grad_old = 0;
 
