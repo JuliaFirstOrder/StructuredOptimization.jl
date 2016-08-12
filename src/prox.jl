@@ -2,28 +2,58 @@
 # prox.jl - library of nonsmooth functions and associated proximal mappings
 # ------------------------------------------------------------------------------
 
-# L2 norm (times a constant, or weighted)
+# L2 norm (times a constant)
 
+"""
+  normL2(λ::Float64=1.0)
+
+Returns the function `g(x) = λ||x||_2`, for a real parameter `λ ⩾ 0`.
+"""
 function normL2(lambda::Float64=1.0)
   function call_normL2(x::Array{Float64})
-    return (lambda/2)*vecdot(x,x)
+    return lambda*vecnorm(x)
   end
   function call_normL2(x::Array{Float64}, gamma::Float64)
-    y = x/(1+lambda*gamma)
-    return y, (lambda/2)*vecdot(y,y)
+    normx = vecnorm(x)
+    scale = max(0, 1-lambda*gamma/vecnormx)
+    y = scale*x
+    return y, lambda*scale*normx
   end
   return call_normL2
 end
 
-function normL2(lambda::Array{Float64})
-  function call_normL2(x::Array{Float64})
+# squared L2 norm (times a constant, or weighted)
+
+"""
+  normL2sqr(λ::Float64=1.0)
+
+Returns the function `g(x) = (λ/2)(x'x)`, for a real parameter `λ ⩾ 0`.
+"""
+function normL2sqr(lambda::Array{Float64})
+  function call_normL2sqr(x::Array{Float64})
+    return (lambda/2)*vecdot(x,x)
+  end
+  function call_normL2sqr(x::Array{Float64}, gamma::Float64=1.0)
+    y = x/(1+lambda*gamma)
+    return y, (lambda/2)*vecdot(y,y)
+  end
+  return call_normL2sqr
+end
+
+"""
+  normL2sqr(λ::Array{Float64})
+
+Returns the function `g(x) = (1/2)(λ.*x)'x`, for an array of real parameters `λ ⩾ 0`.
+"""
+function normL2sqr(lambda::Array{Float64})
+  function call_normL2sqr(x::Array{Float64})
     return 0.5*vecdot(lambda.*x,x)
   end
-  function call_normL2(x::Array{Float64}, gamma::Float64=1.0)
+  function call_normL2sqr(x::Array{Float64}, gamma::Float64=1.0)
     y = x./(1+lambda*gamma)
     return y, 0.5*vecdot(lambda.*y,y)
   end
-  return call_normL2
+  return call_normL2sqr
 end
 
 # L1 norm (times a constant, or weighted)
@@ -65,16 +95,20 @@ end
 
 # L2,1 norm/Sum of norms (times a constant)
 
-function normL21(lambda::Float64=1.0, dim = 1)
-	function prox_l21group(x, gamma::Float64=1.0)
-		n = size(x,dim)
-		y = max(0, 1-lambda*gamma./sqrt(sum(abs(x).^2,dim))).*x
-		return y, lambda*norm(sqrt(sum(abs(y).^2,dim)'),1)
+function normL21(lambda::Float64=1.0, dim=1)
+	function call_normL21(x::Array{Float64,2}, gamma::Float64)
+		y = max(0, 1-lambda*gamma./sqrt(sum(x.^2, dim))).*x
+		return y, lambda*norm(sqrt(sum(y.^2, dim)'),1)
 	end
 end
 
 # L0 pseudo-norm (times a constant)
 
+"""
+  normL0(λ::Float64=1.0)
+
+Returns the function `g(x) = λ*countnz(x)`, for a nonnegative parameter `λ ⩾ 0`.
+"""
 function normL0(lambda::Float64=1.0)
   function call_normL0(x::Array{Float64})
     return lambda*countnz(x)
