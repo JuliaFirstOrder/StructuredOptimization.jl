@@ -75,7 +75,7 @@ end
 Returns the function `ind{x : countnz(x) ⩽ r}`, for an integer parameter `r > 0`.
 """
 function indBallL0(r::Int64)
-  if r < 0 error("parameter r must be positive")
+  if r < 0 error("parameter r must be positive") end
   function proj_l0ball(x::Array{Float64}, gamma::Float64=1.0)
     y = zeros(size(x))
     if r < log2(length(x))
