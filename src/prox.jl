@@ -20,7 +20,13 @@ end
 
 # L1 norm (times a constant, or weighted)
 
+"""
+  normL1(λ::Float64=1.0)
+
+Returns the function `g(x) = λ||x||_1`, for a real parameter `λ>0`.
+"""
 function normL1(lambda::Float64=1.0)
+  if lambda < 0 error("parameter λ should be positive") end
   function prox_l1norm(x::Array{Float64}, gamma::Float64=1.0)
     y = sign(x).*max(0.0, abs(x)-gamma*lambda)
     return y, lambda*vecnorm(y,1)

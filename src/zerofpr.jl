@@ -81,7 +81,6 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 			if ys > 0
 				H0 = ys/vecdot(y,y)
 				LBFGS.push(lbfgs, s, y)
-			else @printf("y's = %7.4e\n", ys)
 			end
 			d = -LBFGS.matvec(lbfgs, H0, rbar)
 		end
