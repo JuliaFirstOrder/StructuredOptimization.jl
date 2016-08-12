@@ -23,17 +23,24 @@ end
 """
   normL1(λ::Float64=1.0)
 
-Returns the function `g(x) = λ||x||_1`, for a real parameter `λ>0`.
+Returns the function `g(x) = λ||x||_1`, for a real parameter `λ ⩾ 0`.
 """
 function normL1(lambda::Float64=1.0)
-  if lambda < 0 error("parameter λ should be positive") end
+  if lambda < 0 error("parameter λ must be nonnegative") end
   function prox_l1norm(x::Array{Float64}, gamma::Float64=1.0)
     y = sign(x).*max(0.0, abs(x)-gamma*lambda)
     return y, lambda*vecnorm(y,1)
   end
 end
 
+"""
+  normL1(λ::Array{Float64})
+
+Returns the function `g(x) = sum(λ_i|x_i|, i = 1,...,n)`, for a vector of real
+parameters `λ_i ⩾ 0`.
+"""
 function normL1(lambda::Array{Float64})
+  if any(lambda .< 0) error("coefficients in λ must be nonnegative") end
   function prox_l1norm(x::Array{Float64}, gamma::Float64=1.0)
     y = sign(x).*max(0.0, abs(x)-gamma*lambda)
     return y, vecnorm(lambda.*y,1)
@@ -62,7 +69,13 @@ end
 
 # indicator of the L0 norm ball with given (integer) radius
 
+"""
+  indBallL0(r::Int64)
+
+Returns the function `ind{x : countnz(x) ⩽ r}`, for an integer parameter `r > 0`.
+"""
 function indBallL0(r::Int64)
+  if r < 0 error("parameter r must be positive")
   function proj_l0ball(x::Array{Float64}, gamma::Float64=1.0)
     y = zeros(size(x))
     if r < log2(length(x))
