@@ -1,6 +1,3 @@
-include("utils.jl")
-include("LBFGS.jl")
-
 function zerofpr(A::Array{Float64,2}, args...)
 
 	L(y::Array{Float64}) = A*y
@@ -30,7 +27,7 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 	rbar_prev = zeros(size(x))
 	k = 0
 
-	lbfgs = LBFGS(5)
+	lbfgs = LBFGS.create(5)
 
 	# compute least squares residual and gradient
 	resx = L(x) - b
@@ -76,17 +73,17 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 		# compute direction according to L-BFGS
 		if k == 1
 			d = -rbar
-			LBFGS_reset(lbfgs)
+			LBFGS.reset(lbfgs)
 		else
 			s = tau*d
 			y = r - rbar_prev
 			ys = vecdot(s,y)
 			if ys > 0
 				H0 = ys/vecdot(y,y)
-				LBFGS_push(lbfgs, s, y)
+				LBFGS.push(lbfgs, s, y)
 			else @printf("y's = %7.4e\n", ys)
 			end
-			d = -LBFGS_matvec(lbfgs, H0, rbar)
+			d = -LBFGS.matvec(lbfgs, H0, rbar)
 		end
 
 		# store xbar and rbar for later use

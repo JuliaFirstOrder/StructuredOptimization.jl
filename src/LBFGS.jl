@@ -1,4 +1,6 @@
-type LBFGS
+module LBFGS
+
+type Storage
   mem::Int64
   currmem::Int64
   curridx::Int64
@@ -7,14 +9,14 @@ type LBFGS
   ys_m::Array{Float64,1}
 end
 
-function LBFGS(mem::Int64)
+function create(mem::Int64)
 	s_m = Array{Array,1}(mem)
 	y_m = Array{Array,1}(mem)
 	ys_m = zeros(mem)
-	LBFGS(mem, 0, 0, s_m, y_m, ys_m)
+	Storage(mem, 0, 0, s_m, y_m, ys_m)
 end
 
-function LBFGS_push(obj::LBFGS, s::Array{Float64}, y::Array{Float64})
+function push(obj::Storage, s::Array{Float64}, y::Array{Float64})
 	obj.curridx += 1
   if obj.curridx > obj.mem obj.curridx = 1 end
 	obj.currmem += 1
@@ -24,7 +26,7 @@ function LBFGS_push(obj::LBFGS, s::Array{Float64}, y::Array{Float64})
 	obj.ys_m[obj.curridx] = vecdot(s,y)
 end
 
-function LBFGS_matvec(obj::LBFGS, H::Float64, g::Array{Float64})
+function matvec(obj::Storage, H::Float64, g::Array{Float64})
 	# TODO maybe this operation alone can be taken from libLBFGS
 	q = g
 	alphas = zeros(obj.mem)
@@ -45,7 +47,9 @@ function LBFGS_matvec(obj::LBFGS, H::Float64, g::Array{Float64})
 	return z
 end
 
-function LBFGS_reset(obj::LBFGS)
+function reset(obj::Storage)
 	obj.currmem = 0
 	obj.curridx = 0
+end
+
 end

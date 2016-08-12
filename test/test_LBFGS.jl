@@ -39,7 +39,7 @@ col = 0; # last column of Sk, Yk that was filled in
 currmem = 0;
 H0 = 1.0
 
-lbfgs = LBFGS(mem)
+lbfgs = LBFGS.create(mem)
 x_old = 0;
 grad_old = 0;
 
@@ -49,16 +49,10 @@ for i=1:5
     if i > 1
         Sk = x-x_old
         Yk = grad-grad_old
-        # YSk = Yk'*Sk
-        # col = 1+mod(col, mem)
-        # currmem = min(currmem+1, mem)
-        # S(:,col) = Sk;
-        # Y(:,col) = Yk;
-        # YS(col) = YSk;
-        LBFGS_push(lbfgs, Sk, Yk)
+        LBFGS.push(lbfgs, Sk, Yk)
         H0 = dot(Sk[:],Yk[:])/dot(Yk[:],Yk[:])
     end
-    dir = LBFGS_matvec(lbfgs, H0, -grad)
+    dir = LBFGS.matvec(lbfgs, H0, -grad)
     dirs[:, i] = dir
     x_old = x;
     grad_old = grad;

@@ -4,14 +4,14 @@
 
 # L2 norm (times a constant, or weighted)
 
-function l2norm(lambda::Float64=1.0)
+function normL2(lambda::Float64=1.0)
   function prox_l2norm(x::Array{Float64}, gamma::Float64=1.0)
     y = x/(1+lambda*gamma)
     return y, (lambda/2)*vecdot(y,y)
   end
 end
 
-function l2norm(lambda::Array{Float64})
+function normL2(lambda::Array{Float64})
   function prox_l2norm(x::Array{Float64}, gamma::Float64=1.0)
     y = x./(1+lambda*gamma)
     return y, 0.5*vecdot(lambda.*y,y)
@@ -20,14 +20,14 @@ end
 
 # L1 norm (times a constant, or weighted)
 
-function l1norm(lambda::Float64=1.0)
+function normL1(lambda::Float64=1.0)
   function prox_l1norm(x::Array{Float64}, gamma::Float64=1.0)
     y = sign(x).*max(0.0, abs(x)-gamma*lambda)
     return y, lambda*vecnorm(y,1)
   end
 end
 
-function l1norm(lambda::Array{Float64})
+function normL1(lambda::Array{Float64})
   function prox_l1norm(x::Array{Float64}, gamma::Float64=1.0)
     y = sign(x).*max(0.0, abs(x)-gamma*lambda)
     return y, vecnorm(lambda.*y,1)
@@ -36,7 +36,7 @@ end
 
 # L2,1 norm/Sum of norms (times a constant)
 
-function l21norm(lambda::Float64=1.0, dim = 1)
+function normL21(lambda::Float64=1.0, dim = 1)
 	function prox_l21group(x, gamma::Float64=1.0)
 		n = size(x,dim)
 		y = max(0, 1-lambda*gamma./sqrt(sum(abs(x).^2,dim))).*x
@@ -46,7 +46,7 @@ end
 
 # L0 pseudo-norm (times a constant)
 
-function l0norm(lambda::Float64=1.0)
+function normL0(lambda::Float64=1.0)
   function prox_l0norm(x::Array{Float64}, gamma::Float64=1.0)
     over = abs(x) .> sqrt(2*gamma*lambda);
     y = x.*over;
@@ -56,7 +56,7 @@ end
 
 # indicator of the L0 norm ball with given (integer) radius
 
-function l0ball(r::Int64)
+function indBallL0(r::Int64)
   function proj_l0ball(x::Array{Float64}, gamma::Float64=1.0)
     y = zeros(size(x))
     if r < log2(length(x))
@@ -72,7 +72,7 @@ end
 
 # indicator of the ball of matrices with (at most) a given rank
 
-function rankball(r::Int64)
+function indBallRank(r::Int64)
   function proj_rankball(x::Array{Float64}, gamma::Float64=1.0)
     u, s, v = svds(x, nsv=r)
     return (u*diagm(s))*v', 0.0
@@ -81,7 +81,7 @@ end
 
 # indicator of a generic box
 
-function box(lb, ub)
+function indBox(lb, ub)
   function proj_box(x::Array{Float64}, gamma::Float64=1.0)
     y = min(ub, max(lb, x))
     return y, 0.0
@@ -90,6 +90,6 @@ end
 
 # indicator of the L-infinity ball (box centered in the origin)
 
-function linfball(r::Float64)
+function indBallInf(r::Float64)
   box(-r, r)
 end
