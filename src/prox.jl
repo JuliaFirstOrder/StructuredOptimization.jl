@@ -146,5 +146,5 @@ end
 # indicator of the L-infinity ball (box centered in the origin)
 
 function indBallInf(r::Float64)
-  box(-r, r)
+  indBox(-r, r)
 end
