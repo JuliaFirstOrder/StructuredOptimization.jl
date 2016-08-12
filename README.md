@@ -1,10 +1,10 @@
-## Usage
+# JuLiASSO
 
-To run the tests:
+Welcome to JuLiASSO, a Julia package to solve regularized least squares problems.
 
-	julia test/runtests.jl
+## Installation
 
-Or, from the command line of Julia:
+From the Julia command line:
 
-	include("test/runtests.jl")
+	Pkg.clone("https://github.com/nantonel/JuLiASSO.jl.git")
 
