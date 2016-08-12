@@ -38,7 +38,7 @@ Function        | Description
 ----------------|------------------------------------
 `indBallInf`    | Indicator of an infinity-norm ball
 `indBallL0`     | Indicator of an L0 pseudo-norm ball
-`IndBallRank`   | Indicator of the set of matrices with given rank
+`indBallRank`   | Indicator of the set of matrices with given rank
 `indBox`        | Indicator of a box
 `normL0`        | L0 pseudo-norm
 `normL1`        | L1 norm
