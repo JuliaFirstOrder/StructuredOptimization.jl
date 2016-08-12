@@ -43,7 +43,7 @@ function fista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, 
 
 		# line search on gamma
 		for j = 1:32
-			z, ~ = proxg(y - gamma*grady, gamma)
+			z, = proxg(y - gamma*grady, gamma)
 			fpr = y-z
 			normfpr = vecnorm(fpr)
 			resz = L(z) - b

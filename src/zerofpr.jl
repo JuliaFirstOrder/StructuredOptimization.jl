@@ -67,7 +67,7 @@ function zerofpr(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function
 
 		# compute rbar
 		gradxbar = Ladj(resxbar)
-		xbarbar, gxbarbar = proxg(xbar - gamma*gradxbar, gamma)
+		xbarbar, = proxg(xbar - gamma*gradxbar, gamma)
 		rbar = xbar - xbarbar
 
 		# compute direction according to L-BFGS

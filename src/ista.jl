@@ -37,7 +37,7 @@ function ista(L::Function, Ladj::Function, b::Array{Float64}, proxg::Function, x
 
 		# line search on gamma
 		for j = 1:32
-			z, ~ = proxg(x - gamma*gradx, gamma)
+			z, = proxg(x - gamma*gradx, gamma)
 			fpr = x-z
 			normfpr = vecnorm(fpr)
 			resz = L(z) - b
