@@ -1,6 +1,6 @@
 using Base.Test
 
-@printf("Testing the L-BFGS routines\n")
+@printf("Testing L-BFGS routines\n")
 
 Q = [32.0000 13.1000 -4.9000 -3.0000  6.0000  2.2000  2.6000  3.4000 -1.9000 -7.5000;
  13.1000 18.3000 -5.3000 -9.5000  3.0000  2.1000  3.9000  3.0000 -3.6000 -4.4000;
@@ -60,4 +60,4 @@ for i=1:5
     grad_old = grad;
 end
 
-@test norm(dirs-dirs_ref, Inf) <= 1e-12
+@test vecnorm(dirs-dirs_ref, Inf)/(1+vecnorm(dirs_ref, Inf)) <= 1e-15
