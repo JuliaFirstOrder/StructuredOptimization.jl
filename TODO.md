@@ -1,7 +1,7 @@
 ## TODO list
 
-* Document regularizers.
-* Implement tests on regularizers.
+* Document regularizers. **Doing**
+* Implement tests on regularizers. **Doing**
 * Give some structure to algorithms output, such as
 
 		x, output = solve(A, b, g, x0)
@@ -15,3 +15,4 @@ where `x` containts the solution Array, `output` contains other details about th
 
 * Indicator of an affine subspace.
 * Nuclear norm.
+* Elastic net.

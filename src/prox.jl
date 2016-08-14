@@ -126,7 +126,7 @@ end
 """
   indBallL0(r::Int64)
 
-Returns the function `ind{x : countnz(x) ⩽ r}`, for an integer parameter `r > 0`.
+Returns the function `g(x) = ind{countnz(x) ⩽ r}`, for an integer parameter `r > 0`.
 """
 function indBallL0(r::Int64)
   if r < 0 error("parameter r must be positive") end
@@ -150,6 +150,11 @@ end
 
 # indicator of the ball of matrices with (at most) a given rank
 
+"""
+  indBallRank(r::Int64)
+
+Returns the function `g(X) = ind{rank(X) ⩽ r}`, for an integer parameter `r > 0`.
+"""
 function indBallRank(r::Int64)
   function call_indBallRank(x::Array{Float64})
     u, s, v = svds(x, nsv=r+1)
@@ -165,6 +170,12 @@ end
 
 # indicator of a generic box
 
+"""
+  indBox(lb, ub)
+
+Returns the function `g(x) = ind{lb ⩽ x ⩽ ub}`. Parameters `lb` and `ub` can be
+either scalars or arrays of the same dimension as `x`.
+"""
 function indBox(lb, ub)
   function call_indBox(x::Array{Float64})
     if any(x .< lb) || any(x .> ub) return +Inf end
@@ -179,6 +190,12 @@ end
 
 # indicator of the L-infinity ball (box centered in the origin)
 
+"""
+  indBallInf(r::Float64)
+
+Returns the indicator function of an infinity-norm ball, that is function
+`g(x) = ind{maximum(abs(x)) ⩽ r}` for `r ⩾ 0`.
+"""
 function indBallInf(r::Float64)
   indBox(-r, r)
 end
