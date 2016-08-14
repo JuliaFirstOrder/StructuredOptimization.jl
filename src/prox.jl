@@ -132,12 +132,12 @@ Returns the function `g(x) = ind{countnz(x) ⩽ r}`, for an integer parameter `r
 """
 function indBallL0(r::Int64)
   if r < 0 error("parameter r must be positive") end
-  function call_indBallL0(x::Array{Float64})
+  function call_indBallL0(x::RealOrComplexArray)
     if countnz(x) > r return +Inf end
     return 0.0
   end
-  function call_indBallL0(x::Array{Float64}, gamma::Float64)
-    y = zeros(size(x))
+  function call_indBallL0(x::RealOrComplexArray, gamma::Float64)
+    y = zeros(x)
     if r < log2(length(x))
       p = selectperm(abs(x)[:], 1:r, rev=true)
       y[p] = x[p]
@@ -158,12 +158,12 @@ end
 Returns the function `g(X) = ind{rank(X) ⩽ r}`, for an integer parameter `r > 0`.
 """
 function indBallRank(r::Int64)
-  function call_indBallRank(x::Array{Float64})
+  function call_indBallRank(x::RealOrComplexArray)
     u, s, v = svds(x, nsv=r+1)
-    if s[end] > 0 return +Inf end
+    if s[end]/s[1] >= 1e-15 return +Inf end
     return 0.0
   end
-  function call_indBallRank(x::Array{Float64}, gamma::Float64)
+  function call_indBallRank(x::RealOrComplexArray, gamma::Float64)
     u, s, v = svds(x, nsv=r)
     return (u*diagm(s))*v', 0.0
   end
