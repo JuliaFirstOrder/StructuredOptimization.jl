@@ -2,6 +2,8 @@
 # prox.jl - library of nonsmooth functions and associated proximal mappings
 # ------------------------------------------------------------------------------
 
+RealOrComplexArray = Union{Array{Float64}, Array{Complex{Float64}}}
+
 # L2 norm (times a constant)
 
 """
@@ -14,10 +16,10 @@ function normL2(lambda::Float64=1.0)
     return lambda*vecnorm(x)
   end
   function call_normL2(x::Array{Float64}, gamma::Float64)
-    normx = vecnorm(x)
+    vecnormx = vecnorm(x)
     scale = max(0, 1-lambda*gamma/vecnormx)
     y = scale*x
-    return y, lambda*scale*normx
+    return y, lambda*scale*vecnormx
   end
   return call_normL2
 end
@@ -65,17 +67,10 @@ Returns the function `g(x) = λ||x||_1`, for a real parameter `λ ⩾ 0`.
 """
 function normL1(lambda::Float64=1.0)
   if lambda < 0 error("parameter λ must be nonnegative") end
-  function call_normL1(x::Array{Float64})
+  function call_normL1(x::RealOrComplexArray)
     return lambda*vecnorm(x,1)
   end
-  function call_normL1(x::Array{Float64}, gamma::Float64)
-    y = sign(x).*max(0.0, abs(x)-gamma*lambda)
-    return y, lambda*vecnorm(y,1)
-  end
-  function call_normL1(x::Array{Complex{Float64}})
-    return lambda*vecnorm(x,1)
-  end
-  function call_normL1(x::Array{Complex{Float64}}, gamma::Float64)
+  function call_normL1(x::RealOrComplexArray, gamma::Float64)
 	  y = sign(x).*max(0.0, abs(x)-gamma*lambda)
 	  return y, lambda*vecnorm(y,1)
   end
