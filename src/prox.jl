@@ -2,6 +2,18 @@
 # prox.jl - library of nonsmooth functions and associated proximal mappings
 # ------------------------------------------------------------------------------
 
+module Prox
+
+export normL2,
+       normL2sqr,
+       normL1,
+       normL21,
+       normL0,
+       indBallL0,
+       indBallRank,
+       indBox,
+       indBallInf
+
 RealOrComplexArray = Union{Array{Float64}, Array{Complex{Float64}}}
 
 # L2 norm (times a constant)
@@ -200,4 +212,5 @@ Returns the indicator function of an infinity-norm ball, that is function
 """
 function indBallInf(r::Float64)
   indBox(-r, r)
+end
 end

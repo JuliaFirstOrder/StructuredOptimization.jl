@@ -1,3 +1,4 @@
+using RegLS
 using Base.Test
 
 ASSERT_REL_TOL = 1e-14

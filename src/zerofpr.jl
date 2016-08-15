@@ -1,3 +1,8 @@
+module Zerofpr
+
+using ..Utils, ..LBFGS
+export zerofpr
+
 function zerofpr(A::Array{Float64,2}, args...)
 
 	L(y::Array{Float64}) = A*y
@@ -35,7 +40,7 @@ function zerofpr(L::Function, Ladj::Function, b::Array, proxg::Function, x::Arra
 	rbar_prev = zeros(x)
 	k = 0
 
-	lbfgs = LBFGS.create(5,typeof(x))
+	lbfgs = LBFGS.create(5,typeof(x[:]))
 
 	# compute least squares residual and gradient
 	resx = L(x) - b
@@ -117,4 +122,5 @@ function zerofpr(L::Function, Ladj::Function, b::Array, proxg::Function, x::Arra
 	end
 	print_status(k, gamma, normr, 2*(verbose>0))
 	return xbar, k
+end
 end

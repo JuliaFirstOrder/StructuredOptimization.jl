@@ -1,3 +1,4 @@
+using RegLS
 using Base.Test
 
 srand(123)

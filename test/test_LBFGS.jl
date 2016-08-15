@@ -1,3 +1,4 @@
+using RegLS
 using Base.Test
 
 @printf("Testing L-BFGS routines\n")
@@ -41,7 +42,7 @@ col = 0; # last column of Sk, Yk that was filled in
 currmem = 0;
 H0 = 1.0
 
-lbfgs = LBFGS.create(mem,Array{Float64,1})
+lbfgs = RegLS.LBFGS.create(mem,Array{Float64,1})
 x_old = 0;
 grad_old = 0;
 
@@ -51,10 +52,10 @@ for i=1:5
     if i > 1
         Sk = x-x_old
         Yk = grad-grad_old
-        LBFGS.push(lbfgs, Sk, Yk)
+        RegLS.LBFGS.push(lbfgs, Sk, Yk)
         H0 = dot(Sk[:],Yk[:])/dot(Yk[:],Yk[:])
     end
-    dir = LBFGS.matvec(lbfgs, H0, -grad)
+    dir = RegLS.LBFGS.matvec(lbfgs, H0, -grad)
     dirs[:, i] = dir
     x_old = x;
     grad_old = grad;
