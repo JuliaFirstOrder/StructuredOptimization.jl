@@ -1,4 +1,4 @@
-# JuLiASSO
+# RegLS
 
 Convex and nonconvex regularized least squares in Julia.
 
@@ -6,7 +6,7 @@ Convex and nonconvex regularized least squares in Julia.
 
 From the Julia command line hit:
 
-	Pkg.clone("https://github.com/nantonel/JuLiASSO.jl.git")
+	Pkg.clone("https://github.com/nantonel/RegLS.jl.git")
 
 Once the package is installed you can update it with:
 
@@ -16,17 +16,17 @@ Once the package is installed you can update it with:
 
 For a matrix `A` you can use:
 
-	x = JuLiASSO.solve(A, b, g, x0)
+	x = RegLS.solve(A, b, g, x0)
 
 For functions `Op` and `OpAdj` computing the direct and adjoint operator respectively you should call instead:
 
-	x = JuLiASSO.solve(Op, OpAdj, b, g, x0)
+	x = RegLS.solve(Op, OpAdj, b, g, x0)
 
 Argument `x0` is the initial approximation to the solution. Both `x0` and `b` must be `Array{}` objects whose dimensions are conformant with those of `A` or `Op` and `OpAdj`.
 
 ## Regularizers
 
-Argument `g` in the examples above is the regularization term in the problem. The regularizers included in `JuLiASSO` are listed here.
+Argument `g` in the examples above is the regularization term in the problem. The regularizers included in `RegLS` are listed here.
 
 Function        | Description                                          | Properties
 ----------------|------------------------------------------------------|----------------
@@ -42,7 +42,7 @@ Function        | Description                                          | Propert
 
 Each function can be customized with parameters. You can access the full documentation of each of these functions from the command line of Julia directly:
 
-	julia> ?JuLiASSO.normL1
+	julia> ?RegLS.normL1
 		normL1(λ::Array{Float64})
 
 		Returns the function g(x) = sum(λ_i|x_i|, i = 1,...,n), for a vector of real
