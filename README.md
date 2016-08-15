@@ -57,3 +57,9 @@ Each function can be customized with parameters. You can access the full documen
 ## Example - Some nice example #2
 
 ## References
+
+The algorithms implemented in RegLS are described in the following papers.
+
+1. L. Stella, A. Themelis, P. Patrinos, “Forward-backward quasi-Newton methods for nonsmooth optimization problems,” [arXiv:1604.08096](http://arxiv.org/abs/1604.08096) (2016).
+
+2. A. Themelis, L. Stella, P. Patrinos, “Forward-backward envelope for the sum of two nonconvex functions: Further properties and nonmonotone line-search algorithms,” [arXiv:1606.06256](http://arxiv.org/abs/1606.06256) (2016).
