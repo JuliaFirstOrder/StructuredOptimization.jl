@@ -1,26 +1,4 @@
-function ista(A::Array{Float64,2}, args...)
-
-	L(y::Array{Float64}) = A*y
-	Ladj(y::Array{Float64}) = A'*y
-	ista(L, Ladj, args...)
-
-end
-
-function ista(A::SparseMatrixCSC, args...)
-
-	L(y::Array{Float64}) = A*y
-	Ladj(y::Array{Float64}) = A'*y
-	ista(L, Ladj, args...)
-
-end
-
-function ista(A::Array{Complex{Float64},2}, args...)
-
-	L(y::Array{Complex{Float64},1}) = A*y
-	Ladj(y::Array{Complex{Float64},1}) = A'*y
-	ista(L, Ladj, args...)
-
-end
+ista(A, args...) = ista(x -> A*x, y -> A'*y, args...)
 
 function ista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array, maxit=10000, tol=1e-5, verbose=1)
 

@@ -2,6 +2,8 @@ VERSION >= v"0.4.0-dev+6521" && __precompile__()
 
 module RegLS
 
+RealOrComplexArray = Union{Array{Float64}, Array{Complex{Float64}}}
+
 include("prox.jl")
 include("utils.jl")
 include("LBFGS.jl")
@@ -9,11 +11,9 @@ include("ista.jl")
 include("fista.jl")
 include("zerofpr.jl")
 
-solve = zerofpr
-
-export ista, 
-       fista, 
-       zerofpr, 
+export ista,
+       fista,
+       zerofpr,
        solve,
        normL2,
        normL2sqr,
@@ -24,5 +24,7 @@ export ista,
        indBallRank,
        indBox,
        indBallInf
+
+solve = zerofpr
 
 end

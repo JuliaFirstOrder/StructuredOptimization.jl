@@ -1,7 +1,6 @@
 # ------------------------------------------------------------------------------
 # prox.jl - library of nonsmooth functions and associated proximal mappings
 # ------------------------------------------------------------------------------
-RealOrComplexArray = Union{Array{Float64}, Array{Complex{Float64}}}
 
 # L2 norm (times a constant)
 
@@ -98,11 +97,11 @@ end
 """
   normL21(λ::Float64,dim == 1)
 
-Returns the summation of the l2norms of the (column) rows of a matrix X 
-for a vector of real parameters `λ ⩾ 0`. 
-The optional parameter "dim" can be used to select the rows or columns 
-summation. 
-If dim is not specified summation is performed over the l2norm 
+Returns the summation of the l2norms of the (column) rows of a matrix X
+for a vector of real parameters `λ ⩾ 0`.
+The optional parameter "dim" can be used to select the rows or columns
+summation.
+If dim is not specified summation is performed over the l2norm
 of the columns of X.
 """
 

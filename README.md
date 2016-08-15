@@ -14,19 +14,24 @@ Once the package is installed you can update it with:
 
 ## Usage
 
-For a matrix `A` you can use:
+Import the package with
 
-	x = RegLS.solve(A, b, g, x0)
+	using RegLS
 
-For functions `Op` and `OpAdj` computing the direct and adjoint operator respectively you should call instead:
+You can fit regularized linear models using `AbstractMatrix` or `LinearOperator` objects
+(see [LinearOperators.jl](https://github.com/JuliaSmoothOptimizers/LinearOperators.jl)),
+or providing the direct and adjoint mappings in the form of `Function` objects:
 
-	x = RegLS.solve(Op, OpAdj, b, g, x0)
+	x = solve(A, b, g) # A is a Matrix or LinearOperator
+	x = solve(Op, OpAdj, b, g, x0) # Op and OpAdj are of type Function
 
-Argument `x0` is the initial approximation to the solution. Both `x0` and `b` must be `Array{}` objects whose dimensions are conformant with those of `A` or `Op` and `OpAdj`.
+Here `b` is an `Array` whose dimensions are conformant with those of `A` or `Op` and `OpAdj`,
+and `g` is the regularization functions in the cost (see below). When the mappings `Op` and `OpAdj`
+are provided, argument `x0` (the initial approximation to the solution) is mandatory.
 
 ## Regularizers
 
-Argument `g` in the examples above is the regularization term in the problem. The regularizers included in `RegLS` are listed here.
+The regularization functions included in `RegLS` are listed here.
 
 Function        | Description                                          | Properties
 ----------------|------------------------------------------------------|----------------
@@ -42,7 +47,7 @@ Function        | Description                                          | Propert
 
 Each function can be customized with parameters. You can access the full documentation of each of these functions from the command line of Julia directly:
 
-	julia> ?RegLS.normL1
+	julia> ?normL1
 		normL1(λ::Array{Float64})
 
 		Returns the function g(x) = sum(λ_i|x_i|, i = 1,...,n), for a vector of real

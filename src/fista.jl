@@ -1,26 +1,4 @@
-function fista(A::Array{Float64,2}, args...)
-
-	L(y::Array{Float64}) = A*y
-	Ladj(y::Array{Float64}) = A'*y
-	fista(L, Ladj, args...)
-
-end
-
-function fista(A::SparseMatrixCSC, args...)
-
-	L(y::Array{Float64}) = A*y
-	Ladj(y::Array{Float64}) = A'*y
-	fista(L, Ladj, args...)
-
-end
-
-function fista(A::Array{Complex{Float64},2}, args...)
-
-	L(y::Array{Complex{Float64},1}) = A*y
-	Ladj(y::Array{Complex{Float64},1}) = A'*y
-	fista(L, Ladj, args...)
-
-end
+fista(A, args...) = fista(x -> A*x, y -> A'*y, args...)
 
 function fista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array, maxit=10000, tol=1e-5, verbose=1)
 
