@@ -9,9 +9,20 @@ include("ista.jl")
 include("fista.jl")
 include("zerofpr.jl")
 
-using Reexport 
-@reexport using .Prox, .Ista, .Fista, .Zerofpr
-
 solve = zerofpr
-export solve
+
+export ista, 
+       fista, 
+       zerofpr, 
+       solve,
+       normL2,
+       normL2sqr,
+       normL1,
+       normL21,
+       normL0,
+       indBallL0,
+       indBallRank,
+       indBox,
+       indBallInf
+
 end

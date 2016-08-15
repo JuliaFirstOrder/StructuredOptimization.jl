@@ -1,8 +1,3 @@
-module Ista
-
-using ..Utils
-export ista
-
 function ista(A::Array{Float64,2}, args...)
 
 	L(y::Array{Float64}) = A*y
@@ -64,7 +59,7 @@ function ista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array, 
 		if normfpr <= tol break end
 
 		# print out stuff
-		Utils.print_status(k, gamma, normfpr, verbose)
+		print_status(k, gamma, normfpr, verbose)
 
 		# update iterates
 		x = z
@@ -73,8 +68,7 @@ function ista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array, 
 
 	end
 
-	Utils.print_status(k, gamma, normfpr, 2*(verbose>0))
+	print_status(k, gamma, normfpr, 2*(verbose>0))
 	return z, k
 
-end
 end

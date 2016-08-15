@@ -1,19 +1,6 @@
 # ------------------------------------------------------------------------------
 # prox.jl - library of nonsmooth functions and associated proximal mappings
 # ------------------------------------------------------------------------------
-
-module Prox
-
-export normL2,
-       normL2sqr,
-       normL1,
-       normL21,
-       normL0,
-       indBallL0,
-       indBallRank,
-       indBox,
-       indBallInf
-
 RealOrComplexArray = Union{Array{Float64}, Array{Complex{Float64}}}
 
 # L2 norm (times a constant)
@@ -107,11 +94,25 @@ function normL1(lambda::Array{Float64})
   return call_normL1
 end
 
-# L2,1 norm/Sum of norms (times a constant)
+# L2,1 norm/Sum of norms of columns or rows (times a constant)
+"""
+  normL21(λ::Float64,dim == 1)
+
+Returns the summation of the l2norms of the (column) rows of a matrix X 
+for a vector of real parameters `λ ⩾ 0`. 
+The optional parameter "dim" can be used to select the rows or columns 
+summation. 
+If dim is not specified summation is performed over the l2norm 
+of the columns of X.
+"""
 
 function normL21(lambda::Float64=1.0, dim=1)
-	function call_normL21(x::Array{Float64,2}, gamma::Float64)
-		y = max(0, 1-lambda*gamma./sqrt(sum(x.^2, dim))).*x
+  if lambda < 0 error("parameter λ must be nonnegative") end
+	function call_normL21(x::RealOrComplexArray)
+		return lambda*norm(sqrt(sum(abs(x).^2, dim)'),1)
+	end
+	function call_normL21(x::RealOrComplexArray, gamma::Float64)
+		y = max(0, 1-lambda*gamma./sqrt(sum(abs(x).^2, dim))).*x
 		return y, lambda*norm(sqrt(sum(y.^2, dim)'),1)
 	end
 end
@@ -212,5 +213,4 @@ Returns the indicator function of an infinity-norm ball, that is function
 """
 function indBallInf(r::Float64)
   indBox(-r, r)
-end
 end

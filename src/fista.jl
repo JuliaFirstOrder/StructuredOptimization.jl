@@ -1,8 +1,3 @@
-module Fista
-
-using ..Utils
-export fista
-
 function fista(A::Array{Float64,2}, args...)
 
 	L(y::Array{Float64}) = A*y
@@ -83,5 +78,4 @@ function fista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array,
 	print_status(k, gamma, normfpr, 2*(verbose>0))
 	return z, k
 
-end
 end
