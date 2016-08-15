@@ -1,4 +1,4 @@
-module JuLiASSO
+module RegLS
 
 include("prox.jl")
 include("LBFGS.jl")
