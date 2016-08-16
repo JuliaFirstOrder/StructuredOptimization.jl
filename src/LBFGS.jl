@@ -7,14 +7,13 @@ type Storage
   s_m::Array{Array,1}
   y_m::Array{Array,1}
   ys_m::Array
-  T::DataType
 end
 
-function create(mem::Int64,T::DataType)
+function create(mem::Int64)
 	s_m = Array{Array,1}(mem)
 	y_m = Array{Array,1}(mem)
-	ys_m = T(mem)
-	Storage(mem, 0, 0, s_m, y_m, ys_m, T)
+	ys_m = zeros(Float64,mem)
+	Storage(mem, 0, 0, s_m, y_m, ys_m)
 end
 
 function push(obj::Storage, s::Array, y::Array)
@@ -30,7 +29,7 @@ end
 function matvec(obj::Storage, H::Float64, g::Array)
 	# TODO maybe this operation alone can be taken from libLBFGS
 	q = g
-	alphas = obj.T(obj.mem)
+	alphas = zeros(Float64,obj.mem)
 	idx = obj.curridx
 	for i=1:obj.currmem
 		alphas[idx] = real(vecdot(obj.s_m[idx],q))/obj.ys_m[idx]

@@ -1,6 +1,6 @@
 zerofpr(A, args...) = zerofpr(x -> A*x, y -> A'*y, args...)
 
-function zerofpr(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array, maxit=10000, tol=1e-5, verbose=1)
+function zerofpr(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array, maxit=10000, tol=1e-5, verbose=1, mem = 5)
 
 	Lf = 1e-2
 	beta = 0.05
@@ -13,7 +13,7 @@ function zerofpr(L::Function, Ladj::Function, b::Array, proxg::Function, x::Arra
 	rbar_prev = zeros(x)
 	k = 0
 
-	lbfgs = LBFGS.create(5,typeof(x[:]))
+	lbfgs = LBFGS.create(mem)
 
 	# compute least squares residual and gradient
 	resx = L(x) - b
