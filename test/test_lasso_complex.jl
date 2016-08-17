@@ -10,21 +10,21 @@ g = normL1(lambda)
 x0 = zeros(Complex{Float64},n)
 tol = 1e-8
 maxit = 100000
-verbose = 0
+verb = 0
 tol_test = 1e-4
 
 @printf("Solving a complex random lasso instance (m = %d, n = %d)\n", m, n)
 
-x_star, ~ = fista(A, b, g, x0, 100000, 1e-12, 0)
+x_star, ~ = solve(A, b, g, x0, FPG(verbose = verb))
 
-@time x_ista,  it =  ista(A, b, g, x0, maxit, tol, verbose)
+@time x_ista,  it =  solve(A, b, g, x0, PG(verbose = verb, tol = tol))
 @test it < maxit
 @test norm(x_ista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
-@time x_fista, it = fista(A, b, g, x0, maxit, tol, verbose)
+@time x_fista, it = solve(A, b, g, x0, FPG(verbose = verb, tol = tol))
 @test it < maxit
 @test norm(x_fista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
-@time x_zerofpr, it = zerofpr(A, b, g, x0, maxit, tol, verbose)
+@time x_zerofpr, it = solve(A, b, g, x0, ZeroFPR(verbose = verb, tol = tol))
 @test it < maxit
 @test norm(x_zerofpr-x_star, Inf)/norm(x_star, Inf) <= tol_test

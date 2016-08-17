@@ -30,20 +30,19 @@ g = normL1(lambda)
 x0 = zeros(Complex{Float64} ,m,length(F))
 tol = 1e-8
 maxit = 100000
-verbose = 0
+verb = 0
 tol_test = 1e-2
 
 @printf("Solving a complex multidim lasso instance (m = %d, n = %d)\n", m, n)
 
-
-@time x_ista,  it =  ista(L, Ladj, b, g, x0, maxit, tol, verbose)
+@time x_ista,  it =  solve(L, Ladj, b, g, x0, PG(verbose = verb, tol = tol, maxit = maxit))
 @test it < maxit
 @test norm(x_ista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
-@time x_fista, it = fista(L, Ladj, b, g, x0, maxit, tol, verbose)
+@time x_fista, it = solve(L, Ladj, b, g, x0, FPG(verbose = verb, tol = tol, maxit = maxit))
 @test it < maxit
 @test norm(x_fista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
-@time x_zerofpr, it = zerofpr(L, Ladj, b, g, x0, maxit, tol, verbose)
+@time x_zerofpr, it = solve(L, Ladj, b, g, x0, ZeroFPR(verbose = verb, tol = tol, maxit = maxit))
 @test it < maxit
 @test norm(x_zerofpr-x_star, Inf)/norm(x_star, Inf) <= tol_test

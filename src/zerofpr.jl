@@ -1,10 +1,17 @@
-zerofpr(A, args...) = zerofpr(x -> A*x, y -> A'*y, args...)
+immutable ZeroFPR <: Solver
+	tol::Float64
+	maxit::Int64
+	lbfgs::LBFGS.Storage
+	verbose::Int64
+end
 
-function zerofpr(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array, maxit=10000, tol=1e-5, verbose=1, mem = 5)
+ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000, mem::Int64 = 10, verbose::Int64 = 1) =
+	ZeroFPR(tol, maxit, LBFGS.create(mem), verbose)
 
-	Lf = 1e-2
+function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, solver::ZeroFPR)
+
+	gamma = 100.0
 	beta = 0.05
-	gamma = (1-beta)/Lf
 	sigma = beta/(4*gamma)
 	normr = Inf
 	H0 = 1.0
@@ -13,28 +20,26 @@ function zerofpr(L::Function, Ladj::Function, b::Array, proxg::Function, x::Arra
 	rbar_prev = zeros(x)
 	k = 0
 
-	lbfgs = LBFGS.create(mem)
-
 	# compute least squares residual and gradient
 	resx = L(x) - b
 	fx = 0.5*vecnorm(resx)^2
 	gradx = Ladj(resx)
-	xbar, gxbar = proxg(x-gamma*gradx, gamma)
+	xbar, gxbar = g(x-gamma*gradx, gamma)
+	fxbar = Inf
 	r = x - xbar
 	normr = vecnorm(r)
 	uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*gamma)*normr^2
 
-	for k = 1:maxit
+	for k = 1:solver.maxit
 		resxbar = L(xbar) - b
 		fxbar = 0.5*vecnorm(resxbar)^2
 
 		# line search on gamma
 		for j = 1:32
 			if fxbar <= uppbnd break end
-			Lf = 2*Lf
 			gamma = 0.5*gamma
 			sigma = 2*sigma
-			xbar, gxbar = proxg(x-gamma*gradx, gamma)
+			xbar, gxbar = g(x-gamma*gradx, gamma)
 			r = x - xbar
 			normr = vecnorm(r)
 			resxbar = L(xbar) - b
@@ -46,29 +51,29 @@ function zerofpr(L::Function, Ladj::Function, b::Array, proxg::Function, x::Arra
 		FBEx = uppbnd + gxbar
 
 		# stopping criterion
-		if normr <= tol break end
+		if normr <= solver.tol break end
 
 		# print out stuff
-		print_status(k, gamma, normr, verbose)
+		print_status(k, gamma, normr, fxbar+gxbar, solver.verbose)
 
 		# compute rbar
 		gradxbar = Ladj(resxbar)
-		xbarbar, = proxg(xbar - gamma*gradxbar, gamma)
+		xbarbar, = g(xbar - gamma*gradxbar, gamma)
 		rbar = xbar - xbarbar
 
 		# compute direction according to L-BFGS
 		if k == 1
 			d = -rbar
-			LBFGS.reset(lbfgs)
+			LBFGS.reset(solver.lbfgs)
 		else
 			s = tau*d
 			y = r - rbar_prev
 			ys = real(vecdot(s,y))
 			if ys > 0
 				H0 = ys/real(vecdot(y,y))
-				LBFGS.push(lbfgs, s, y)
+				LBFGS.push(solver.lbfgs, s, y)
 			end
-			d = -LBFGS.matvec(lbfgs, H0, rbar)
+			d = -LBFGS.matvec(solver.lbfgs, H0, rbar)
 		end
 
 		# store xbar and rbar for later use
@@ -85,7 +90,7 @@ function zerofpr(L::Function, Ladj::Function, b::Array, proxg::Function, x::Arra
 			resx = resxbar + tau*Ad
 			fx = 0.5*vecnorm(resx)^2
 			gradx = gradxbar + tau*ATAd
-			xbar, gxbar = proxg(x - gamma*gradx, gamma)
+			xbar, gxbar = g(x - gamma*gradx, gamma)
 			r = x - xbar
 			normr = vecnorm(r)
 			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*gamma)*normr^2
@@ -93,6 +98,6 @@ function zerofpr(L::Function, Ladj::Function, b::Array, proxg::Function, x::Arra
 			tau = 0.5*tau
 		end
 	end
-	print_status(k, gamma, normr, 2*(verbose>0))
+	print_status(k, gamma, normr, fxbar+gxbar, 2*(solver.verbose>0))
 	return xbar, k
 end

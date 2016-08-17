@@ -1,6 +1,13 @@
-fista(A, args...) = fista(x -> A*x, y -> A'*y, args...)
+immutable FPG <: Solver
+	tol::Float64
+	maxit::Int64
+	verbose::Int64
+end
 
-function fista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array, maxit=10000, tol=1e-5, verbose=1)
+FPG(; tol::Float64 = 1e-8, maxit::Int64 = 10000, verbose::Int64 = 1) =
+	FPG(tol, maxit, verbose)
+
+function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, solver::FPG)
 
 	gamma = 100.0
 	z = xprev = x
@@ -10,6 +17,8 @@ function fista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array,
 	# compute least squares residual and f(x)
 	resx = L(x) - b
 	fx = 0.5*vecnorm(resx)^2
+	fz = fx
+	gz = Inf
 
 	# initialize variables
 	xprev = x
@@ -17,7 +26,7 @@ function fista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array,
 	z = x
 	resz = resx
 
-	for k = 1:maxit
+	for k = 1:solver.maxit
 
 		# extrapolation
 		y = x + k/(k+3) * (x - xprev)
@@ -29,7 +38,7 @@ function fista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array,
 
 		# line search on gamma
 		for j = 1:32
-			z, = proxg(y - gamma*grady, gamma)
+			z, gz = g(y - gamma*grady, gamma)
 			fpr = y-z
 			normfpr = vecnorm(fpr)
 			resz = L(z) - b
@@ -40,10 +49,10 @@ function fista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array,
 		end
 
 		# stopping criterion
-		if normfpr <= tol break end
+		if normfpr <= solver.tol break end
 
 		# print out stuff
-		print_status(k, gamma, normfpr, verbose)
+		print_status(k, gamma, normfpr, fz+gz, solver.verbose)
 
 		# update iterates
 		xprev = x
@@ -53,7 +62,7 @@ function fista(L::Function, Ladj::Function, b::Array, proxg::Function, x::Array,
 
 	end
 
-	print_status(k, gamma, normfpr, 2*(verbose>0))
+	print_status(k, gamma, normfpr, fz+gz, 2*(solver.verbose>0))
 	return z, k
 
 end
