@@ -1,4 +1,4 @@
-VERSION >= v"0.4.0-dev+6521" && __precompile__()
+#VERSION >= v"0.4.0-dev+6521" && __precompile__()
 
 module RegLS
 
@@ -13,8 +13,8 @@ include("LBFGS.jl")
 
 abstract Solver
 
-include("ista.jl")
-include("fista.jl")
+include("pg.jl")
+include("fpg.jl")
 include("zerofpr.jl")
 
 export PG,
