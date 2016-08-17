@@ -162,6 +162,41 @@ function indBallL0(r::Int64)
   return call_indBallL0
 end
 
+
+"""
+  indBallL20(r::Int64)
+
+Returns the function `g(x) = ind{countnz(|x_{:,i}|_2) ⩽ r}`, for an integer parameter `r > 0`.
+"""
+function indBallL20(r::Int64, dim = 1)
+  if r < 0 error("parameter r must be positive") end
+  function call_indBallL20(x::RealOrComplexArray)
+    if countnz(sqrt(sum(abs(x).^2,dim))) > r return +Inf end
+    return 0.0
+  end
+  function call_indBallL20(x::RealOrComplexArray, gamma::Float64)
+    y = zeros(x)
+    if r < log2(size(x,dim))
+      p = selectperm( sqrt(sum(abs(x).^2,dim)[:]) , 1:r, rev=true)
+      if dim == 1
+      y[:,p] = x[:,p]
+      elseif dim == 2
+      y[p,:] = x[p,:]
+      end
+    else
+      p = sortperm(sqrt(sum(abs(x).^2,dim)[:]), rev=true)
+      if dim == 1
+      y[:,p[1:r]] = x[:,p[1:r]]
+      elseif dim == 2
+      y[p[1:r],:] = x[p[1:r],:]
+      end
+    end
+    return y, 0.0
+  end
+  return call_indBallL20
+end
+
+
 # indicator of the ball of matrices with (at most) a given rank
 
 """
