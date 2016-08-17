@@ -8,17 +8,11 @@ From the Julia command line hit:
 
 	Pkg.clone("https://github.com/nantonel/RegLS.jl.git")
 
-Once the package is installed you can update it with:
-
-	Pkg.update()
+Once the package is installed you can update it along with the others issuing `Pkg.update()` in the command line.
 
 ## Usage
 
-Import the package with
-
-	using RegLS
-
-You can fit regularized linear models using `AbstractMatrix` or `LinearOperator` objects
+After importind the package with `using RegLS`, you can fit regularized linear models using `AbstractMatrix` or `LinearOperator` objects
 (see [LinearOperators.jl](https://github.com/JuliaSmoothOptimizers/LinearOperators.jl)),
 or providing the direct and adjoint mappings in the form of `Function` objects:
 
