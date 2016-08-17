@@ -1,12 +1,12 @@
-immutable ZeroFPR <: Solver
+immutable ZeroFPR <: ForwardBackwardSolver
 	tol::Float64
 	maxit::Int64
-	lbfgs::LBFGS.Storage
 	verbose::Int64
+	lbfgs::LBFGS.Storage
 end
 
 ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000, mem::Int64 = 10, verbose::Int64 = 1) =
-	ZeroFPR(tol, maxit, LBFGS.create(mem), verbose)
+	ZeroFPR(tol, maxit, verbose, LBFGS.create(mem))
 
 function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, solver::ZeroFPR)
 
@@ -14,6 +14,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 	beta = 0.05
 	sigma = beta/(4*gamma)
 	normr = Inf
+	normr0 = Inf
 	H0 = 1.0
 	tau = 1.0
 	d = zeros(x)
@@ -26,6 +27,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 	gradx = Ladj(resx)
 	xbar, gxbar = g(x-gamma*gradx, gamma)
 	fxbar = Inf
+	FBEprev = Inf
 	r = x - xbar
 	normr = vecnorm(r)
 	uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*gamma)*normr^2
@@ -47,11 +49,14 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*gamma)*normr^2
 		end
 
+		if k == 1 normr0 = normr end
+
 		# evaluate FBE at x
 		FBEx = uppbnd + gxbar
 
 		# stopping criterion
-		if normr <= solver.tol break end
+		if halt(solver, gamma, normr0, normr, FBEprev, FBEx) break end
+		FBEprev = FBEx
 
 		# print out stuff
 		print_status(k, gamma, normr, fxbar+gxbar, solver.verbose)

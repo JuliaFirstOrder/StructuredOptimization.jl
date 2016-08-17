@@ -1,4 +1,4 @@
-immutable FPG <: Solver
+immutable FPG <: ForwardBackwardSolver
 	tol::Float64
 	maxit::Int64
 	verbose::Int64
@@ -12,6 +12,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 	gamma = 100.0
 	z = xprev = x
 	normfpr = Inf
+	normfpr0 = Inf
 	k = 0
 
 	# compute least squares residual and f(x)
@@ -19,6 +20,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 	fx = 0.5*vecnorm(resx)^2
 	fz = fx
 	gz = Inf
+	costprev = fz + gz
 
 	# initialize variables
 	xprev = x
@@ -48,11 +50,16 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 			gamma = 0.5*gamma
 		end
 
+		if k == 1 normfpr0 = normfpr end
+
+		cost = fz + gz
+
 		# stopping criterion
-		if normfpr <= solver.tol break end
+		if halt(solver, gamma, normfpr0, normfpr, costprev, cost) break end
+		costprev = cost
 
 		# print out stuff
-		print_status(k, gamma, normfpr, fz+gz, solver.verbose)
+		print_status(k, gamma, normfpr, cost, solver.verbose)
 
 		# update iterates
 		xprev = x

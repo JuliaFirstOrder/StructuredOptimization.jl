@@ -9,9 +9,10 @@ MatrixLike = Union{AbstractMatrix,LinearOperator}
 
 include("prox.jl")
 include("utils.jl")
-include("LBFGS.jl")
+include("lbfgs.jl")
 
 abstract Solver
+abstract ForwardBackwardSolver <: Solver
 
 include("pg.jl")
 include("fpg.jl")
