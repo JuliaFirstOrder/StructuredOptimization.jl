@@ -94,25 +94,24 @@ function normL1(lambda::Array{Float64})
 end
 
 # L2,1 norm/Sum of norms of columns or rows (times a constant)
-"""
-  normL21(λ::Float64,dim == 1)
 
-Returns the summation of the l2norms of the (column) rows of a matrix X
-for a vector of real parameters `λ ⩾ 0`.
-The optional parameter "dim" can be used to select the rows or columns
-summation.
-If dim is not specified summation is performed over the l2norm
-of the columns of X.
 """
+  normL21(λ::Float64, dim == 1)
 
+Returns the function `g(X) = λsqrt(sum(X.*X, dim))` for a nonnegative parameter
+`λ ⩾ 0`, i.e., the (scaled) sum of the norms of the columns (or rows) of X.
+
+If dim is not specified or dim = 1, then the norms are computed column-wise. If
+instead dim = 2 then the norms are computed row-wise.
+"""
 function normL21(lambda::Float64=1.0, dim=1)
   if lambda < 0 error("parameter λ must be nonnegative") end
-	function call_normL21(x::RealOrComplexArray)
-		return lambda*norm(sqrt(sum(abs(x).^2, dim)'),1)
+	function call_normL21(X::RealOrComplexArray)
+		return lambda*sum(sqrt(sum(X.^2, dim)))
 	end
-	function call_normL21(x::RealOrComplexArray, gamma::Float64)
-		y = max(0, 1-lambda*gamma./sqrt(sum(abs(x).^2, dim))).*x
-		return y, lambda*norm(sqrt(sum(y.^2, dim)'),1)
+	function call_normL21(X::RealOrComplexArray, gamma::Float64)
+		Y = max(0, 1-lambda*gamma./sqrt(sum(abs(X).^2, dim))).*X
+		return Y, lambda*sum(sqrt(sum(Y.^2, dim)))
 	end
 end
 
