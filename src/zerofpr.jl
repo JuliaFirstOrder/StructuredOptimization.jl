@@ -3,10 +3,12 @@ immutable ZeroFPR <: ForwardBackwardSolver
 	maxit::Int64
 	verbose::Int64
 	lbfgs::LBFGS.Storage
+	stp_cr::Function
 end
 
-ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000, mem::Int64 = 10, verbose::Int64 = 1) =
-	ZeroFPR(tol, maxit, verbose, LBFGS.create(mem))
+ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000, 
+          mem::Int64 = 10, verbose::Int64 = 1,stp_cr::Function = halt ) =
+	ZeroFPR(tol, maxit, verbose, LBFGS.create(mem),stp_cr)
 
 function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, solver::ZeroFPR)
 
@@ -55,7 +57,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 		FBEx = uppbnd + gxbar
 
 		# stopping criterion
-		if halt(solver, gamma, normr0, normr, FBEprev, FBEx) break end
+		if solver.stp_cr(solver.tol, gamma, normr0, normr, FBEprev, FBEx) break end
 		FBEprev = FBEx
 
 		# print out stuff

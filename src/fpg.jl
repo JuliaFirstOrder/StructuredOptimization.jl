@@ -2,10 +2,11 @@ immutable FPG <: ForwardBackwardSolver
 	tol::Float64
 	maxit::Int64
 	verbose::Int64
+	stp_cr::Function
 end
 
-FPG(; tol::Float64 = 1e-8, maxit::Int64 = 10000, verbose::Int64 = 1) =
-	FPG(tol, maxit, verbose)
+FPG(; tol::Float64 = 1e-8, maxit::Int64 = 10000, verbose::Int64 = 1,stp_cr::Function = halt) =
+	FPG(tol, maxit, verbose, stp_cr)
 
 function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, solver::FPG)
 
@@ -55,7 +56,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 		cost = fz + gz
 
 		# stopping criterion
-		if halt(solver, gamma, normfpr0, normfpr, costprev, cost) break end
+		if solver.stp_cr(solver.tol, gamma, normfpr0, normfpr, costprev, cost) break end
 		costprev = cost
 
 		# print out stuff

@@ -7,3 +7,9 @@ function print_status(it, gamma, fpr, cost, verbose)
     @printf("%6d | %7.4e | %7.4e | %11.8e\n", it, gamma, fpr, cost)
   end
 end
+
+function halt(tol::Float64, gamma::Float64, fpr0::Float64, fpr::Float64, fun_prev::Float64, fun::Float64)
+	conv_fpr = fpr <= (1+fpr0)*tol
+	conv_fun = abs(fun-fun_prev) <= (1+abs(fun))*tol
+	return conv_fpr && conv_fun
+end

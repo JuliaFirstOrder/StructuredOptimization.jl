@@ -2,16 +2,11 @@ immutable PG <: ForwardBackwardSolver
 	tol::Float64
 	maxit::Int64
 	verbose::Int64
+	stp_cr::Function
 end
 
-PG(; tol::Float64 = 1e-8, maxit::Int64 = 10000, verbose::Int64 = 1) =
-	PG(tol, maxit, verbose)
-
-function halt(solver::ForwardBackwardSolver, gamma::Float64, fpr0::Float64, fpr::Float64, fun_prev::Float64, fun::Float64)
-	conv_fpr = fpr <= (1+fpr0)*solver.tol
-	conv_fun = abs(fun-fun_prev) <= (1+abs(fun))*solver.tol
-	return conv_fpr && conv_fun
-end
+PG(; tol::Float64 = 1e-8, maxit::Int64 = 10000, verbose::Int64 = 1, stp_cr::Function = halt) =
+	PG(tol, maxit, verbose, stp_cr)
 
 function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, solver::PG)
 
@@ -54,7 +49,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 		cost = fz + gz
 
 		# stopping criterion
-		if halt(solver, gamma, normfpr0, normfpr, costprev, cost) break end
+		if solver.stp_cr(solver.tol, gamma, normfpr0, normfpr, costprev, cost) break end
 		costprev = cost
 
 		# print out stuff
