@@ -13,9 +13,8 @@ instead dim = 2 then the norms are computed row-wise.
 immutable normL21 <: ProximableFunction
   lambda::Float64
   dim::Int
+  normL21(lambda::Float64, dim=1) = lambda < 0 ? error("parameter λ must be nonnegative") : new(lambda, dim)
 end
-
-normL21(lambda::Float64) = normL21(lambda, 1)
 
 function call(f::normL21, X::RealOrComplexArray)
   return f.lambda*sum(sqrt(sum(abs(X).^2, f.dim)))

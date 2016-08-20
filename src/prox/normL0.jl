@@ -8,6 +8,7 @@ Returns the function `g(x) = λ*countnz(x)`, for a nonnegative parameter `λ ⩾
 
 immutable normL0 <: ProximableFunction
   lambda::Float64
+  normL0(lambda::Float64) = lambda < 0 ? error("parameter λ must be nonnegative") : new(lambda)
 end
 
 function call(f::normL0, x::Array{Float64})

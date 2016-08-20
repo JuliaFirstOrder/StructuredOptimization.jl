@@ -8,6 +8,7 @@ Returns the function `g(x) = λ||x||_2`, for a real parameter `λ ⩾ 0`.
 
 immutable normL2 <: ProximableFunction
   lambda::Float64
+  normL2(lambda::Float64) = lambda < 0 ? error("parameter λ must be nonnegative") : new(lambda)
 end
 
 function call(f::normL2, x::Array{Float64})

@@ -8,6 +8,7 @@ Returns the function `g(X) = ind{rank(X) ⩽ r}`, for an integer parameter `r > 
 
 immutable indBallRank <: ProximableFunction
   r::Int64
+  indBallRank(r::Int64) = r <= 0 ? error("parameter r must be a positive integer") : new(r)
 end
 
 function call(f::indBallRank, x::RealOrComplexArray)

@@ -11,9 +11,8 @@ For an integer parameter `r > 0`, if dim=1 then returns the function
 immutable indBallL20
   r::Int64
   dim::Int
+  indBallL20(r::Int64, dim=1) = r <= 0 ? error("parameter r must be a positive integer") : new(r, dim)
 end
-
-indBallL20(r::Int64) = indBallL20(r, 1)
 
 function call(f::indBallL20, X::RealOrComplexArray)
   if countnz(sqrt(sum(abs(X).^2,dim))) > f.r return +Inf end
