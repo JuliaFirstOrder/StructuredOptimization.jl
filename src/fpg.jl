@@ -8,7 +8,7 @@ end
 FPG(; tol::Float64 = 1e-8, maxit::Int64 = 10000, verbose::Int64 = 1,stp_cr::Function = halt) =
 	FPG(tol, maxit, verbose, stp_cr)
 
-function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, solver::FPG)
+function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, solver::FPG)
 
 	gamma = 100.0
 	z = xprev = x
@@ -41,7 +41,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 
 		# line search on gamma
 		for j = 1:32
-			z, gz = g(y - gamma*grady, gamma)
+			z, gz = prox(g, gamma, y - gamma*grady)
 			fpr = y-z
 			normfpr = vecnorm(fpr)
 			resz = L(z) - b
