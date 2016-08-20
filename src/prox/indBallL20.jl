@@ -16,26 +16,26 @@ end
 indBallL20(r::Int64) = indBallL20(r, 1)
 
 function call(f::indBallL20, X::RealOrComplexArray)
-  if countnz(sqrt(sum(abs(x).^2,dim))) > r return +Inf end
+  if countnz(sqrt(sum(abs(X).^2,dim))) > f.r return +Inf end
   return 0.0
 end
 
 function prox(f::indBallL20, gamma::Float64, X::RealOrComplexArray)
-  y = zeros(x)
-  if r < log2(size(x,dim))
-    p = selectperm( sqrt(sum(abs(x).^2,dim)[:]) , 1:r, rev=true)
+  Y = zeros(X)
+  if f.r < log2(size(X,dim))
+    p = selectperm(sqrt(sum(abs(X).^2,dim)[:]), 1:f.r, rev=true)
     if dim == 1
-    y[:,p] = x[:,p]
+    Y[:,p] = X[:,p]
     elseif dim == 2
-    y[p,:] = x[p,:]
+    Y[p,:] = X[p,:]
     end
   else
-    p = sortperm(sqrt(sum(abs(x).^2,dim)[:]), rev=true)
+    p = sortperm(sqrt(sum(abs(X).^2,dim)[:]), rev=true)
     if dim == 1
-    y[:,p[1:r]] = x[:,p[1:r]]
+    Y[:,p[1:r]] = X[:,p[1:r]]
     elseif dim == 2
-    y[p[1:r],:] = x[p[1:r],:]
+    Y[p[1:r],:] = X[p[1:r],:]
     end
   end
-  return y, 0.0
+  return Y, 0.0
 end

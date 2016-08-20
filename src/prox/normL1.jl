@@ -29,6 +29,6 @@ function prox(f::normL1{Float64}, gamma::Float64, x::RealOrComplexArray)
 end
 
 function prox(f::normL1, gamma::Float64, x::RealOrComplexArray)
-  y = sign(x).*max(0.0, abs(x)-gamma*lambda)
-  return y, vecnorm(lambda.*y,1)
+  y = sign(x).*max(0.0, abs(x)-gamma*f.lambda)
+  return y, vecnorm(f.lambda.*y,1)
 end
