@@ -20,7 +20,7 @@ ref_y = [-1.3942822988967276,-0.2571399197807538,-0.0504059887445427,1.014435914
 ref_gy = 1.3342215084194275
 
 gx = g(x)
-y, gy1 = g(x, gamma)
+y, gy1 = prox(g, gamma, x)
 gy2 = g(y)
 
 @test abs(gx-ref_gx)/(1+abs(ref_gx)) <= ASSERT_REL_TOL
@@ -47,7 +47,7 @@ ref_y = [0.26005515040238586 1.1212362083496195 0.6734394124007889 -0.5669091099
 ref_gy = 5.172901701393626
 
 gx = g(x)
-y, gy1 = g(x, gamma)
+y, gy1 = prox(g, gamma, x)
 gy2 = g(y)
 
 @test abs(gx-ref_gx)/(1+abs(ref_gx)) <= ASSERT_REL_TOL
@@ -70,7 +70,7 @@ ref_y = [0.004880320993241177,0.3961148017053393,-0.5068003460445393,-0.15461027
 ref_gy = 1.8624528945256253
 
 gx = g(x)
-y, gy1 = g(x, gamma)
+y, gy1 = prox(g, gamma, x)
 gy2 = g(y)
 
 @test abs(gx-ref_gx)/(1+abs(ref_gx)) <= ASSERT_REL_TOL
@@ -93,7 +93,7 @@ ref_y = Complex{Float64}[0.24726722632640047 + 0.07604924168725978im -0.31225800
 ref_gy = 3.2029705230857
 
 gx = g(x)
-y, gy1 = g(x, gamma)
+y, gy1 = prox(g, gamma, x)
 gy2 = g(y)
 
 @test abs(gx-ref_gx)/(1+abs(ref_gx)) <= ASSERT_REL_TOL
@@ -116,7 +116,7 @@ ref_y = [0.0,0.0,-0.0,-1.0843092036012738,-0.0,0.0,0.0,-1.7104462861427205,0.0,1
 ref_gy = 1.7999999999999998
 
 gx = g(x)
-y, gy1 = g(x, gamma)
+y, gy1 = prox(g, gamma, x)
 gy2 = g(y)
 
 @test abs(gx-ref_gx)/(1+abs(ref_gx)) <= ASSERT_REL_TOL
@@ -142,7 +142,7 @@ ref_y = [-0.9617311985566904 -0.0 0.0 1.0497034474382447;
 ref_gy = 4.05
 
 gx = g(x)
-y, gy1 = g(x, gamma)
+y, gy1 = prox(g, gamma, x)
 gy2 = g(y)
 
 @test abs(gx-ref_gx)/(1+abs(ref_gx)) <= ASSERT_REL_TOL
@@ -165,7 +165,7 @@ ref_y = [0.0,0.0,-1.1359877819928568,-1.4074575535421312,0.0,-0.7828347886276972
 ref_gy = 0.0
 
 gx = g(x)
-y, gy1 = g(x, gamma)
+y, gy1 = prox(g, gamma, x)
 gy2 = g(y)
 
 @test gx == ref_gx
@@ -188,7 +188,7 @@ ref_y = [0.0 0.0 2.536889607960003;
 ref_gy = 0.0
 
 gx = g(x)
-y, gy1 = g(x, gamma)
+y, gy1 = prox(g, gamma, x)
 gy2 = g(y)
 
 @test gx == ref_gx
@@ -211,7 +211,7 @@ ref_y = Complex{Float64}[0.4123814653942677 + 0.5477281536949097im 0.11802101821
 ref_gy = 0.0
 
 gx = g(x)
-y, gy1 = g(x, gamma)
+y, gy1 = prox(g, gamma, x)
 gy2 = g(y)
 
 @test gx == ref_gx
@@ -240,7 +240,7 @@ ref_y = [0.5886430110085807 0.32914238645718963 0.2888520521840012 0.26968674730
 ref_gy = 0.0
 
 gx = g(x)
-y, gy1 = g(x, gamma)
+y, gy1 = prox(g, gamma, x)
 gy2 = g(y)
 
 @test gx == ref_gx
@@ -269,7 +269,7 @@ ref_y = Complex{Float64}[0.3585122350782503 + 0.7204931620772194im 0.68733385304
 ref_gy = 0.0
 
 gx = g(x)
-y, gy1 = g(x, gamma)
+y, gy1 = prox(g, gamma, x)
 gy2 = g(y)
 
 @test gx == ref_gx

@@ -22,6 +22,7 @@ export PG,
        FPG,
        ZeroFPR,
        solve,
+       prox,
        normL2,
        normL2sqr,
        normL1,
@@ -32,13 +33,13 @@ export PG,
        indBox,
        indBallInf
 
-solve(A::MatrixLike, b::Array, g::Function) =
-  solve(x -> A*x, y -> A'*y, b::Array, g::Function, zeros(size(A,2)))
+solve(A::MatrixLike, b::Array, g::ProximableFunction) =
+  solve(x -> A*x, y -> A'*y, b, g, zeros(size(A,2)))
 
-solve(A::MatrixLike, b::Array, g::Function, args...) =
-  solve(x -> A*x, y -> A'*y, b::Array, g::Function, args...)
+solve(A::MatrixLike, b::Array, g::ProximableFunction, args...) =
+  solve(x -> A*x, y -> A'*y, b, g, args...)
 
-solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array) =
+solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array) =
   solve(L, Ladj, b, g, x, ZeroFPR())
 
 end

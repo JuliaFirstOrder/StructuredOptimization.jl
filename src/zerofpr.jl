@@ -6,11 +6,11 @@ immutable ZeroFPR <: ForwardBackwardSolver
 	stp_cr::Function
 end
 
-ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000, 
+ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000,
           mem::Int64 = 10, verbose::Int64 = 1,stp_cr::Function = halt ) =
 	ZeroFPR(tol, maxit, verbose, LBFGS.create(mem),stp_cr)
 
-function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, solver::ZeroFPR)
+function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, solver::ZeroFPR)
 
 	gamma = 100.0
 	beta = 0.05
@@ -27,7 +27,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 	resx = L(x) - b
 	fx = 0.5*vecnorm(resx)^2
 	gradx = Ladj(resx)
-	xbar, gxbar = g(x-gamma*gradx, gamma)
+	xbar, gxbar = prox(g, gamma, x-gamma*gradx)
 	fxbar = Inf
 	FBEprev = Inf
 	r = x - xbar
@@ -43,7 +43,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 			if fxbar <= uppbnd break end
 			gamma = 0.5*gamma
 			sigma = 2*sigma
-			xbar, gxbar = g(x-gamma*gradx, gamma)
+			xbar, gxbar = prox(g, gamma, x-gamma*gradx)
 			r = x - xbar
 			normr = vecnorm(r)
 			resxbar = L(xbar) - b
@@ -65,7 +65,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 
 		# compute rbar
 		gradxbar = Ladj(resxbar)
-		xbarbar, = g(xbar - gamma*gradxbar, gamma)
+		xbarbar, = prox(g, gamma, xbar - gamma*gradxbar)
 		rbar = xbar - xbarbar
 
 		# compute direction according to L-BFGS
@@ -97,7 +97,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::Function, x::Array, sol
 			resx = resxbar + tau*Ad
 			fx = 0.5*vecnorm(resx)^2
 			gradx = gradxbar + tau*ATAd
-			xbar, gxbar = g(x - gamma*gradx, gamma)
+			xbar, gxbar = prox(g, gamma, x - gamma*gradx)
 			r = x - xbar
 			normr = vecnorm(r)
 			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*gamma)*normr^2
