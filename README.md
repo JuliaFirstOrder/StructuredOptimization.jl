@@ -40,6 +40,7 @@ Function        | Description                                          | Propert
 `indBallInf`    | Indicator of an infinity-norm ball                   | convex
 `indBallRank`   | Indicator of the set of matrices with given rank     | nonconvex
 `indBox`        | Indicator of a box                                   | convex
+`indNonnegative`| Indicator of the nonnegative orthant                 | convex
 `indSOC`        | Indicator of the second-order cone                   | convex
 `normL0`        | L0 pseudo-norm                                       | nonconvex
 `normL1`        | L1 norm                                              | convex
@@ -88,8 +89,8 @@ lambda = 0.01*lambda_max # regularization parameter
 x_L1, it = solve(A, y, normL1(lambda), zeros(n))
 ```
 
-Alternatively, one can look for the best approximation with a given number of
-nonzero coefficients, using the `indBallL0` regularizer:
+Alternatively, one can use the `indBallL0` regularizer to look for the best
+approximation with a given number of nonzero coefficients:
 
 ```julia
 x_L0c, it = solve(A, y, indBallL0(200), zeros(n))
