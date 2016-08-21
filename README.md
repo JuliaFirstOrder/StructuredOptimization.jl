@@ -47,6 +47,7 @@ Each function can be customized with parameters. You can access the full documen
 
 ```
 julia> ?normL1
+
 	normL1(λ::Array{Float64})
 
 	Returns the function g(x) = sum(λ_i|x_i|, i = 1,...,n), for a vector of real

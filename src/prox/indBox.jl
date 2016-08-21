@@ -3,7 +3,7 @@
 """
   indBox(lb, ub)
 
-Returns the function `g(x) = ind{lb ⩽ x ⩽ ub}`. Parameters `lb` and `ub` can be
+Returns the function `g = ind{x : lb ⩽ x ⩽ ub}`. Parameters `lb` and `ub` can be
 either scalars or arrays of the same dimension as `x`, and must satisfy `lb <= ub`.
 """
 

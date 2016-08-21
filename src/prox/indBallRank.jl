@@ -3,7 +3,7 @@
 """
   indBallRank(r::Int64)
 
-Returns the function `g(X) = ind{rank(X) ⩽ r}`, for an integer parameter `r > 0`.
+Returns the function `g = ind{X : rank(X) ⩽ r}`, for an integer parameter `r > 0`.
 """
 
 immutable indBallRank <: ProximableFunction

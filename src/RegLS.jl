@@ -31,7 +31,10 @@ export PG,
        indBallL0,
        indBallRank,
        indBox,
-       indBallInf
+       indBallInf,
+       indBallL20,
+       elasticNet,
+       indAffine
 
 solve(A::MatrixLike, b::Array, g::ProximableFunction) =
   solve(x -> A*x, y -> A'*y, b, g, zeros(size(A,2)))

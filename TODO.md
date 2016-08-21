@@ -22,8 +22,6 @@ where `x` containts the solution Array, `output` contains other details about th
 
 ## Regularizers to add
 
-* Indicator of an affine subspace.
 * Nuclear norm.
-* Elastic net.
 * Indicator of the probability simplex?
 * Indicator of L1 norm ball

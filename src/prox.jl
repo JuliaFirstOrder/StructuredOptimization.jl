@@ -13,5 +13,7 @@ include("prox/indBallL0.jl")
 include("prox/indBallL20.jl")
 include("prox/indBallRank.jl")
 include("prox/indBox.jl")
+include("prox/elasticNet.jl")
+include("prox/indAffine.jl")
 
 return

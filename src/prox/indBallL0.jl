@@ -3,7 +3,7 @@
 """
   indBallL0(r::Int64)
 
-Returns the function `g(x) = ind{countnz(x) ⩽ r}`, for an integer parameter `r > 0`.
+Returns the function `g = ind{x : countnz(x) ⩽ r}`, for an integer parameter `r > 0`.
 """
 
 immutable indBallL0 <: ProximableFunction
