@@ -5,6 +5,7 @@
 
 Returns the function `g = ind{x : lb ⩽ x ⩽ ub}`. Parameters `lb` and `ub` can be
 either scalars or arrays of the same dimension as `x`, and must satisfy `lb <= ub`.
+Bounds are allowed to take values `-Inf` and `+Inf`.
 """
 
 immutable indBox <: ProximableFunction

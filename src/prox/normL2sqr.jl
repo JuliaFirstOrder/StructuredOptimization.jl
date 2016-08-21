@@ -12,7 +12,7 @@ end
 Returns the function `g(x) = (λ/2)(x'x)`, for a real parameter `λ ⩾ 0`.
 """
 
-normL2sqr(lambda::Float64) = normL1{Float64}(lambda)
+normL2sqr(lambda::Float64=1.0) = normL1{Float64}(lambda)
 
 """
   normL2sqr(λ::Array{Float64})

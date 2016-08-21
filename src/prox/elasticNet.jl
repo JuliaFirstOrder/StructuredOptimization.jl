@@ -9,7 +9,7 @@ Returns the function `g(x) = μ||x||_1 + (λ/2)||x||^2`, for a real parameters `
 immutable elasticNet <: ProximableFunction
   mu::Float64
   lambda::Float64
-  normL1(mu::Float64=1.0, lambda::Float64=1.0) = lambda < 0 || mu < 0 ? error("parameters μ, λ must be nonnegative") : new(mu, lambda)
+  elasticNet(mu::Float64=1.0, lambda::Float64=1.0) = lambda < 0 || mu < 0 ? error("parameters μ, λ must be nonnegative") : new(mu, lambda)
 end
 
 function call(f::elasticNet, x::RealOrComplexArray)
