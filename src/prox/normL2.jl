@@ -21,3 +21,7 @@ function prox(f::normL2, gamma::Float64, x::Array{Float64})
   y = scale*x
   return y, f.lambda*scale*vecnormx
 end
+
+fun_type(f::normL2) = "R^n → R"
+fun_expr(f::normL2) = "x ↦ λ||x||_2"
+fun_params(f::normL2) = "λ = $(f.lambda)"

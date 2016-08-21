@@ -26,6 +26,7 @@ immutable indAffine <: ProximableFunction
 end
 
 function call(f::indAffine, x::Array{Float64,1})
+  # the tolerance in the following line should be customizable
   if norm(f.A*x - f.b, Inf) > 1e-14 return Inf end
   return 0.0
 end
@@ -35,3 +36,9 @@ function prox(f::indAffine, gamma::Float64, x::Array{Float64,1})
   y = x - f.A'*(f.L'\(f.L\res))
   return y, 0.0
 end
+
+fun_type(f::indAffine) = "R^n → R ∪ {+∞}"
+fun_expr(f::indAffine) = "x ↦ 0 if Ax = b, +∞ otherwise"
+fun_params(f::indAffine) =
+  string( "A = ", typeof(f.A), " of size ", size(f.A), ", ",
+          "b = ", typeof(f.b), " of size ", size(f.b))

@@ -34,3 +34,9 @@ Returns the indicator function of an infinity-norm ball, that is function
 """
 
 indBallInf(r::Float64) = indBox(-r, r)
+
+fun_type(f::indBox) = "R^n → R ∪ {+∞}"
+fun_expr(f::indBox) = "x ↦ 0 if all(lb ⩽ x ⩽ ub), +∞ otherwise"
+fun_params(f::indBox) =
+  string( "lb = ", typeof(f.lb) <: Array ? string(typeof(f.lb), " of size ", size(f.lb)) : f.lb, ", ",
+          "ub = ", typeof(f.ub) <: Array ? string(typeof(f.ub), " of size ", size(f.ub)) : f.ub)

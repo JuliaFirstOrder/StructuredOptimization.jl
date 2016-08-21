@@ -20,3 +20,7 @@ function prox(f::normL0, gamma::Float64, x::Array{Float64})
   y = x.*over;
   return y, f.lambda*countnz(y)
 end
+
+fun_type(f::normL0) = "R^n → R"
+fun_expr(f::normL0) = "x ↦ λ countnz(x)"
+fun_params(f::normL0) = "λ = $(f.lambda)"

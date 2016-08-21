@@ -40,3 +40,9 @@ function prox(f::normL1, gamma::Float64, x::RealOrComplexArray)
   y = sign(x).*max(0.0, abs(x)-gamma*f.lambda)
   return y, vecnorm(f.lambda.*y,1)
 end
+
+fun_type(f::normL1) = "C^n → R"
+fun_expr(f::normL1{Float64}) = "x ↦ λ||x||_1"
+fun_expr(f::normL1{Array{Float64}}) = "x ↦ sum( λ_i |x_i| )"
+fun_params(f::normL1{Float64}) = "λ = $(f.lambda)"
+fun_params(f::normL1{Array{Float64}}) = string("λ = ", typeof(f.lambda), " of size ", size(f.lambda))

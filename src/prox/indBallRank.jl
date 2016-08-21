@@ -13,7 +13,8 @@ end
 
 function call(f::indBallRank, x::RealOrComplexArray)
   u, s, v = svds(x, nsv=f.r+1)
-  if s[end]/s[1] >= 1e-15 return +Inf end
+  # the tolerance in the following line should be customizable
+  if s[end]/s[1] > 1e-15 return +Inf end
   return 0.0
 end
 
@@ -21,3 +22,7 @@ function prox(f::indBallRank, gamma::Float64, x::RealOrComplexArray)
   u, s, v = svds(x, nsv=f.r)
   return (u*diagm(s))*v', 0.0
 end
+
+fun_type(f::indBallRank) = "C^{n×m} → R ∪ {+∞}"
+fun_expr(f::indBallRank) = "x ↦ 0 if rank(x) ⩽ r, +∞ otherwise"
+fun_params(f::indBallRank) = "r = $(f.r)"

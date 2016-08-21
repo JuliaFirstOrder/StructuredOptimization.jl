@@ -12,12 +12,16 @@ immutable elasticNet <: ProximableFunction
   elasticNet(mu::Float64=1.0, lambda::Float64=1.0) = lambda < 0 || mu < 0 ? error("parameters μ, λ must be nonnegative") : new(mu, lambda)
 end
 
-function call(f::elasticNet, x::RealOrComplexArray)
+function call(f::elasticNet, x::Array{Float64})
   return f.mu*vecnorm(x,1) + f.lambda*vecnorm(x,2)^2
 end
 
-function prox(f::elasticNet, gamma::Float64, x::RealOrComplexArray)
+function prox(f::elasticNet, gamma::Float64, x::Array{Float64})
   uz = max(0, abs(x) - gamma*f.mu)/(1 + f.lambda*gamma);
   prox = sign(x).*uz;
   g = f.mu*sum(uz) + (f.lambda/2)*vecnorm(uz)^2;
 end
+
+fun_type(f::elasticNet) = "R^n → R"
+fun_expr(f::elasticNet) = "x ↦ μ||x||_1 + (λ/2)||x||^2"
+fun_params(f::elasticNet) = "μ = $(f.mu), λ = $(f.lambda)"
