@@ -23,6 +23,7 @@ function prox(f::indBallRank, gamma::Float64, x::RealOrComplexArray)
   return (u*diagm(s))*v', 0.0
 end
 
+fun_name(f::indBallRank) = "indicator of the set of rank-r matrices"
 fun_type(f::indBallRank) = "C^{n×m} → R ∪ {+∞}"
 fun_expr(f::indBallRank) = "x ↦ 0 if rank(x) ⩽ r, +∞ otherwise"
 fun_params(f::indBallRank) = "r = $(f.r)"

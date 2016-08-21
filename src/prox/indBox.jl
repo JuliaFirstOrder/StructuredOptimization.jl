@@ -35,6 +35,19 @@ Returns the indicator function of an infinity-norm ball, that is function
 
 indBallInf(r::Float64) = indBox(-r, r)
 
+# indicator of the nonnegative orthant
+
+"""
+  indNonnegative()
+
+Returns the indicator function the nonnegative orthant, that is
+
+  `g(x) = 0 if x ⩾ 0, +∞ otherwise`
+"""
+
+indNonnegative() = indBox(0, +Inf)
+
+fun_name(f::indBox) = "indicator of a box"
 fun_type(f::indBox) = "R^n → R ∪ {+∞}"
 fun_expr(f::indBox) = "x ↦ 0 if all(lb ⩽ x ⩽ ub), +∞ otherwise"
 fun_params(f::indBox) =

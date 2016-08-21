@@ -21,6 +21,7 @@ function prox(f::normL0, gamma::Float64, x::Array{Float64})
   return y, f.lambda*countnz(y)
 end
 
+fun_name(f::normL0) = "weighted L0 pseudo-norm"
 fun_type(f::normL0) = "R^n → R"
 fun_expr(f::normL0) = "x ↦ λ countnz(x)"
 fun_params(f::normL0) = "λ = $(f.lambda)"

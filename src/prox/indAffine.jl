@@ -37,6 +37,7 @@ function prox(f::indAffine, gamma::Float64, x::Array{Float64,1})
   return y, 0.0
 end
 
+fun_name(f::indAffine) = "indicator of an affine subspace"
 fun_type(f::indAffine) = "R^n → R ∪ {+∞}"
 fun_expr(f::indAffine) = "x ↦ 0 if Ax = b, +∞ otherwise"
 fun_params(f::indAffine) =

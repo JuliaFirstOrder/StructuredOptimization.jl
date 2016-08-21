@@ -17,6 +17,7 @@ where `x` containts the solution Array, `output` contains other details about th
 
 ## Code optimization
 
+* Check those allocations resulting from the test, a significant amount of time is devoted to garbage collection.
 * See if static typing helps and is used in the best way.
 * See if we can speed up LBFGS two-loop-recursion implementing it in C.
 

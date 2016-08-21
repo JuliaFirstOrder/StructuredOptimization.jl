@@ -28,6 +28,7 @@ function prox(f::indBallL0, gamma::Float64, x::RealOrComplexArray)
   return y, 0.0
 end
 
+fun_name(f::indBallL0) = "indicator of an L0 pseudo-norm ball"
 fun_type(f::indBallL0) = "C^n → R ∪ {+∞}"
 fun_expr(f::indBallL0) = "x ↦ 0 if countnz(x) ⩽ r, +∞ otherwise"
 fun_params(f::indBallL0) = "r = $(f.r)"

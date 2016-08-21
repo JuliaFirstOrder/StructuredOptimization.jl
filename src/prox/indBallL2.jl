@@ -21,6 +21,7 @@ function prox(f::indBallL2, gamma::Float64, x::RealOrComplexArray)
   return y, 0.0
 end
 
+fun_name(f::indBallL2) = "indicator of an L2 norm ball"
 fun_type(f::indBallL2) = "C^n → R ∪ {+∞}"
 fun_expr(f::indBallL2) = "x ↦ 0 if ||x|| ⩽ r, +∞ otherwise"
 fun_params(f::indBallL2) = "r = $(f.r)"

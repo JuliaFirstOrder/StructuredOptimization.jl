@@ -33,7 +33,9 @@ export PG,
        indBallRank,
        indBox,
        indBallInf,
+       indNonnegative,
        indBallL20,
+       indSOC,
        elasticNet,
        indAffine
 

@@ -22,6 +22,7 @@ function prox(f::elasticNet, gamma::Float64, x::Array{Float64})
   g = f.mu*sum(uz) + (f.lambda/2)*vecnorm(uz)^2;
 end
 
+fun_name(f::elasticNet) = "elastic-net regularization"
 fun_type(f::elasticNet) = "R^n → R"
 fun_expr(f::elasticNet) = "x ↦ μ||x||_1 + (λ/2)||x||^2"
 fun_params(f::elasticNet) = "μ = $(f.mu), λ = $(f.lambda)"
