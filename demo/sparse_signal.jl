@@ -1,29 +1,22 @@
-using RegLS
+### Sparse signal reconstruction 
 
-# for reproducibility
-srand(0)
+srand(0) # for reproducibility
 
-# problem parameters
-n = 4096
-m = 1024
-k = 160
-
-# measurement matrix
+m, n, k = 1024, 4096, 160 # problem parameters
 B = randn(m, n)
 Q, R = qr(B')
-A = Q'
-
-# generate signal and noise
+A = Q' # measurement matrix
 x_orig = sign(randn(n))
 J = randperm(n)
-x_orig[J[k+1:end]] = 0
+x_orig[J[k+1:end]] = 0 # generate sparse signal
 sigma = 1e-2
-y = A*x_orig + sigma*randn(m)
+y = A*x_orig + sigma*randn(m) # add noise to measurement
 
-# solve problem
+using RegLS
 lambda_max = norm(A'*y, Inf)
-lambda = 0.01*lambda_max
+lambda = 0.01*lambda_max # regularization parameter
 x_L1, it = solve(A, y, normL1(lambda), zeros(n))
-x_L0c, it = solve(A, y, indBallL0(k), zeros(n))
+
+x_L0c, it = solve(A, y, indBallL0(200), zeros(n))
 
 return

@@ -38,10 +38,10 @@ function prox(f::ProximableFunction, gamma::Float64, x::Array)
 end
 
 function Base.show(io::IO, f::ProximableFunction)
-  println(io, "name       : ", fun_name(f))
-  println(io, "type       : ", fun_type(f))
-  println(io, "expression : ", fun_expr(f))
-  print(  io, "parameters : ", fun_params(f))
+  println(io, "description : ", fun_name(f))
+  println(io, "type        : ", fun_type(f))
+  println(io, "expression  : ", fun_expr(f))
+  print(  io, "parameters  : ", fun_params(f))
 end
 
 fun_name(f::ProximableFunction) = "n/a"
