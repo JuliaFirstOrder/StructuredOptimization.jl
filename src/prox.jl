@@ -2,6 +2,23 @@
 # prox.jl - library of nonsmooth functions and associated proximal mappings
 # ------------------------------------------------------------------------------
 
+export prox,
+       normL2,
+       normL2sqr,
+       normL1,
+       normL21,
+       normL0,
+       indBallL0,
+       indBallL2,
+       indBallRank,
+       indBox,
+       indBallInf,
+       indNonnegative,
+       indBallL20,
+       indSOC,
+       elasticNet,
+       indAffine
+
 abstract ProximableFunction
 
 include("prox/normL2.jl")

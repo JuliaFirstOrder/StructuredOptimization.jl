@@ -1,4 +1,4 @@
-# RegLS
+# RegLS.jl
 
 Convex and nonconvex regularized least squares in Julia.
 
@@ -14,16 +14,17 @@ Once the package is installed you can update it along with the others issuing `P
 
 ## Usage
 
-After importing the package with `using RegLS`, you can fit regularized linear models using `AbstractMatrix` or `LinearOperator` objects
-(see [LinearOperators.jl](https://github.com/JuliaSmoothOptimizers/LinearOperators.jl)),
-or providing the direct and adjoint mappings in the form of `Function` objects:
+After importing the package with `using RegLS`, you can fit regularized linear models using `AbstractMatrix` objects
+or any matrix-like object, implementing essentially the matrix-vector product and transpose operation
+(see for example [LinearOperators.jl](https://github.com/JuliaSmoothOptimizers/LinearOperators.jl)).
+Alternatively, one can provide the direct and adjoint mappings in the form of `Function` objects.
 
 ```julia
-x = solve(A, b, g) # A is a Matrix or LinearOperator
+x = solve(A, b, g) # A is a matrix-like object
 x = solve(Op, OpAdj, b, g, x0) # Op and OpAdj are of type Function
 ```
 
-Here `b` is an `Array` whose dimensions match those of `A` or `Op` and `OpAdj`,
+In the example above, `b` is an `Array` whose dimensions match those of `A` or `Op` and `OpAdj`,
 and `g` is the regularization functions in the cost (see below). When the mappings `Op` and `OpAdj`
 are provided, argument `x0` is mandatory (the initial iterate for the algorithm).
 
@@ -98,7 +99,7 @@ x_L0c, it = solve(A, y, indBallL0(200), zeros(n))
 
 ## References
 
-The algorithms implemented in RegLS are described in the following papers.
+The algorithms implemented in RegLS.jl are described in the following papers.
 
 1. L. Stella, A. Themelis, P. Patrinos, “Forward-backward quasi-Newton methods for nonsmooth optimization problems,” [arXiv:1604.08096](http://arxiv.org/abs/1604.08096) (2016).
 
@@ -106,4 +107,4 @@ The algorithms implemented in RegLS are described in the following papers.
 
 ## Credits
 
-RegLS is developed by [Lorenzo Stella](https://lostella.github.io) and [Niccolò Antonello](http://homes.esat.kuleuven.be/~nantonel/) at [KU Leuven, ESAT/Stadius](https://www.esat.kuleuven.be/stadius/).
+RegLS.jl is developed by [Lorenzo Stella](https://lostella.github.io) and [Niccolò Antonello](http://homes.esat.kuleuven.be/~nantonel/) at [KU Leuven, ESAT/Stadius](https://www.esat.kuleuven.be/stadius/).
