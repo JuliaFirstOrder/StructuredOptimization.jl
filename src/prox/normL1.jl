@@ -2,8 +2,10 @@
 
 immutable normL1{T <: Union{Float64,Array{Float64}}} <: ProximableFunction
   lambda::T
-  normL1(lambda::Float64) = lambda < 0 ? error("parameter λ must be nonnegative") : new(lambda)
-  normL1(lambda::Array{Float64}) = any(lambda .< 0) ? error("coefficients in λ must be nonnegative") : new(lambda)
+  normL1(lambda::Float64) =
+    lambda < 0 ? error("parameter λ must be nonnegative") : new(lambda)
+  normL1(lambda::Array{Float64}) =
+    any(lambda .< 0) ? error("coefficients in λ must be nonnegative") : new(lambda)
 end
 
 """

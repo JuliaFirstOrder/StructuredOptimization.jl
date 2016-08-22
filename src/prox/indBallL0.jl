@@ -8,7 +8,8 @@ Returns the function `g = ind{x : countnz(x) ⩽ r}`, for an integer parameter `
 
 immutable indBallL0 <: ProximableFunction
   r::Int64
-  indBallL0(r::Int64) = r <= 0 ? error("parameter r must be a positive integer") : new(r)
+  indBallL0(r::Int64) =
+    r <= 0 ? error("parameter r must be a positive integer") : new(r)
 end
 
 function call(f::indBallL0, x::RealOrComplexArray)

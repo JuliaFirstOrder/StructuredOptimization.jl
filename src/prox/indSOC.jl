@@ -8,7 +8,8 @@ Returns the indicator of the second-order cone (ice-cream cone) of R^n.
 
 immutable indSOC <: ProximableFunction
   n::Int64
-  indSOC(n::Int64) = new(n)
+  indSOC(n::Int64) =
+    new(n)
 end
 
 function call(f::indSOC, x::Array{Float64,1})

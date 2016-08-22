@@ -8,7 +8,8 @@ Returns the function `g = ind{x : ||x|| ⩽ r}`, for a real parameter `r > 0`.
 
 immutable indBallL2 <: ProximableFunction
   r::Float64
-  indBallL2(r::Float64) = r <= 0 ? error("parameter r must be positive") : new(r)
+  indBallL2(r::Float64) =
+    r <= 0 ? error("parameter r must be positive") : new(r)
 end
 
 function call(f::indBallL2, x::RealOrComplexArray)

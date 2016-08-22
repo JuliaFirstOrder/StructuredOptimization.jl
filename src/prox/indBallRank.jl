@@ -8,17 +8,18 @@ Returns the function `g = ind{X : rank(X) ⩽ r}`, for an integer parameter `r >
 
 immutable indBallRank <: ProximableFunction
   r::Int64
-  indBallRank(r::Int64) = r <= 0 ? error("parameter r must be a positive integer") : new(r)
+  indBallRank(r::Int64) =
+    r <= 0 ? error("parameter r must be a positive integer") : new(r)
 end
 
-function call(f::indBallRank, x::RealOrComplexArray)
+function call(f::indBallRank, x::RealOrComplexMatrix)
   u, s, v = svds(x, nsv=f.r+1)
   # the tolerance in the following line should be customizable
   if s[end]/s[1] > 1e-15 return +Inf end
   return 0.0
 end
 
-function prox(f::indBallRank, gamma::Float64, x::RealOrComplexArray)
+function prox(f::indBallRank, gamma::Float64, x::RealOrComplexMatrix)
   u, s, v = svds(x, nsv=f.r)
   return (u*diagm(s))*v', 0.0
 end

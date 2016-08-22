@@ -1,8 +1,10 @@
-VERSION >= v"0.4.0-dev+6521" && __precompile__()
+__precompile__()
 
 module RegLS
 
 RealOrComplexArray = Union{Array{Float64}, Array{Complex{Float64}}}
+RealOrComplexVector = Union{Array{Float64,1}, Array{Complex{Float64},1}}
+RealOrComplexMatrix = Union{Array{Float64,2}, Array{Complex{Float64},2}}
 
 include("prox.jl")
 include("solvers.jl")

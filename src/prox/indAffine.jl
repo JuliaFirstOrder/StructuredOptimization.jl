@@ -22,7 +22,8 @@ immutable indAffine <: ProximableFunction
     L = chol(AAt, Val{:L})
     new(A, b, L)
   end
-  indAffine(a::Array{Float64,1}, b::Float64) = indAffine(a', [b])
+  indAffine(a::Array{Float64,1}, b::Float64) =
+    indAffine(a', [b])
 end
 
 function call(f::indAffine, x::Array{Float64,1})

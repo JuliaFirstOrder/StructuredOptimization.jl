@@ -11,7 +11,8 @@ For an integer parameter `r > 0`, if dim=1 then returns the function
 immutable indBallL20
   r::Int64
   dim::Int
-  indBallL20(r::Int64, dim=1) = r <= 0 ? error("parameter r must be a positive integer") : new(r, dim)
+  indBallL20(r::Int64, dim=1) =
+    r <= 0 ? error("parameter r must be a positive integer") : new(r, dim)
 end
 
 function call(f::indBallL20, X::RealOrComplexArray)

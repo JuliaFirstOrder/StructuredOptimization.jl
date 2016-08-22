@@ -11,7 +11,8 @@ Bounds are allowed to take values `-Inf` and `+Inf`.
 immutable indBox <: ProximableFunction
   lb
   ub
-  indBox(lb,ub) = any(lb .> ub) ? error("arguments lb, ub must satisfy lb <= ub") : new(lb, ub)
+  indBox(lb,ub) =
+    any(lb .> ub) ? error("arguments lb, ub must satisfy lb <= ub") : new(lb, ub)
 end
 
 function call(f::indBox, x::Array{Float64})
