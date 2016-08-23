@@ -23,24 +23,24 @@ end
 # This is basically the sum of a tuple of functions, each one applied to the
 # correspondent element of a tuple of variables (of appropriate dimension).
 
-immutable funSum <: ProximableFunction
+immutable FunSum <: ProximableFunction
   N::Int
   fs::Tuple
   funSum(fs...) =
     new(length(fs), fs)
 end
 
-function call(f::funSum, xs...)
+function call(f::FunSum, xs...)
   vs = map(i -> f.fs[i](xs[i]), 1:f.N)
   return sum(vs)
 end
 
-function prox(f::funSum, gamma::Float64, xs...)
+function prox(f::FunSum, gamma::Float64, xs...)
   res = map(i -> prox(f.fs[i], gamma, xs[i]), (1:f.N...))
   return map(p -> p[1], res), sum(map(p -> p[2], res))
 end
 
-function Base.show(io::IO, f::funSum)
+function Base.show(io::IO, f::FunSum)
   for i = 1:f.N-1
     println(io, f.fs[i])
     println(io, "---")

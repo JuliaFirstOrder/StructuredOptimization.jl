@@ -4,7 +4,7 @@
 # The prox is ok anyway, and in the end that's what is needed in algorithms.
 
 """
-  conjugate(f::ProximableConvex)
+  Conjugate(f::ProximableConvex)
 
 Returns the Fenchel conjugate of a given convex function `f`.
 """

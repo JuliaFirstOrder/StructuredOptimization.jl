@@ -39,14 +39,14 @@ IndBallInf(r::Float64) = IndBox(-r, r)
 # indicator of the nonnegative orthant
 
 """
-  indNonnegative()
+  IndNonnegative()
 
 Returns the indicator function the nonnegative orthant, that is
 
   `g(x) = 0 if x ⩾ 0, +∞ otherwise`
 """
 
-indNonnegative() = IndBox(0, +Inf)
+IndNonnegative() = IndBox(0, +Inf)
 
 fun_name(f::IndBox) = "indicator of a box"
 fun_type(f::IndBox) = "R^n → R ∪ {+∞}"
