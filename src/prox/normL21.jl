@@ -1,13 +1,11 @@
 # L2,1 norm/Sum of norms of columns or rows (times a constant)
 
 """
-  normL21(λ::Float64=1.0, dim == 1)
+  normL21(λ::Float64=1.0, dim=1)
 
-Returns the function `g(X) = λsqrt(sum(X.*X, dim))` for a nonnegative parameter
-`λ ⩾ 0`, i.e., the (scaled) sum of the norms of the columns (or rows) of X.
-
-If dim is not specified or dim = 1, then the norms are computed column-wise. If
-instead dim = 2 then the norms are computed row-wise.
+Returns the function `g(X) = λsum(||x_i||)` for a nonnegative parameter `λ ⩾ 0`,
+where x_i are the columsn of X if dim == 1, or the rows of X if dim == 2.
+In words, it is the (weighted) sum of the Euclidean norm of the columns (rows) of X.
 """
 
 immutable normL21 <: ProximableFunction

@@ -1,5 +1,5 @@
-# definitions useful to work with tuples of variable blocks
-# first, extend sum, subtraction, to (omogeneous) tuples
+# Definitions useful to work with tuples of variable blocks.
+# First we extend sum, subtraction, to (omogeneous) tuples.
 
 import Base.+, Base.-
 
@@ -15,13 +15,13 @@ function -(a::Tuple, b::Tuple)
    return map(i -> a[i]-b[i], (1:N...))
 end
 
-# then we would need a way to stack linear operators horizontally/vertically
+# Then we would need a way to stack linear operators horizontally/vertically
 # pretty much like they do in LinearOperators, but they only handle operators
-# from/to spaces of Array{T,1}
+# from/to spaces of Array{T,1}.
 
-# next we define the separable sum of proximable functions
-# this is basically the sum of a tuple of functions, each one applied to the
-# correspondent element of a tuple of variables (of appropriate dimension)
+# Next we define the separable sum of proximable functions.
+# This is basically the sum of a tuple of functions, each one applied to the
+# correspondent element of a tuple of variables (of appropriate dimension).
 
 immutable funSum <: ProximableFunction
   N::Int
