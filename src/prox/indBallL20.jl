@@ -1,26 +1,26 @@
 # indicator function of the matrices with at most
 
 """
-  indBallL20(r::Int64, dim=1)
+  IndBallL20(r::Int64, dim=1)
 
 For an integer parameter `r > 0`, if dim=1 then returns the function
 `g = ind{X : countnz(||X(:,i)||_2) ⩽ r}`, if dim=2 then instead
 `g = ind{X : countnz(||X(i,:)||_2) ⩽ r}`.
 """
 
-immutable indBallL20
+immutable IndBallL20
   r::Int64
   dim::Int
-  indBallL20(r::Int64, dim=1) =
+  IndBallL20(r::Int64, dim=1) =
     r <= 0 ? error("parameter r must be a positive integer") : new(r, dim)
 end
 
-function call(f::indBallL20, X::RealOrComplexArray)
+function call(f::IndBallL20, X::RealOrComplexArray)
   if countnz(sqrt(sum(abs(X).^2,dim))) > f.r return +Inf end
   return 0.0
 end
 
-function prox(f::indBallL20, gamma::Float64, X::RealOrComplexArray)
+function prox(f::IndBallL20, gamma::Float64, X::RealOrComplexArray)
   Y = zeros(X)
   if f.r < log2(size(X,dim))
     p = selectperm(sqrt(sum(abs(X).^2,dim)[:]), 1:f.r, rev=true)

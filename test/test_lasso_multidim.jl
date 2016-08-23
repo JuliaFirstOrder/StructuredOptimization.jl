@@ -26,7 +26,7 @@ x_star = full(sprandn(m,length(F),0.1)+im*sprandn(m,length(F),0.1))
 
 b = L(x_star)
 lambda = 0.0001*vecnorm(Ladj(b), Inf)
-g = normL1(lambda)
+g = NormL1(lambda)
 x0 = zeros(Complex{Float64} ,m,length(F))
 tol = 1e-8
 maxit = 100000

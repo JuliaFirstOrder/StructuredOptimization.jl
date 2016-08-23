@@ -3,23 +3,24 @@
 # ------------------------------------------------------------------------------
 
 export prox,
-       normL2,
-       normL2sqr,
-       normL1,
-       normL21,
-       normL0,
-       indBallL0,
-       indBallL2,
-       indBallRank,
-       indBox,
-       indBallInf,
-       indNonnegative,
-       indBallL20,
-       indSOC,
-       elasticNet,
-       indAffine
+       NormL2,
+       NormL2sqr,
+       NormL1,
+       NormL21,
+       NormL0,
+       IndBallL0,
+       IndBallL2,
+       IndBallRank,
+       IndBox,
+       IndBallInf,
+       IndNonnegative,
+       IndBallL20,
+       IndSOC,
+       ElasticNet,
+       IndAffine
 
 abstract ProximableFunction
+abstract ProximableConvex <: ProximableFunction
 
 include("prox/normL2.jl")
 include("prox/normL2sqr.jl")
