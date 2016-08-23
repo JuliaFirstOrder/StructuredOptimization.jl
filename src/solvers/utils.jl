@@ -13,3 +13,15 @@ function halt(tol::Float64, gamma::Float64, fpr0::Float64, fpr::Float64, fun_pre
 	conv_fun = abs(fun-fun_prev) <= (1+abs(fun))*tol
 	return conv_fpr && conv_fun
 end
+
+abstract SolverInfo
+
+immutable BasicInfo <: SolverInfo
+  iterations::Int
+  time::Float64
+end
+
+function Base.show(io::IO, info::BasicInfo)
+  println(io, "iterations : $(info.iterations)")
+  print(  io, "time       : $(info.time)")
+end

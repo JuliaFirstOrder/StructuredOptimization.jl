@@ -12,6 +12,8 @@ ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000,
 
 function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, solver::ZeroFPR)
 
+	tic();
+
 	gamma = 100.0
 	beta = 0.05
 	sigma = beta/(4*gamma)
@@ -105,6 +107,10 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 			tau = 0.5*tau
 		end
 	end
+
 	print_status(k, gamma, normr, fxbar+gxbar, 2*(solver.verbose>0))
-	return xbar, k
+
+	T = toq();
+
+	return xbar, BasicInfo(k, T)
 end

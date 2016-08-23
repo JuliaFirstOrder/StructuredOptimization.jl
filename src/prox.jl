@@ -61,9 +61,9 @@ function Base.show(io::IO, f::ProximableFunction)
   print(  io, "parameters  : ", fun_params(f))
 end
 
-fun_name(f::ProximableFunction) = "n/a"
-fun_type(f::ProximableFunction) = "n/a"
-fun_expr(f::ProximableFunction) = "n/a"
+fun_name(  f::ProximableFunction) = "n/a"
+fun_type(  f::ProximableFunction) = "n/a"
+fun_expr(  f::ProximableFunction) = "n/a"
 fun_params(f::ProximableFunction) = "n/a"
 
 return

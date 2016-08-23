@@ -20,8 +20,8 @@ or any matrix-like object, implementing essentially the matrix-vector product an
 Alternatively, one can provide the direct and adjoint mappings in the form of `Function` objects.
 
 ```julia
-x = solve(A, b, g) # A is a matrix-like object
-x = solve(Op, OpAdj, b, g, x0) # Op and OpAdj are of type Function
+x, info = solve(A, b, g) # A is a matrix-like object
+x, info = solve(Op, OpAdj, b, g, x0) # Op and OpAdj are of type Function
 ```
 
 In the example above, `b` is an `Array` whose dimensions match those of `A` or `Op` and `OpAdj`,
@@ -87,14 +87,14 @@ least squares problem, as in the following snippet (parameters here are taken
 using RegLS
 lambda_max = norm(A'*y, Inf)
 lambda = 0.01*lambda_max # regularization parameter
-x_L1, it = solve(A, y, normL1(lambda), zeros(n))
+x_L1, info = solve(A, y, normL1(lambda), zeros(n))
 ```
 
 Alternatively, one can use the `indBallL0` regularizer to look for the best
 approximation with a given number of nonzero coefficients:
 
 ```julia
-x_L0c, it = solve(A, y, indBallL0(200), zeros(n))
+x_L0c, info = solve(A, y, indBallL0(200), zeros(n))
 ```
 
 ## References

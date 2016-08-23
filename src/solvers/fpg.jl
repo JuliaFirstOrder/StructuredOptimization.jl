@@ -10,6 +10,8 @@ FPG(; tol::Float64 = 1e-8, maxit::Int64 = 10000, verbose::Int64 = 1,stp_cr::Func
 
 function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, solver::FPG)
 
+	tic();
+
 	gamma = 100.0
 	z = xprev = x
 	normfpr = Inf
@@ -71,6 +73,9 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	end
 
 	print_status(k, gamma, normfpr, fz+gz, 2*(solver.verbose>0))
-	return z, k
+
+	T = toq();
+
+	return z, BasicInfo(k, T);
 
 end
