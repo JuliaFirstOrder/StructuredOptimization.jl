@@ -13,6 +13,8 @@ immutable indBallRank <: ProximableFunction
 end
 
 function call(f::indBallRank, x::RealOrComplexMatrix)
+  maxr = minimum(size(x))
+  if maxr <= f.r return 0.0 end
   u, s, v = svds(x, nsv=f.r+1)
   # the tolerance in the following line should be customizable
   if s[end]/s[1] > 1e-15 return +Inf end
@@ -20,6 +22,8 @@ function call(f::indBallRank, x::RealOrComplexMatrix)
 end
 
 function prox(f::indBallRank, gamma::Float64, x::RealOrComplexMatrix)
+  maxr = minimum(size(x))
+  if maxr <= f.r return (x, 0.0) end
   u, s, v = svds(x, nsv=f.r)
   return (u*diagm(s))*v', 0.0
 end

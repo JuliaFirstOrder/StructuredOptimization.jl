@@ -35,7 +35,7 @@ include("prox/indBallRank.jl")
 include("prox/indBox.jl")
 include("prox/indSOC.jl")
 
-function call(f::ProximableFunction, x::Array)
+function call(f::ProximableFunction, x)
   error("call is not implemented for type ", typeof(f))
 end
 
@@ -50,7 +50,7 @@ and parameter `γ > 0`, that is
 and returns `y` and `f(y)`.
 """
 
-function prox(f::ProximableFunction, gamma::Float64, x::Array)
+function prox(f::ProximableFunction, gamma::Float64, x)
   error("prox is not implemented for type ", typeof(f))
 end
 
