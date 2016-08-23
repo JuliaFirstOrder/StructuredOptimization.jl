@@ -1,4 +1,4 @@
-### Sparse signal reconstruction 
+### Sparse signal reconstruction
 
 srand(0) # for reproducibility
 
@@ -15,8 +15,8 @@ y = A*x_orig + sigma*randn(m) # add noise to measurement
 using RegLS
 lambda_max = norm(A'*y, Inf)
 lambda = 0.01*lambda_max # regularization parameter
-x_L1, it = solve(A, y, normL1(lambda), zeros(n))
+x_L1, info = solve(A, y, normL1(lambda), zeros(n))
 
-x_L0c, it = solve(A, y, indBallL0(200), zeros(n))
+x_L0c, info = solve(A, y, indBallL0(200), zeros(n))
 
 return
