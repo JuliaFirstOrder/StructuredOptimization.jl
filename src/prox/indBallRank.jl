@@ -6,7 +6,7 @@
 Returns the function `g = ind{X : rank(X) ⩽ r}`, for an integer parameter `r > 0`.
 """
 
-immutable IndBallRank <: ProximableFunction
+immutable IndBallRank <: IndicatorFunction
   r::Int64
   IndBallRank(r::Int64) =
     r <= 0 ? error("parameter r must be a positive integer") : new(r)
@@ -17,8 +17,8 @@ function call(f::IndBallRank, x::RealOrComplexMatrix)
   if maxr <= f.r return 0.0 end
   u, s, v = svds(x, nsv=f.r+1)
   # the tolerance in the following line should be customizable
-  if s[end]/s[1] > 1e-15 return +Inf end
-  return 0.0
+  if s[end]/s[1] <= 1e-15 return 0.0 end
+  return +Inf
 end
 
 function prox(f::IndBallRank, gamma::Float64, x::RealOrComplexMatrix)

@@ -8,7 +8,7 @@ where x_i are the columsn of X if dim == 1, or the rows of X if dim == 2.
 In words, it is the (weighted) sum of the Euclidean norm of the columns (rows) of X.
 """
 
-immutable NormL21 <: ProximableConvex
+immutable NormL21 <: NormFunction
   lambda::Float64
   dim::Int
   NormL21(lambda::Float64=1.0, dim=1) =

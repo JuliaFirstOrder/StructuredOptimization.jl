@@ -6,7 +6,7 @@
 Returns the function `g = ind{x : countnz(x) ⩽ r}`, for an integer parameter `r > 0`.
 """
 
-immutable IndBallL0 <: ProximableFunction
+immutable IndBallL0 <: IndicatorFunction
   r::Int64
   IndBallL0(r::Int64) =
     r <= 0 ? error("parameter r must be a positive integer") : new(r)

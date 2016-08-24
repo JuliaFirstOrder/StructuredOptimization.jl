@@ -8,7 +8,7 @@ For an integer parameter `r > 0`, if dim=1 then returns the function
 `g = ind{X : countnz(||X(i,:)||_2) ⩽ r}`.
 """
 
-immutable IndBallL20
+immutable IndBallL20 <: IndicatorFunction
   r::Int64
   dim::Int
   IndBallL20(r::Int64, dim=1) =

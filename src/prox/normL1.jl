@@ -1,10 +1,8 @@
 # L1 norm (times a constant, or weighted)
 
-immutable NormL1{T <: Union{Float64,Array{Float64}}} <: ProximableConvex
+immutable NormL1{T <: Union{Float64,Array{Float64}}} <: NormFunction
   lambda::T
-  NormL1(lambda::Float64) =
-    lambda < 0 ? error("parameter λ must be nonnegative") : new(lambda)
-  NormL1(lambda::Array{Float64}) =
+  NormL1(lambda) =
     any(lambda .< 0) ? error("coefficients in λ must be nonnegative") : new(lambda)
 end
 

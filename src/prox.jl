@@ -2,32 +2,47 @@
 # prox.jl - library of nonsmooth functions and associated proximal mappings
 # ------------------------------------------------------------------------------
 
-export prox,
-       NormL2,
-       NormL2sqr,
-       NormL1,
-       NormL21,
-       NormL0,
+export prox
+
+export DistL2,
+       SqrDistL2,
+       ElasticNet,
+       IndAffine,
+       IndBallInf,
        IndBallL0,
        IndBallL2,
+       IndBallL20,
        IndBallRank,
        IndBox,
-       IndBallInf,
+       IndHalfspace,
        IndNonnegative,
-       IndBallL20,
+       IndSimplex,
        IndSOC,
-       ElasticNet,
-       IndAffine
+       NormL0,
+       NormL1,
+       NormL2,
+       NormL21,
+       SqrNormL2
+
+# This hierarchy of abstract types (or a similar one) may be useful.
+# Unfortunately Julia does not allow for multiple inheritance.
+#
+# ProximableFunction --+-- NormFunction
+#                      |
+#                      +-- IndicatorFunction -- IndicatorConvex
+#
 
 abstract ProximableFunction
-abstract ProximableConvex <: ProximableFunction
+abstract NormFunction <: ProximableFunction
+abstract IndicatorFunction <: ProximableFunction
+abstract IndicatorConvex <: IndicatorFunction
 
+include("prox/distL2.jl")
+include("prox/elasticNet.jl")
 include("prox/normL2.jl")
-include("prox/normL2sqr.jl")
 include("prox/normL1.jl")
 include("prox/normL21.jl")
 include("prox/normL0.jl")
-include("prox/elasticNet.jl")
 include("prox/indAffine.jl")
 include("prox/indBallL0.jl")
 include("prox/indBallL2.jl")
@@ -35,6 +50,10 @@ include("prox/indBallL20.jl")
 include("prox/indBallRank.jl")
 include("prox/indBox.jl")
 include("prox/indSOC.jl")
+include("prox/indHalfspace.jl")
+include("prox/indSimplex.jl")
+include("prox/sqrDistL2.jl")
+include("prox/sqrNormL2.jl")
 
 function call(f::ProximableFunction, x)
   error("call is not implemented for type ", typeof(f))

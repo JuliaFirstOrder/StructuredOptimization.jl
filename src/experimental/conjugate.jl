@@ -4,13 +4,13 @@
 # The prox is ok anyway, and in the end that's what is needed in algorithms.
 
 """
-  Conjugate(f::ProximableConvex)
+  Conjugate(f::ProximableFunction)
 
 Returns the Fenchel conjugate of a given convex function `f`.
 """
 
-immutable Conjugate <: ProximableConvex
-  f::ProximableConvex
+immutable Conjugate <: ProximableFunction
+  f::ProximableFunction
 end
 
 function prox(g::Conjugate, gamma::Float64, x::Array)

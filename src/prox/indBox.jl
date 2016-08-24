@@ -8,7 +8,7 @@ either scalars or arrays of the same dimension as `x`, and must satisfy `lb <= u
 Bounds are allowed to take values `-Inf` and `+Inf`.
 """
 
-immutable IndBox <: ProximableConvex
+immutable IndBox <: IndicatorConvex
   lb
   ub
   IndBox(lb,ub) =

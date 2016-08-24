@@ -6,7 +6,7 @@
 Returns the indicator of the second-order cone (ice-cream cone) of R^n.
 """
 
-immutable IndSOC <: ProximableConvex
+immutable IndSOC <: IndicatorConvex
   n::Int64
   IndSOC(n::Int64) =
     new(n)
@@ -14,8 +14,8 @@ end
 
 function call(f::IndSOC, x::Array{Float64,1})
   # the tolerance in the following line should be customizable
-  if norm(x[2:end]) - x[1] > 1e-15 return +Inf end
-  return 0.0
+  if norm(x[2:end]) - x[1] <= 1e-15 return 0.0 end
+  return +Inf
 end
 
 function prox(f::IndSOC, gamma::Float64, x::Array{Float64,1})

@@ -6,7 +6,7 @@
 Returns the function `g(x) = λ||x||_2`, for a real parameter `λ ⩾ 0`.
 """
 
-immutable NormL2 <: ProximableConvex
+immutable NormL2 <: NormFunction
   lambda::Float64
   NormL2(lambda::Float64=1.0) =
     lambda < 0 ? error("parameter λ must be nonnegative") : new(lambda)

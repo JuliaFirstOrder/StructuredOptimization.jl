@@ -6,7 +6,7 @@
 Returns the function `g(x) = μ||x||_1 + (λ/2)||x||^2`, for a real parameters `μ, λ ⩾ 0`.
 """
 
-immutable ElasticNet <: ProximableConvex
+immutable ElasticNet <: ProximableFunction
   mu::Float64
   lambda::Float64
   ElasticNet(mu::Float64=1.0, lambda::Float64=1.0) =

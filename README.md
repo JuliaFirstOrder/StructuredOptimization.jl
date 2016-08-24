@@ -4,29 +4,32 @@ Convex and nonconvex regularized least squares in Julia.
 
 ## Installation
 
-From the Julia command line hit:
-
-```
-Pkg.clone("https://github.com/nantonel/RegLS.jl.git")
-```
-
-Once the package is installed you can update it along with the others issuing `Pkg.update()` in the command line.
+From the Julia command line hit `Pkg.clone("https://github.com/nantonel/RegLS.jl.git")`.
+Once the package is installed you can update it along with the others issuing
+`Pkg.update()` in the command line.
 
 ## Usage
 
-After importing the package with `using RegLS`, you can fit regularized linear models using `AbstractMatrix` objects
-or any matrix-like object, implementing essentially the matrix-vector product and transpose operation
+With RegLS.jl you can solve problems of the form
+
+```
+minimize (1/2)*||L(x) - b||^2 + g(x)
+```
+
+Here `L` is a linear operator, `b` is an `Array` of data, and `g` is a regularization function (see next section).
+You can use any `AbstractMatrix` object to describe `L`, or any matrix-like object
+implementing the matrix-vector product and transpose operations
 (see for example [LinearOperators.jl](https://github.com/JuliaSmoothOptimizers/LinearOperators.jl)).
-Alternatively, one can provide the direct and adjoint mappings in the form of `Function` objects.
+Alternatively, you can provide the direct and adjoint mappings in the form of `Function` objects.
 
 ```julia
-x, info = solve(A, b, g) # A is a matrix-like object
+x, info = solve(L, b, g) # L is a matrix-like object
 x, info = solve(Op, OpAdj, b, g, x0) # Op and OpAdj are of type Function
 ```
 
-In the example above, `b` is an `Array` whose dimensions match those of `A` or `Op` and `OpAdj`,
-and `g` is the regularization functions in the cost (see below). When the mappings `Op` and `OpAdj`
-are provided, argument `x0` is mandatory (the initial iterate for the algorithm).
+The dimensions of `b` must match the ones of `L` or `Op` and `OpAdj`.
+Argument `x0` (the initial iterate for the algorithm) is compulsory when
+mappings `Op` and `OpAdj` are provided.
 
 ## Regularizers
 
@@ -34,27 +37,29 @@ The regularization functions included in `RegLS` are listed here.
 
 Function        | Description                                          | Properties
 ----------------|------------------------------------------------------|----------------
-`elasticNet`    | Elastic-net regularization                           | convex
-`indAffine`     | Indicator of an affine subspace                      | convex
-`indBallL0`     | Indicator of an L0 pseudo-norm ball                  | nonconvex
-`indBallL2`     | Indicator of an Euclidean ball                       | convex
-`indBallInf`    | Indicator of an infinity-norm ball                   | convex
-`indBallRank`   | Indicator of the set of matrices with given rank     | nonconvex
-`indBox`        | Indicator of a box                                   | convex
-`indNonnegative`| Indicator of the nonnegative orthant                 | convex
-`indSOC`        | Indicator of the second-order cone                   | convex
-`normL0`        | L0 pseudo-norm                                       | nonconvex
-`normL1`        | L1 norm                                              | convex
-`normL2`        | Euclidean norm                                       | convex
-`normL2sqr`     | Squared Euclidean norm                               | convex
-`normL21`       | Sum-of-L2 norms                                      | convex
+`ElasticNet`    | Elastic-net regularization                           | convex
+`IndAffine`     | Indicator of an affine subspace                      | convex
+`IndBallInf`    | Indicator of an infinity-norm ball                   | convex
+`IndBallL0`     | Indicator of an L0 pseudo-norm ball                  | nonconvex
+`IndBallL2`     | Indicator of an Euclidean ball                       | convex
+`IndBallRank`   | Indicator of the set of matrices with given rank     | nonconvex
+`IndBox`        | Indicator of a box                                   | convex
+`IndHalfspace`  | Indicator of a halfspace                             | convex
+`IndNonnegative`| Indicator of the nonnegative orthant                 | convex
+`IndSimplex`    | Indicator of the probability simplex                 | convex
+`IndSOC`        | Indicator of the second-order cone                   | convex
+`NormL0`        | L0 pseudo-norm                                       | nonconvex
+`NormL1`        | L1 norm                                              | convex
+`NormL2`        | Euclidean norm                                       | convex
+`NormL21`       | Sum-of-L2 norms                                      | convex
+`SqrNormL2`     | Squared Euclidean norm                               | convex
 
 Each function can be customized with parameters: you can access the documentation of each function from the command line of Julia directly (try typing in `?normL1`).
 Once a function has been created, you can at any time inspect it by simply printing it out:
 
 ```
-julia> f = normL1(3.5);
-julia> f
+julia> g = normL1(3.5);
+julia> g
 description : weighted L1 norm
 type        : C^n → R
 expression  : x ↦ λ||x||_1
