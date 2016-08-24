@@ -16,7 +16,8 @@ With RegLS.jl you can solve problems of the form
 minimize (1/2)*||L(x) - b||^2 + g(x)
 ```
 
-Here `L` is a linear operator, `b` is an `Array` of data, and `g` is a regularization function (see next section).
+Here `L` is a linear operator, `b` is an `Array` of data, and `g` is a regularization
+taken from [Prox.jl](https://github.com/lostella/Prox.jl).
 You can use any `AbstractMatrix` object to describe `L`, or any matrix-like object
 implementing the matrix-vector product and transpose operations
 (see for example [LinearOperators.jl](https://github.com/JuliaSmoothOptimizers/LinearOperators.jl)).
@@ -30,41 +31,6 @@ x, info = solve(Op, OpAdj, b, g, x0) # Op and OpAdj are of type Function
 The dimensions of `b` must match the ones of `L` or `Op` and `OpAdj`.
 Argument `x0` (the initial iterate for the algorithm) is compulsory when
 mappings `Op` and `OpAdj` are provided.
-
-## Regularizers
-
-The regularization functions included in `RegLS` are listed here.
-
-Function        | Description                                          | Properties
-----------------|------------------------------------------------------|----------------
-`ElasticNet`    | Elastic-net regularization                           | convex
-`IndAffine`     | Indicator of an affine subspace                      | convex
-`IndBallInf`    | Indicator of an infinity-norm ball                   | convex
-`IndBallL0`     | Indicator of an L0 pseudo-norm ball                  | nonconvex
-`IndBallL2`     | Indicator of an Euclidean ball                       | convex
-`IndBallRank`   | Indicator of the set of matrices with given rank     | nonconvex
-`IndBox`        | Indicator of a box                                   | convex
-`IndHalfspace`  | Indicator of a halfspace                             | convex
-`IndNonnegative`| Indicator of the nonnegative orthant                 | convex
-`IndSimplex`    | Indicator of the probability simplex                 | convex
-`IndSOC`        | Indicator of the second-order cone                   | convex
-`NormL0`        | L0 pseudo-norm                                       | nonconvex
-`NormL1`        | L1 norm                                              | convex
-`NormL2`        | Euclidean norm                                       | convex
-`NormL21`       | Sum-of-L2 norms                                      | convex
-`SqrNormL2`     | Squared Euclidean norm                               | convex
-
-Each function can be customized with parameters: you can access the documentation of each function from the command line of Julia directly (try typing in `?normL1`).
-Once a function has been created, you can at any time inspect it by simply printing it out:
-
-```
-julia> g = normL1(3.5);
-julia> g
-description : weighted L1 norm
-type        : C^n → R
-expression  : x ↦ λ||x||_1
-parameters  : λ = 3.5
-```
 
 ## Example: sparse signal reconstruction
 
@@ -85,11 +51,12 @@ y = A*x_orig + sigma*randn(m) # add noise to measurement
 ```
 
 One way to approximately reconstruct `x_orig` is to solve an L1-regularized
-least squares problem, as in the following snippet (parameters here are taken
-	from [this paper](http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=4407767)):
+least squares problem using the `NormL0` function, as in the following snippet
+(parameters here are taken from [this paper](http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=4407767)):
 
 ```julia
 using RegLS
+using Prox
 lambda_max = norm(A'*y, Inf)
 lambda = 0.01*lambda_max # regularization parameter
 x_L1, info = solve(A, y, normL1(lambda), zeros(n))
