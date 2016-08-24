@@ -2,11 +2,12 @@ __precompile__()
 
 module RegLS
 
+using Prox
+
 RealOrComplexArray = Union{Array{Float64}, Array{Complex{Float64}}}
 RealOrComplexVector = Union{Array{Float64,1}, Array{Complex{Float64},1}}
 RealOrComplexMatrix = Union{Array{Float64,2}, Array{Complex{Float64},2}}
 
-include("prox.jl")
 include("solvers.jl")
 
 export solve

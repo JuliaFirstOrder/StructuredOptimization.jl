@@ -1,4 +1,5 @@
 using RegLS
+using Prox
 using Base.Test
 
 srand(123)
