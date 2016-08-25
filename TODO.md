@@ -1,8 +1,6 @@
 ## TODO list
 
-* Document regularizers. **Doing**
 * Document solve routines.
-* Implement tests on regularizers (also for matrix- and complex-variables). **Doing**
 * Test algorithms on matrix- and complex-variable problems.
 * Give some structure to algorithms output, such as
 
@@ -21,8 +19,3 @@ where `x` containts the solution Array, `output` contains other details about th
 * See if static typing helps and is used in the best way.
 * See if we can speed up LBFGS two-loop-recursion implementing it in C.
 
-## Regularizers to add
-
-* Nuclear norm.
-* Indicator of the probability simplex?
-* Indicator of L1 norm ball
