@@ -29,7 +29,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	resx = L(x) - b
 	fx = 0.5*vecnorm(resx)^2
 	gradx = Ladj(resx)
-	xbar, gxbar = prox(g, gamma, x-gamma*gradx)
+	xbar, gxbar = prox(g, x-gamma*gradx, gamma)
 	fxbar = Inf
 	FBEprev = Inf
 	r = x - xbar
@@ -45,7 +45,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 			if fxbar <= uppbnd break end
 			gamma = 0.5*gamma
 			sigma = 2*sigma
-			xbar, gxbar = prox(g, gamma, x-gamma*gradx)
+			xbar, gxbar = prox(g, x-gamma*gradx, gamma)
 			r = x - xbar
 			normr = vecnorm(r)
 			resxbar = L(xbar) - b
@@ -67,7 +67,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 
 		# compute rbar
 		gradxbar = Ladj(resxbar)
-		xbarbar, = prox(g, gamma, xbar - gamma*gradxbar)
+		xbarbar, = prox(g, xbar - gamma*gradxbar, gamma)
 		rbar = xbar - xbarbar
 
 		# compute direction according to L-BFGS
@@ -99,7 +99,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 			resx = resxbar + tau*Ad
 			fx = 0.5*vecnorm(resx)^2
 			gradx = gradxbar + tau*ATAd
-			xbar, gxbar = prox(g, gamma, x - gamma*gradx)
+			xbar, gxbar = prox(g, x - gamma*gradx, gamma)
 			r = x - xbar
 			normr = vecnorm(r)
 			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*gamma)*normr^2

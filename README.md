@@ -17,7 +17,7 @@ minimize (1/2)*||L(x) - b||^2 + g(x)
 ```
 
 Here `L` is a linear operator, `b` is an `Array` of data, and `g` is a regularization
-taken from [Prox.jl](https://github.com/lostella/Prox.jl).
+taken from [Prox.jl](https://github.com/kul-forbes/Prox.jl).
 You can use any `AbstractMatrix` object to describe `L`, or any matrix-like object
 implementing the matrix-vector product and transpose operations
 (see for example [LinearOperators.jl](https://github.com/JuliaSmoothOptimizers/LinearOperators.jl)).
