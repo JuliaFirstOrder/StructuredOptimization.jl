@@ -18,10 +18,16 @@ abstract SolverInfo
 
 immutable BasicInfo <: SolverInfo
   iterations::Int
+  gamma::Float64
+  fpr::Float64
+  cost::Float64
   time::Float64
 end
 
 function Base.show(io::IO, info::BasicInfo)
   println(io, "iterations : $(info.iterations)")
+  println(io, "gamma      : $(info.gamma)")
+  println(io, "fpr        : $(info.fpr)")
+  println(io, "cost       : $(info.cost)")
   print(  io, "time       : $(info.time)")
 end
