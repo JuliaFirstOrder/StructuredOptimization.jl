@@ -21,8 +21,8 @@ tol = 1e-6
 
 @printf("Solving matrix completion (m = %d, n = %d)\n", m, n)
 
-@time x_ista, info = solve(L, Ladj, B, g, x0, PG(verbose = verb, tol = tol))
-@test info.iterations < maxit
+@time x_ista, slv = solve(L, Ladj, B, g, x0, PG(verbose = verb, tol = tol))
+@test slv.it < maxit
 
-@time x_zerofpr, info = solve(L, Ladj, B, g, x0, ZeroFPR(verbose = verb, tol = tol))
-@test info.iterations < maxit
+@time x_zerofpr, slv = solve(L, Ladj, B, g, x0, ZeroFPR(verbose = verb, tol = tol))
+@test slv.it < maxit

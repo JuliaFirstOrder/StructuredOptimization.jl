@@ -3,20 +3,24 @@ type FPG <: ForwardBackwardSolver
 	maxit::Int64
 	verbose::Int64
 	stp_cr::Function
-	gamma::Float64
 	resxprev::Array
 	xprev::Array
+	gamma::Float64
+	it::Int
+	normfpr::Float64
+	cost::Float64
+	time::Float64
+	name::AbstractString
 end
 
 FPG(; tol::Float64 = 1e-8, maxit::Int64 = 10000, verbose::Int64 = 1,
       stp_cr::Function = halt, gamma::Float64 = Inf) =
-FPG(tol, maxit, verbose, stp_cr, gamma, [], [])
+FPG(tol, maxit, verbose, stp_cr, [], [], gamma,  0, Inf, Inf, NaN, "Fast Proximal Gradient")
 
 function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::FPG)
 
 	tic();
 
-	normfpr = Inf
 	normfpr0 = Inf
 	k = 0
 
@@ -30,6 +34,8 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	# initialize variables
 	if slv.gamma == Inf
 		slv.gamma = 100.0
+	end
+	if slv.xprev == []
 		slv.xprev = x
 		slv.resxprev = resx
 	end
@@ -37,6 +43,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	resz = resx
 
 	for k = 1:slv.maxit
+	slv.it = k
 
 		# extrapolation
 		y = x + k/(k+3) * (x - slv.xprev)
@@ -50,24 +57,24 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		for j = 1:32
 			z, gz = prox(g, y - slv.gamma*grady, slv.gamma)
 			fpr = y-z
-			normfpr = vecnorm(fpr)
+			slv.normfpr = vecnorm(fpr)
 			resz = L(z) - b
 			fz = 0.5*vecnorm(resz)^2
-			uppbnd = fy - real(vecdot(grady,fpr)) + 1/(2*slv.gamma)*normfpr^2
+			uppbnd = fy - real(vecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
 			if fz <= uppbnd; break; end
 			slv.gamma = 0.5*slv.gamma
 		end
 
-		if k == 1 normfpr0 = normfpr end
+		if k == 1 normfpr0 = slv.normfpr end
 
-		cost = fz + gz
+		slv.cost = fz + gz
 
 		# stopping criterion
-		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, normfpr, costprev, cost) break end
-		costprev = cost
+		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, slv.normfpr, costprev, slv.cost) break end
+		costprev = copy(slv.cost)
 
 		# print out stuff
-		print_status(k, slv.gamma, normfpr, cost, slv.verbose)
+		print_status(slv)
 
 		# update iterates
 		slv.xprev = x
@@ -77,10 +84,10 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 
 	end
 
-	print_status(k, slv.gamma, normfpr, fz+gz, 2*(slv.verbose>0))
+	print_status(slv, 2*(slv.verbose>0))
 
 	T = toq();
 
-	return z, BasicInfo(k, slv.gamma, normfpr, fz+gz, T);
+	return z, slv
 
 end

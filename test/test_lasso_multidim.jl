@@ -36,14 +36,14 @@ tol_test = 1e-2
 
 @printf("Solving a complex multidim lasso instance (m = %d, n = %d)\n", m, n)
 
-@time x_ista,  info =  solve(L, Ladj, b, g, x0, PG(verbose = verb, tol = tol, maxit = maxit))
-@test info.iterations < maxit
+@time x_ista,  slv =  solve(L, Ladj, b, g, x0, PG(verbose = verb, tol = tol, maxit = maxit))
+@test slv.it < maxit
 @test norm(x_ista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
-@time x_fista, info = solve(L, Ladj, b, g, x0, FPG(verbose = verb, tol = tol, maxit = maxit))
-@test info.iterations < maxit
+@time x_fista, slv = solve(L, Ladj, b, g, x0, FPG(verbose = verb, tol = tol, maxit = maxit))
+@test slv.it < maxit
 @test norm(x_fista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
-@time x_zerofpr, info = solve(L, Ladj, b, g, x0, ZeroFPR(verbose = verb, tol = tol, maxit = maxit))
-@test info.iterations < maxit
+@time x_zerofpr, slv = solve(L, Ladj, b, g, x0, ZeroFPR(verbose = verb, tol = tol, maxit = maxit))
+@test slv.it < maxit
 @test norm(x_zerofpr-x_star, Inf)/norm(x_star, Inf) <= tol_test

@@ -21,13 +21,13 @@ solver = PG(verbose = verb, tol = tol)
 x_pg,  ipg =  solve(A, b, g, x0, solver)
 x_pg2, ipg2 =  solve(A, b, g2, x0, PG(verbose = verb, tol = tol))
 x_pg2_ws, ipg2_ws =  solve(A, b, g2, x_pg, solver)
-@test ipg2.iterations >= ipg2_ws.iterations
+@test ipg2.it >= ipg2_ws.it
 
 solver = FPG(verbose = verb, tol = tol)
 x_fpg,  ifpg =  solve(A, b, g, x0, solver)
 x_fpg2, ifpg2 =  solve(A, b, g2, x0, FPG(verbose = verb, tol = tol))
 x_fpg2_ws, ifpg2_ws =  solve(A, b, g2, x_fpg, solver)
-@test ifpg2.iterations >= ifpg2_ws.iterations
+@test ifpg2.it >= ifpg2_ws.it
 
 solver = ZeroFPR(verbose = verb, tol = tol)
 #println("λ = 0.01 λmax")
@@ -38,4 +38,4 @@ x_z2, iz2 =  solve(A, b, g2, x0, ZeroFPR(verbose = verb, tol = tol))
 x_z2, iz2 =  solve(A, b, g2, x_z, ZeroFPR(verbose = verb, tol = tol))
 #println("λ = 0.001 λmax, warm start - only passing lbfgs γ and rbar_prev")
 x_z2_ws, iz2_ws =  solve(A, b, g2, x_z, solver)
-@test iz2.iterations >= iz2_ws.iterations
+@test iz2.it >= iz2_ws.it
