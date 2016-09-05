@@ -6,8 +6,9 @@ type PG <: ForwardBackwardSolver
 	gamma::Float64
 end
 
-PG(; tol::Float64 = 1e-8, maxit::Int64 = 10000, verbose::Int64 = 1, stp_cr::Function = halt) =
-PG(tol, maxit, verbose, stp_cr, Inf)
+PG(; tol::Float64 = 1e-8, maxit::Int64 = 10000, verbose::Int64 = 1, 
+     stp_cr::Function = halt, gamma::Float64 = Inf) =
+PG(tol, maxit, verbose, stp_cr, gamma)
 
 function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::PG)
 

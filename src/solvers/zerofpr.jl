@@ -10,8 +10,8 @@ type ZeroFPR <: ForwardBackwardSolver
 end
 
 ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000,
-          mem::Int64 = 10, verbose::Int64 = 1,stp_cr::Function = halt) =
-ZeroFPR(tol, maxit, verbose, LBFGS.create(mem), stp_cr, Inf, 0., [])
+          mem::Int64 = 10, verbose::Int64 = 1, stp_cr::Function = halt, gamma::Float64 = Inf) =
+ZeroFPR(tol, maxit, verbose, LBFGS.create(mem), stp_cr, gamma, 0., [])
 
 function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::ZeroFPR)
 
