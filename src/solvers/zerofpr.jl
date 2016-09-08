@@ -33,25 +33,27 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		slv.sigma = beta/(4*slv.gamma)
 		slv.rbar_prev = zeros(x)
 	end
-	normfpr0 = Inf
-	H0 = 1.0
-	tau = 1.0
+	H0, tau = 1., 1.
 	d = zeros(x)
-	k = 0
 
 	# compute least squares residual and gradient
 	resx = L(x) - b
 	fx = 0.5*vecnorm(resx)^2
 	gradx = Ladj(resx)
 	xbar, gxbar = prox(g, x-slv.gamma*gradx, slv.gamma)
-	fxbar = Inf
-	FBEprev = Inf
 	r = x - xbar
 	slv.normfpr = vecnorm(r)
 	uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
+	FBEx = uppbnd + gxbar
+
+	fxbar = normfpr0 = FBEprev = Inf
 
 	for k = 1:slv.maxit
 		slv.it = k
+
+		# stopping criterion
+		# TODO make this slv.stp_cr(slv::)
+		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, slv.normfpr, FBEprev, FBEx) break end
 
 		resxbar = L(xbar) - b
 		fxbar = 0.5*vecnorm(resxbar)^2
@@ -74,9 +76,6 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		# evaluate FBE at x
 		FBEx = uppbnd + gxbar
 
-		# stopping criterion
-		# TODO make this slv.stp_cr(slv::)
-		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, slv.normfpr, FBEprev, FBEx) break end
 		FBEprev = FBEx
 
 		# print out stuff

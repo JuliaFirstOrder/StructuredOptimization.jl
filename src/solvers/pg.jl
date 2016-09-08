@@ -39,6 +39,10 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	for k = 1:slv.maxit
 	slv.it = k
 
+		# stopping criterion
+		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, slv.normfpr, costprev, slv.cost) break end
+		costprev = copy(slv.cost)
+
 		# compute gradient
 		gradx = Ladj(resx)
 
@@ -57,10 +61,6 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		if k == 1 normfpr0 = slv.normfpr end
 
 		slv.cost = fz + gz
-
-		# stopping criterion
-		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, slv.normfpr, costprev, slv.cost) break end
-		costprev = copy(slv.cost)
 
 		# print out stuff
 		print_status(slv)
