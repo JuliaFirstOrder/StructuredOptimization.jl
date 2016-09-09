@@ -74,9 +74,6 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 
 		if k == 1 normfpr0 = slv.normfpr end
 
-		# evaluate FBE at x
-		FBEx = uppbnd + gxbar
-
 		# print out stuff
 		slv.cost = fxbar+gxbar
 		print_status(slv)
@@ -122,6 +119,9 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 			if uppbnd + gxbar <= level break end
 			tau = 0.5*tau
 		end
+
+		# evaluate FBE at x
+		FBEx = uppbnd + gxbar
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
