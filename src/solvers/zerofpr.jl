@@ -46,7 +46,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 	FBEx = uppbnd + gxbar
 
-	fxbar = normfpr0 = FBEprev = Inf
+	fxbar = normfpr0 = FBEprev = NaN
 
 	for k = 1:slv.maxit
 		slv.it = k
@@ -54,6 +54,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		# stopping criterion
 		# TODO make this slv.stp_cr(slv::)
 		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, slv.normfpr, FBEprev, FBEx) break end
+		FBEprev = copy(FBEx)
 
 		resxbar = L(xbar) - b
 		fxbar = 0.5*vecnorm(resxbar)^2
@@ -75,8 +76,6 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 
 		# evaluate FBE at x
 		FBEx = uppbnd + gxbar
-
-		FBEprev = FBEx
 
 		# print out stuff
 		slv.cost = fxbar+gxbar

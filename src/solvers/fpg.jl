@@ -21,7 +21,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 
 	tic();
 
-	normfpr0 = Inf
+	normfpr0 = NaN
 	k = 0
 
 	# compute least squares residual and f(x)
