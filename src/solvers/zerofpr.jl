@@ -16,7 +16,7 @@ end
 
 ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000,
           mem::Int64 = 10, verbose::Int64 = 1, stp_cr::Function = halt, gamma::Float64 = Inf) =
-ZeroFPR(tol, maxit, verbose, LBFGS.create(mem), stp_cr, 0., [], gamma, 
+ZeroFPR(tol, maxit, verbose, LBFGS.create(mem), stp_cr, 0., [], gamma,
         0, Inf, Inf, NaN, "ZeroFPR")
 
 function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::ZeroFPR)
@@ -48,8 +48,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 
 	fxbar = normfpr0 = FBEprev = NaN
 
-	for k = 1:slv.maxit
-		slv.it = k
+	for slv.it = 1:slv.maxit
 
 		# stopping criterion
 		# TODO make this slv.stp_cr(slv::)
@@ -72,7 +71,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 		end
 
-		if k == 1 normfpr0 = slv.normfpr end
+		if slv.it == 1 normfpr0 = slv.normfpr end
 
 		# print out stuff
 		slv.cost = fxbar+gxbar
@@ -84,7 +83,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		rbar = xbar - xbarbar
 
 		# compute direction according to L-BFGS
-		if k == 1 && slv.lbfgs.curridx == 0
+		if slv.it == 1 && slv.lbfgs.curridx == 0
 			d = -rbar
 			LBFGS.reset(slv.lbfgs)
 		else

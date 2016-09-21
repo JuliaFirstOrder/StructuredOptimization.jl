@@ -22,7 +22,6 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	tic();
 
 	normfpr0 = NaN
-	k = 0
 
 	# compute least squares residual and f(x)
 	resx = L(x) - b
@@ -42,16 +41,15 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	z = x
 	resz = resx
 
-	for k = 1:slv.maxit
-	slv.it = k
+	for slv.it = 1:slv.maxit
 
 		# stopping criterion
 		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, slv.normfpr, costprev, slv.cost) break end
 		costprev = copy(slv.cost)
 
 		# extrapolation
-		y = x + k/(k+3) * (x - slv.xprev)
-		resy = resx + k/(k+3) * (resx - slv.resxprev)
+		y = x + slv.it/(slv.it+3) * (x - slv.xprev)
+		resy = resx + slv.it/(slv.it+3) * (resx - slv.resxprev)
 
 		# compute gradient and f(y)
 		fy = 0.5*vecnorm(resy)^2
@@ -69,7 +67,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 			slv.gamma = 0.5*slv.gamma
 		end
 
-		if k == 1 normfpr0 = slv.normfpr end
+		if slv.it == 1 normfpr0 = slv.normfpr end
 
 		slv.cost = fz + gz
 
