@@ -4,41 +4,40 @@ type ZeroFPR <: ForwardBackwardSolver
 	verbose::Int64
 	lbfgs::LBFGS.Storage
 	stp_cr::Function
-	sigma::Float64
-	rbar_prev::Array
 	gamma::Float64
 	it::Int
 	normfpr::Float64
 	cost::Float64
 	time::Float64
+	linesearch::Bool
 	name::AbstractString
 end
 
 ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000,
-          mem::Int64 = 10, verbose::Int64 = 1, stp_cr::Function = halt, gamma::Float64 = Inf) =
-ZeroFPR(tol, maxit, verbose, LBFGS.create(mem), stp_cr, 0., [], gamma,
-        0, Inf, Inf, NaN, "ZeroFPR")
+          mem::Int64 = 10, verbose::Int64 = 1, 
+	  stp_cr::Function = halt, linesearch::Bool = true, gamma::Float64 = Inf) =
+ZeroFPR(tol, maxit, verbose, LBFGS.create(mem), stp_cr, gamma,
+        0, Inf, Inf, NaN, linesearch, "ZeroFPR")
 
 function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::ZeroFPR)
 
 	tic();
 
+	resx = L(x) - b
+	fx = 0.5*vecnorm(resx)^2
+
+	if slv.gamma == Inf #compute upper bound for Lipschitz constant using fd
+		slv.gamma = get_gamma0(L,x,b,fx)
+	end
+	
 	beta = 0.05
+	sigma = beta/(4*slv.gamma)
+	rbar_prev = zeros(x)
 
-	if slv.gamma == Inf
-		slv.gamma = 100.0
-	end
-
-	if slv.lbfgs.curridx == 0
-		slv.sigma = beta/(4*slv.gamma)
-		slv.rbar_prev = zeros(x)
-	end
 	H0, tau = 1., 1.
 	d = zeros(x)
 
 	# compute least squares residual and gradient
-	resx = L(x) - b
-	fx = 0.5*vecnorm(resx)^2
 	gradx = Ladj(resx)
 	xbar, gxbar = prox(g, x-slv.gamma*gradx, slv.gamma)
 	r = x - xbar
@@ -46,7 +45,8 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 	FBEx = uppbnd + gxbar
 
-	fxbar = normfpr0 = FBEprev = NaN
+	fxbar, normfpr0, FBEprev, = NaN, NaN, NaN
+	xbarbar = zeros(x)
 
 	for slv.it = 1:slv.maxit
 
@@ -59,19 +59,21 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		fxbar = 0.5*vecnorm(resxbar)^2
 
 		# line search on gamma
-		for j = 1:32
-			if fxbar <= uppbnd break end
-			slv.gamma = 0.5*slv.gamma
-			slv.sigma = 2*slv.sigma
-			xbar, gxbar = prox(g, x-slv.gamma*gradx, slv.gamma)
-			r = x - xbar
-			slv.normfpr = vecnorm(r)
-			resxbar = L(xbar) - b
-			fxbar = 0.5*vecnorm(resxbar)^2
-			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
+		if slv.linesearch == true
+			for j = 1:32
+				if fxbar <= uppbnd break end
+				slv.gamma = 0.5*slv.gamma
+				sigma = 2*sigma
+				gxbar = prox!(g, x-slv.gamma*gradx, slv.gamma, xbar)
+				r = x - xbar
+				slv.normfpr = vecnorm(r)
+				resxbar = L(xbar) - b
+				fxbar = 0.5*vecnorm(resxbar)^2
+				uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
+			end
 		end
 
-		if slv.it == 1 normfpr0 = slv.normfpr end
+		if slv.it == 1 normfpr0 = copy(slv.normfpr) end
 
 		# print out stuff
 		slv.cost = fxbar+gxbar
@@ -79,16 +81,16 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 
 		# compute rbar
 		gradxbar = Ladj(resxbar)
-		xbarbar, = prox(g, xbar - slv.gamma*gradxbar, slv.gamma)
+		prox!(g, xbar - slv.gamma*gradxbar, slv.gamma, xbarbar)
 		rbar = xbar - xbarbar
 
 		# compute direction according to L-BFGS
-		if slv.it == 1 && slv.lbfgs.curridx == 0
+		if slv.it == 1
 			d = -rbar
 			LBFGS.reset(slv.lbfgs)
 		else
 			s = tau*d
-			y = r - slv.rbar_prev
+			y = r - rbar_prev
 			ys = real(vecdot(s,y))
 			if ys > 0
 				H0 = ys/real(vecdot(y,y))
@@ -98,11 +100,11 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		end
 
 		# store xbar and rbar for later use
-		xbar_prev = xbar
-		slv.rbar_prev = rbar
+		xbar_prev = copy(xbar)
+		rbar_prev = copy(rbar)
 
 		# line search on tau
-		level = FBEx - slv.sigma*slv.normfpr^2
+		level = FBEx - sigma*slv.normfpr^2
 		tau = 1.0
 		Ad = L(d)
 		ATAd = Ladj(Ad)
@@ -111,7 +113,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 			resx = resxbar + tau*Ad
 			fx = 0.5*vecnorm(resx)^2
 			gradx = gradxbar + tau*ATAd
-			xbar, gxbar = prox(g, x - slv.gamma*gradx, slv.gamma)
+			gxbar = prox!(g, x - slv.gamma*gradx, slv.gamma, xbar)
 			r = x - xbar
 			slv.normfpr = vecnorm(r)
 			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2

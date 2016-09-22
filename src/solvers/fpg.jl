@@ -3,19 +3,22 @@ type FPG <: ForwardBackwardSolver
 	maxit::Int64
 	verbose::Int64
 	stp_cr::Function
-	resxprev::Array
-	xprev::Array
 	gamma::Float64
 	it::Int
 	normfpr::Float64
 	cost::Float64
 	time::Float64
+	linesearch::Bool
 	name::AbstractString
 end
 
-FPG(; tol::Float64 = 1e-8, maxit::Int64 = 10000, verbose::Int64 = 1,
-      stp_cr::Function = halt, gamma::Float64 = Inf) =
-FPG(tol, maxit, verbose, stp_cr, [], [], gamma,  0, Inf, Inf, NaN, "Fast Proximal Gradient")
+FPG(; tol::Float64 = 1e-8, 
+      maxit::Int64 = 10000, 
+      verbose::Int64 = 1,
+      stp_cr::Function = halt,
+      linesearch::Bool = true,
+      gamma::Float64 = Inf) =
+FPG(tol, maxit, verbose, stp_cr, gamma,  0, Inf, Inf, NaN, linesearch, "Fast Proximal Gradient")
 
 function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::FPG)
 
@@ -30,15 +33,14 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	gz = Inf
 	costprev = fz + gz
 
+	if slv.gamma == Inf #compute upper bound for Lipschitz constant using fd
+		slv.gamma = get_gamma0(L,x,b,fx)
+	end
+		
 	# initialize variables
-	if slv.gamma == Inf
-		slv.gamma = 100.0
-	end
-	if slv.xprev == []
-		slv.xprev = x
-		slv.resxprev = resx
-	end
-	z = x
+	xprev = copy(x)
+	resxprev = copy(resx)
+	z = copy(x)
 	resz = resx
 
 	for slv.it = 1:slv.maxit
@@ -48,8 +50,8 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		costprev = copy(slv.cost)
 
 		# extrapolation
-		y = x + slv.it/(slv.it+3) * (x - slv.xprev)
-		resy = resx + slv.it/(slv.it+3) * (resx - slv.resxprev)
+		y = x + slv.it/(slv.it+3) * (x - xprev)
+		resy = resx + slv.it/(slv.it+3) * (resx - resxprev)
 
 		# compute gradient and f(y)
 		fy = 0.5*vecnorm(resy)^2
@@ -57,12 +59,13 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 
 		# line search on gamma
 		for j = 1:32
-			z, gz = prox(g, y - slv.gamma*grady, slv.gamma)
+			gz = prox!(g, y - slv.gamma*grady, slv.gamma, z)
 			fpr = y-z
 			slv.normfpr = vecnorm(fpr)
 			resz = L(z) - b
 			fz = 0.5*vecnorm(resz)^2
 			uppbnd = fy - real(vecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
+			if slv.linesearch == false; break; end
 			if fz <= uppbnd; break; end
 			slv.gamma = 0.5*slv.gamma
 		end
@@ -75,10 +78,10 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		print_status(slv)
 
 		# update iterates
-		slv.xprev = x
-		slv.resxprev = resx
-		x = z
-		resx = resz
+		xprev = copy(x)
+		resxprev = copy(resx)
+		x = copy(z)
+		resx = copy(resz)
 
 	end
 
