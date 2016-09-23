@@ -32,10 +32,8 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	
 	beta = 0.05
 	sigma = beta/(4*slv.gamma)
-	rbar_prev = zeros(x)
 
 	H0, tau = 1., 1.
-	d = zeros(x)
 
 	# compute least squares residual and gradient
 	gradx = Ladj(resx)
@@ -45,10 +43,12 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 	FBEx = uppbnd + gxbar
 
+	# initialize variables
 	fxbar, normfpr0, FBEprev, = NaN, NaN, NaN
 	xbarbar   = copy(x)
 	xbar_prev = copy(x)
 	rbar_prev = copy(x)
+	d         = copy(x)
 
 	for slv.it = 1:slv.maxit
 

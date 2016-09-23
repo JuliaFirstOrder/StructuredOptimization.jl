@@ -2,7 +2,6 @@ using RegLS
 using Prox
 using Base.Test
 
-srand(123)
 m, n = 300, 500
 A = randn(m, n)+im*randn(m,n)
 b = randn(m)+im*randn(m)

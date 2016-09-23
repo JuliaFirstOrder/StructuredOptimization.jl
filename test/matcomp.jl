@@ -2,8 +2,6 @@ using RegLS
 using Prox
 using Base.Test
 
-srand(0)
-
 m, n = 200, 500
 r = 5
 s = 0.1

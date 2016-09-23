@@ -2,7 +2,6 @@ using RegLS
 using Prox
 using Base.Test
 
-srand(123)
 m, n = 300, 1000
 A = sprandn(m, n, 0.1)
 b = randn(m)
@@ -18,14 +17,17 @@ tol_test = 1e-4
 
 x_star, ~ = solve(A, b, g, x0, FPG(verbose = verb))
 
+x_ista,  slv =  solve(A, b, g, x0, PG(verbose = verb, tol = tol))
 @time x_ista,  slv =  solve(A, b, g, x0, PG(verbose = verb, tol = tol))
 @test slv.it < maxit
 @test norm(x_ista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
+x_fista, slv = solve(A, b, g, x0, FPG(verbose = verb, tol = tol))
 @time x_fista, slv = solve(A, b, g, x0, FPG(verbose = verb, tol = tol))
 @test slv.it < maxit
 @test norm(x_fista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
+x_zerofpr, slv = solve(A, b, g, x0, ZeroFPR(verbose = verb, tol = tol))
 @time x_zerofpr, slv = solve(A, b, g, x0, ZeroFPR(verbose = verb, tol = tol))
 @test slv.it < maxit
 @test norm(x_zerofpr-x_star, Inf)/norm(x_star, Inf) <= tol_test

@@ -1,3 +1,4 @@
+srand(123)
 include("LBFGS.jl")
 include("lasso.jl")
 include("lasso_nonadaptive.jl")
