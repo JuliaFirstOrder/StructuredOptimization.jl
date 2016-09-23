@@ -34,8 +34,6 @@ solver = ZeroFPR(verbose = verb, tol = tol)
 x_z,  iz =  solve(A, b, g, x0, solver)
 #println("λ = 0.001 λmax, no warm start")
 x_z2, iz2 =  solve(A, b, g2, x0, ZeroFPR(verbose = verb, tol = tol))
-#println("λ = 0.001 λmax, warm start - only initial condition")
-x_z2, iz2 =  solve(A, b, g2, x_z, ZeroFPR(verbose = verb, tol = tol))
 #println("λ = 0.001 λmax, warm start - only passing lbfgs γ and rbar_prev")
 x_z2_ws, iz2_ws =  solve(A, b, g2, x_z, solver)
 @test iz2.it >= iz2_ws.it

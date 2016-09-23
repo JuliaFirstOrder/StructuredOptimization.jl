@@ -20,7 +20,7 @@ FPG(; tol::Float64 = 1e-8,
       gamma::Float64 = Inf) =
 FPG(tol, maxit, verbose, stp_cr, gamma,  0, Inf, Inf, NaN, linesearch, "Fast Proximal Gradient")
 
-function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::FPG)
+function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::FPG)
 
 	tic();
 
@@ -29,7 +29,7 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	# compute least squares residual and f(x)
 	resx = L(x) - b
 	fx = 0.5*vecnorm(resx)^2
-	fz = fx
+	fz = copy(fx)
 	gz = Inf
 	costprev = fz + gz
 
@@ -38,10 +38,10 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	end
 		
 	# initialize variables
-	xprev = copy(x)
+	xprev    = copy(x)
 	resxprev = copy(resx)
-	z = copy(x)
-	resz = resx
+	z        = copy(x)
+	resz     = copy(resx)
 
 	for slv.it = 1:slv.maxit
 
@@ -78,17 +78,23 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		print_status(slv)
 
 		# update iterates
-		xprev = copy(x)
-		resxprev = copy(resx)
-		x = copy(z)
-		resx = copy(resz)
+		copy!(xprev,      x)
+		copy!(resxprev,resx)
+		copy!(x,          z)
+		copy!(resx,    resz)
 
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
 
-	T = toq();
+	slv.time = toq();
 
 	return z, slv
 
+end
+
+function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x0::Array, slv::FPG)
+	x = copy(x0) #copy initial conditions
+	x, slv = solve!(L,Ladj,b,g,x,slv)
+	return x, slv
 end

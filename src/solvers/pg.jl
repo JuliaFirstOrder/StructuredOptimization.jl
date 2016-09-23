@@ -25,7 +25,7 @@ PG(tol,
    gamma, 
    0, Inf, Inf, NaN, linesearch, "Proximal Gradient")
 
-function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::PG)
+function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::PG)
 
 	tic();
 
@@ -76,8 +76,8 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		print_status(slv)
 
 		# update iterates
-		x = copy(z)
-		resx = copy(resz)
+		copy!(x,z)
+		copy!(resx,resz)
 		fx = copy(fz)
 
 	end
@@ -88,4 +88,10 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 
 	return z, slv
 
+end
+
+function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x0::Array, slv::PG)
+	x = copy(x0) #copy initial conditions
+	x, slv = solve!(L,Ladj,b,g,x,slv)
+	return x, slv
 end

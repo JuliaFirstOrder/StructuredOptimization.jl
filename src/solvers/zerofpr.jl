@@ -19,7 +19,7 @@ ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000,
 ZeroFPR(tol, maxit, verbose, LBFGS.create(mem), stp_cr, gamma,
         0, Inf, Inf, NaN, linesearch, "ZeroFPR")
 
-function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::ZeroFPR)
+function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::ZeroFPR)
 
 	tic();
 
@@ -46,7 +46,9 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	FBEx = uppbnd + gxbar
 
 	fxbar, normfpr0, FBEprev, = NaN, NaN, NaN
-	xbarbar = zeros(x)
+	xbarbar   = copy(x)
+	xbar_prev = copy(x)
+	rbar_prev = copy(x)
 
 	for slv.it = 1:slv.maxit
 
@@ -75,8 +77,8 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 
 		if slv.it == 1 normfpr0 = copy(slv.normfpr) end
 
-		# print out stuff
 		slv.cost = fxbar+gxbar
+		# print out stuff
 		print_status(slv)
 
 		# compute rbar
@@ -100,8 +102,8 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 		end
 
 		# store xbar and rbar for later use
-		xbar_prev = copy(xbar)
-		rbar_prev = copy(rbar)
+		copy!(xbar_prev, xbar)
+		copy!(rbar_prev, rbar)
 
 		# line search on tau
 		level = FBEx - sigma*slv.normfpr^2
@@ -130,4 +132,10 @@ function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::
 	slv.time = toq();
 
 	return xbar, slv
+end
+
+function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x0::Array, slv::ZeroFPR)
+	x = copy(x0) #copy initial conditions
+	x, slv = solve!(L,Ladj,b,g,x,slv)
+	return x, slv
 end
