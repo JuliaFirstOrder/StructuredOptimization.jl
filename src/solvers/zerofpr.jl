@@ -66,7 +66,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 				if fxbar <= uppbnd break end
 				slv.gamma = 0.5*slv.gamma
 				sigma = 2*sigma
-				gxbar = prox!(g, x-slv.gamma*gradx, slv.gamma, xbar)
+				gxbar = prox!(g, x-slv.gamma*gradx, xbar, slv.gamma)
 				r = x - xbar
 				slv.normfpr = vecnorm(r)
 				resxbar = L(xbar) - b
@@ -83,7 +83,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 		# compute rbar
 		gradxbar = Ladj(resxbar)
-		prox!(g, xbar - slv.gamma*gradxbar, slv.gamma, xbarbar)
+		prox!(g, xbar - slv.gamma*gradxbar, xbarbar, slv.gamma)
 		rbar = xbar - xbarbar
 
 		# compute direction according to L-BFGS
@@ -115,7 +115,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 			resx = resxbar + tau*Ad
 			fx = 0.5*vecnorm(resx)^2
 			gradx = gradxbar + tau*ATAd
-			gxbar = prox!(g, x - slv.gamma*gradx, slv.gamma, xbar)
+			gxbar = prox!(g, x - slv.gamma*gradx, xbar, slv.gamma)
 			r = x - xbar
 			slv.normfpr = vecnorm(r)
 			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2

@@ -57,7 +57,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 		# line search on gamma
 		for j = 1:32
-			gz = prox!(g, x - slv.gamma*gradx, slv.gamma, z)
+			gz = prox!(g, x - slv.gamma*gradx, z, slv.gamma)
 			fpr = x-z
 			slv.normfpr = vecnorm(fpr)
 			resz = L(z) - b
