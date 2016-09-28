@@ -2,7 +2,7 @@ using RegLS
 using Prox
 using Base.Test
 
-m, n = 200, 500
+m, n = 20, 50
 r = 5
 s = 0.1
 

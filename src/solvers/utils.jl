@@ -21,10 +21,10 @@ function halt(tol::Float64, gamma::Float64, fpr0::Float64, fpr::Float64, fun_pre
 end
 
 #compute upper bound for Lipschitz constant using fd
-function get_gamma0(L::Function,x::Array,b::Array,fx::Float64)
-	resy = L( x+sqrt(eps()) ) - b
-	fy = 0.5*vecnorm(resy)^2
-	return vecnorm(sqrt(eps())*ones(x))/abs(fx-fy)
+function get_gamma0(L::Function, Ladj::Function, x::Array, gradx::Array, b::Array)
+	resy  = L( x+sqrt(eps()) ) - b
+	grady = Ladj(resy)
+	return vecnorm( sqrt(eps())*ones(x))/vecnorm(gradx-grady)
 end
 
 function Base.show(io::IO, slv::ForwardBackwardSolver)

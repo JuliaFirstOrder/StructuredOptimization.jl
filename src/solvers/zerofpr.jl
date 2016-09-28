@@ -25,9 +25,10 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 	resx = L(x) - b
 	fx = 0.5*vecnorm(resx)^2
+	gradx = Ladj(resx)
 
 	if slv.gamma == Inf #compute upper bound for Lipschitz constant using fd
-		slv.gamma = get_gamma0(L,x,b,fx)
+		slv.gamma = get_gamma0(L,Ladj,x,gradx,b)
 	end
 	
 	beta = 0.05
@@ -36,7 +37,6 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	H0, tau = 1., 1.
 
 	# compute least squares residual and gradient
-	gradx = Ladj(resx)
 	xbar, gxbar = prox(g, x-slv.gamma*gradx, slv.gamma)
 	r = x - xbar
 	slv.normfpr = vecnorm(r)

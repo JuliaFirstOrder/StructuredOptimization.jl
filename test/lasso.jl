@@ -29,3 +29,23 @@ x_star, ~ = solve(A, b, g, x0, FPG(verbose = verb))
 @time x_zerofpr, slv = solve(A, b, g, x0, ZeroFPR(verbose = verb, tol = tol))
 @test slv.it < maxit
 @test norm(x_zerofpr-x_star, Inf)/norm(x_star, Inf) <= tol_test
+
+@printf("Solving a small lasso instance without linesearch (m = %d, n = %d)\n", m, n)
+
+x_star, slv = solve(A, b, g, x0, FPG(verbose = verb))
+gamma = slv.gamma
+
+@time x_ista,  slv =  solve(A, b, g, x0, PG(verbose = verb, tol = tol, gamma = gamma, linesearch = false))
+@test slv.it < maxit
+@test norm(x_ista-x_star, Inf)/norm(x_star, Inf) <= tol_test
+show(slv)
+
+@time x_fista, slv = solve(A, b, g, x0, FPG(verbose = verb, tol = tol, gamma = gamma, linesearch = false))
+@test slv.it < maxit
+@test norm(x_fista-x_star, Inf)/norm(x_star, Inf) <= tol_test
+show(slv)
+
+@time x_zerofpr, slv = solve(A, b, g, x0, ZeroFPR(verbose = verb, tol = tol, gamma = gamma, linesearch = false))
+@test slv.it < maxit
+@test norm(x_zerofpr-x_star, Inf)/norm(x_star, Inf) <= tol_test
+show(slv)

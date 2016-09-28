@@ -31,10 +31,11 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 	# compute least squares residual and f(x)
 	resx = L(x) - b
+	gradx = Ladj(resx)
 	fx = 0.5*vecnorm(resx)^2
 
 	if slv.gamma == Inf #compute upper bound for Lipschitz constant using fd
-		slv.gamma = get_gamma0(L,x,b,fx)
+		slv.gamma = get_gamma0(L,Ladj,x,gradx,b)
 	end
 	normfpr0 = Inf
 
