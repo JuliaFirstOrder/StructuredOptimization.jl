@@ -16,14 +16,14 @@ function create(mem::Int64)
 	Storage(mem, 0, 0, s_m, y_m, ys_m)
 end
 
-function push(obj::Storage, s::Array, y::Array)
+function push(obj::Storage, s::Array, y::Array, ys::Float64)
 	obj.curridx += 1
   if obj.curridx > obj.mem obj.curridx = 1 end
 	obj.currmem += 1
   if obj.currmem > obj.mem obj.currmem = obj.mem end
 	obj.s_m[obj.curridx] = s
 	obj.y_m[obj.curridx] = y
-	obj.ys_m[obj.curridx] = real(vecdot(s,y))
+	obj.ys_m[obj.curridx] = ys
 end
 
 function matvec(obj::Storage, H::Float64, g::Array)

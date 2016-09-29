@@ -52,7 +52,8 @@ for i=1:5
     if i > 1
         Sk = x-x_old
         Yk = grad-grad_old
-        RegLS.LBFGS.push(lbfgs, Sk, Yk)
+	YS = real(vecdot(Yk,Sk))
+        RegLS.LBFGS.push(lbfgs, Sk, Yk,YS)
         H0 = dot(Sk[:],Yk[:])/dot(Yk[:],Yk[:])
     end
     dir = RegLS.LBFGS.matvec(lbfgs, H0, -grad)

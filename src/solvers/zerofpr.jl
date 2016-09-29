@@ -2,7 +2,7 @@ type ZeroFPR <: ForwardBackwardSolver
 	tol::Float64
 	maxit::Int64
 	verbose::Int64
-	lbfgs::LBFGS.Storage
+	mem::Int64
 	stp_cr::Function
 	gamma::Float64
 	it::Int
@@ -14,14 +14,15 @@ type ZeroFPR <: ForwardBackwardSolver
 end
 
 ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000,
-          mem::Int64 = 10, verbose::Int64 = 1, 
+          mem::Int64 = 5, verbose::Int64 = 1, 
 	  stp_cr::Function = halt, linesearch::Bool = true, gamma::Float64 = Inf) =
-ZeroFPR(tol, maxit, verbose, LBFGS.create(mem), stp_cr, gamma,
+ZeroFPR(tol, maxit, verbose, mem, stp_cr, gamma,
         0, Inf, Inf, NaN, linesearch, "ZeroFPR")
 
 function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::ZeroFPR)
 
 	tic();
+	lbfgs = LBFGS.create(slv.mem)
 
 	resx = L(x) - b
 	fx = 0.5*vecnorm(resx)^2
@@ -45,10 +46,10 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 	# initialize variables
 	fxbar, normfpr0, FBEprev, = NaN, NaN, NaN
-	xbarbar   = copy(x)
-	xbar_prev = copy(x)
-	rbar_prev = copy(x)
-	d         = copy(x)
+	resxbar   = zeros(b)
+	rbar_prev = zeros(x)
+	xbar_prev = zeros(x)
+	d         = zeros(x)
 
 	for slv.it = 1:slv.maxit
 
@@ -57,25 +58,26 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, slv.normfpr, FBEprev, FBEx) break end
 		FBEprev = copy(FBEx)
 
-		resxbar = L(xbar) - b
+		resxbar[:] = L(xbar) - b
 		fxbar = 0.5*vecnorm(resxbar)^2
 
 		# line search on gamma
-		if slv.linesearch == true
-			for j = 1:32
-				if fxbar <= uppbnd break end
-				slv.gamma = 0.5*slv.gamma
-				sigma = 2*sigma
-				gxbar = prox!(g, x-slv.gamma*gradx, xbar, slv.gamma)
-				r = x - xbar
-				slv.normfpr = vecnorm(r)
-				resxbar = L(xbar) - b
-				fxbar = 0.5*vecnorm(resxbar)^2
-				uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
-			end
+		for j = 1:32
+			if fxbar <= uppbnd break end
+			slv.gamma = 0.5*slv.gamma
+			sigma = 2*sigma
+			gxbar = prox!(g, x-slv.gamma*gradx, xbar, slv.gamma)
+			r[:] = x - xbar
+			slv.normfpr = vecnorm(r)
+			resxbar[:] = L(xbar) - b
+			fxbar = 0.5*vecnorm(resxbar)^2
+			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 		end
 
 		if slv.it == 1 normfpr0 = copy(slv.normfpr) end
+
+		# evaluate FBE at x
+		FBEx = uppbnd + gxbar
 
 		slv.cost = fxbar+gxbar
 		# print out stuff
@@ -83,27 +85,26 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 		# compute rbar
 		gradxbar = Ladj(resxbar)
-		prox!(g, xbar - slv.gamma*gradxbar, xbarbar, slv.gamma)
+		xbarbar, = prox(g, xbar - slv.gamma*gradxbar, slv.gamma)
 		rbar = xbar - xbarbar
 
 		# compute direction according to L-BFGS
 		if slv.it == 1
-			d = -rbar
-			LBFGS.reset(slv.lbfgs)
+			d[:] = -rbar
 		else
 			s = tau*d
 			y = r - rbar_prev
 			ys = real(vecdot(s,y))
 			if ys > 0
 				H0 = ys/real(vecdot(y,y))
-				LBFGS.push(slv.lbfgs, s, y)
+				LBFGS.push(lbfgs, s, y, ys)
 			end
-			d = -LBFGS.matvec(slv.lbfgs, H0, rbar)
+			d[:] = -LBFGS.matvec(lbfgs, H0, rbar)
 		end
 
 		# store xbar and rbar for later use
-		copy!(xbar_prev, xbar)
 		copy!(rbar_prev, rbar)
+		copy!(xbar_prev, xbar)
 
 		# line search on tau
 		level = FBEx - sigma*slv.normfpr^2
@@ -111,20 +112,18 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		Ad = L(d)
 		ATAd = Ladj(Ad)
 		for j = 1:32
-			x = xbar_prev + tau*d
-			resx = resxbar + tau*Ad
+			x[:] = xbar_prev + tau*d
+			resx[:] = resxbar + tau*Ad
 			fx = 0.5*vecnorm(resx)^2
-			gradx = gradxbar + tau*ATAd
+			gradx[:] = gradxbar + tau*ATAd
 			gxbar = prox!(g, x - slv.gamma*gradx, xbar, slv.gamma)
-			r = x - xbar
+			r[:] = x - xbar
 			slv.normfpr = vecnorm(r)
 			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 			if uppbnd + gxbar <= level break end
 			tau = 0.5*tau
 		end
 
-		# evaluate FBE at x
-		FBEx = uppbnd + gxbar
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
