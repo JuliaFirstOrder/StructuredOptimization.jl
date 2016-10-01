@@ -42,7 +42,7 @@ col = 0; # last column of Sk, Yk that was filled in
 currmem = 0;
 H0 = 1.0
 
-lbfgs = RegLS.LBFGS.create(mem)
+lbfgs = RegLS.LBFGS.create(mem,zeros(10))
 x_old = 0;
 grad_old = 0;
 
@@ -50,13 +50,11 @@ for i=1:5
     x = xs[:,i]
     grad = Q*x + q
     if i > 1
-        Sk = x-x_old
-        Yk = grad-grad_old
-	YS = real(vecdot(Yk,Sk))
-        RegLS.LBFGS.push(lbfgs, Sk, Yk,YS)
-        H0 = dot(Sk[:],Yk[:])/dot(Yk[:],Yk[:])
+	    RegLS.LBFGS.push!(lbfgs, x, x_old, grad, grad_old)
+    else
+	    RegLS.LBFGS.push!(lbfgs, -grad)
     end
-    dir = RegLS.LBFGS.matvec(lbfgs, H0, -grad)
+    dir = lbfgs.d
     dirs[:, i] = dir
     x_old = x;
     grad_old = grad;

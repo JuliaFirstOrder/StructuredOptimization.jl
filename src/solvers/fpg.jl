@@ -28,7 +28,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 	# compute least squares residual and f(x)
 	resx = L(x) - b
-	gradx = Ladj(resx)
+	gradx = copy(Ladj(resx))
 	fx = 0.5*vecnorm(resx)^2
 	fz = copy(fx)
 	gz = Inf
@@ -41,18 +41,20 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	# initialize variables
 	xprev    = copy(x)
 	resxprev = copy(resx)
-	z        = copy(x)
-	resz     = copy(resx)
 
 	for slv.it = 1:slv.maxit
 
 		# stopping criterion
 		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, slv.normfpr, costprev, slv.cost) break end
-		costprev = copy(slv.cost)
 
 		# extrapolation
 		y = x + slv.it/(slv.it+3) * (x - xprev)
 		resy = resx + slv.it/(slv.it+3) * (resx - resxprev)
+
+		# update iterates
+		copy!(xprev,      x)
+		copy!(resxprev,resx)
+		costprev = copy(slv.cost)
 
 		# compute gradient and f(y)
 		fy = 0.5*vecnorm(resy)^2
@@ -60,11 +62,11 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 		# line search on gamma
 		for j = 1:32
-			gz = prox!(g, y - slv.gamma*grady, z, slv.gamma)
-			fpr = y-z
+			gz = prox!(g, y - slv.gamma*grady, x, slv.gamma)
+			fpr = y-x
 			slv.normfpr = vecnorm(fpr)
-			resz = L(z) - b
-			fz = 0.5*vecnorm(resz)^2
+			resx = L(x) - b
+			fz = 0.5*vecnorm(resx)^2
 			uppbnd = fy - real(vecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
 			if slv.linesearch == false; break; end
 			if fz <= uppbnd; break; end
@@ -78,19 +80,13 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		# print out stuff
 		print_status(slv)
 
-		# update iterates
-		copy!(xprev,      x)
-		copy!(resxprev,resx)
-		copy!(x,          z)
-		copy!(resx,    resz)
-
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
 
 	slv.time = toq();
 
-	return z, slv
+	return x, slv
 
 end
 

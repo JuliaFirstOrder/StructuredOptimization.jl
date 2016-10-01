@@ -31,7 +31,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 	# compute least squares residual and f(x)
 	resx = L(x) - b
-	gradx = Ladj(resx)
+	gradx = copy(Ladj(resx))
 	fx = 0.5*vecnorm(resx)^2
 
 	if slv.gamma == Inf #compute upper bound for Lipschitz constant using fd
@@ -45,7 +45,6 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 	# initialize variables
 	z = copy(x)
-	resz = copy(resx)
 
 	for slv.it = 1:slv.maxit
 
@@ -61,8 +60,8 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 			gz = prox!(g, x - slv.gamma*gradx, z, slv.gamma)
 			fpr = x-z
 			slv.normfpr = vecnorm(fpr)
-			resz = L(z) - b
-			fz = 0.5*vecnorm(resz)^2
+			resx = L(z) - b
+			fz = 0.5*vecnorm(resx)^2
 			uppbnd = fx - real(vecdot(gradx,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
 			if slv.linesearch == false; break; end
 			if fz <= uppbnd; break; end
@@ -78,7 +77,6 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 		# update iterates
 		copy!(x,z)
-		copy!(resx,resz)
 		fx = copy(fz)
 
 	end

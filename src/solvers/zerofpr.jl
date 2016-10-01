@@ -22,11 +22,11 @@ ZeroFPR(tol, maxit, verbose, mem, stp_cr, gamma,
 function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::ZeroFPR)
 
 	tic();
-	lbfgs = LBFGS.create(slv.mem)
+	lbfgs = LBFGS.create(slv.mem, x)
 
 	resx = L(x) - b
 	fx = 0.5*vecnorm(resx)^2
-	gradx = Ladj(resx)
+	gradx = copy(Ladj(resx))
 
 	if slv.gamma == Inf #compute upper bound for Lipschitz constant using fd
 		slv.gamma = get_gamma0(L,Ladj,x,gradx,b)
@@ -35,7 +35,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	beta = 0.05
 	sigma = beta/(4*slv.gamma)
 
-	H0, tau = 1., 1.
+	tau = 1.
 
 	# compute least squares residual and gradient
 	xbar, gxbar = prox(g, x-slv.gamma*gradx, slv.gamma)
@@ -49,7 +49,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	resxbar   = zeros(b)
 	rbar_prev = zeros(x)
 	xbar_prev = zeros(x)
-	d         = zeros(x)
+	xbarbar = zeros(x)
 
 	for slv.it = 1:slv.maxit
 
@@ -84,22 +84,15 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		print_status(slv)
 
 		# compute rbar
-		gradxbar = Ladj(resxbar)
-		xbarbar, = prox(g, xbar - slv.gamma*gradxbar, slv.gamma)
+		gradxbar = copy(Ladj(resxbar))
+		prox!(g, xbar - slv.gamma*gradxbar, xbarbar, slv.gamma)
 		rbar = xbar - xbarbar
 
 		# compute direction according to L-BFGS
 		if slv.it == 1
-			d[:] = -rbar
+			LBFGS.push!(lbfgs, rbar)
 		else
-			s = tau*d
-			y = r - rbar_prev
-			ys = real(vecdot(s,y))
-			if ys > 0
-				H0 = ys/real(vecdot(y,y))
-				LBFGS.push(lbfgs, s, y, ys)
-			end
-			d[:] = -LBFGS.matvec(lbfgs, H0, rbar)
+			LBFGS.push!(lbfgs, xbar, xbar_prev, rbar, rbar_prev)
 		end
 
 		# store xbar and rbar for later use
@@ -109,10 +102,10 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		# line search on tau
 		level = FBEx - sigma*slv.normfpr^2
 		tau = 1.0
-		Ad = L(d)
+		Ad = L(lbfgs.d)
 		ATAd = Ladj(Ad)
 		for j = 1:32
-			x[:] = xbar_prev + tau*d
+			x[:] = xbar_prev + tau*lbfgs.d
 			resx[:] = resxbar + tau*Ad
 			fx = 0.5*vecnorm(resx)^2
 			gradx[:] = gradxbar + tau*ATAd

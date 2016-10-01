@@ -12,11 +12,30 @@ include("solvers.jl")
 
 export solve
 
-solve(A, b::Array, g::ProximableFunction) =
-  solve(x -> A*x, y -> A'*y, b, g, zeros(size(A,2)))
 
-solve(A, b::Array, g::ProximableFunction, args...) =
-  solve(x -> A*x, y -> A'*y, b, g, args...)
+function solve(A, b::Array, g::ProximableFunction, args...) 
+
+	y = zeros(typeof(b[1]),size(A,1))
+	y2 = zeros(typeof(b[1]),size(A,2))
+
+	L! = x -> A_mul_B!(y, A, x)
+	Ladj! = x -> Ac_mul_B!(y2, A, x)
+
+	solve(L!, Ladj!, b, g, args...)
+
+end
+
+function solve(A, b::Array, g::ProximableFunction) 
+
+	y = zeros(typeof(b[1]),size(A,1))
+	y2 = zeros(typeof(b[1]),size(A,2))
+
+	L! = x -> A_mul_B!(y, A, x)
+	Ladj! = x -> Ac_mul_B!(y2, A, x)
+
+	solve(L!, Ladj!, b, g, zeros(typeof(b[1]),size(A,2)))
+
+end
 
 solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array) =
   solve(L, Ladj, b, g, x, ZeroFPR())
