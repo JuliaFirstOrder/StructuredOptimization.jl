@@ -46,10 +46,9 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 	# initialize variables
 	fxbar, normfpr0, FBEprev, = NaN, NaN, NaN
-	resxbar   = zeros(b)
 	rbar_prev = zeros(x)
 	xbar_prev = zeros(x)
-	xbarbar = zeros(x)
+	xbarbar = x
 
 	for slv.it = 1:slv.maxit
 
@@ -58,7 +57,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, slv.normfpr, FBEprev, FBEx) break end
 		FBEprev = copy(FBEx)
 
-		resxbar[:] = L(xbar) - b
+		resxbar = L(xbar) - b
 		fxbar = 0.5*vecnorm(resxbar)^2
 
 		# line search on gamma
