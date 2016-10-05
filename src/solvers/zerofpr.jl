@@ -48,7 +48,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	fxbar, normfpr0, FBEprev, = NaN, NaN, NaN
 	rbar_prev = zeros(x)
 	xbar_prev = zeros(x)
-	xbarbar = x
+	xbarbar = copy(x)
 
 	for slv.it = 1:slv.maxit
 

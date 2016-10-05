@@ -29,6 +29,7 @@ x_fista, slv = solve(A, b, g, x0, FPG(verbose = verb, tol = tol))
 @test norm(x_fista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
 x_zerofpr, slv = solve(A, b, g, x0, ZeroFPR(verbose = verb, tol = tol))
+Profile.clear_malloc_data()
 @time x_zerofpr, slv = solve(A, b, g, x0, ZeroFPR(verbose = verb, tol = tol))
 @test slv.it < maxit
 @test norm(x_zerofpr-x_star, Inf)/norm(x_star, Inf) <= tol_test

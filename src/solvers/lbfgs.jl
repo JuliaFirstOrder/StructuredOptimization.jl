@@ -17,7 +17,8 @@ function create(mem::Int64,x::Array)
 	y_m = Array{Array,1}(mem)
 	ys_m = zeros(Float64,mem)
 	alphas = zeros(Float64,mem)
-	for i = 1:mem  s_m[i] = zeros(x); y_m[i] = zeros(x); end
+	s_m = [ zeros(x) for i=1:mem ]
+	y_m = [ zeros(x) for i=1:mem ]
 	Storage(mem, 0, 0, s_m, y_m, ys_m, alphas, 1., zeros(x))
 end
 
