@@ -1,5 +1,5 @@
 using RegLS
-using Prox
+using ProximalOperators
 using Base.Test
 
 m, n = 5, 3 #sources, receivers

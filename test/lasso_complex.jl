@@ -1,5 +1,5 @@
 using RegLS
-using Prox
+using ProximalOperators
 using Base.Test
 using Base.Profile
 

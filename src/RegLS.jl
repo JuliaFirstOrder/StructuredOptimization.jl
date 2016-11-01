@@ -2,7 +2,7 @@ __precompile__()
 
 module RegLS
 
-using Prox
+using ProximalOperators
 
 RealOrComplexArray = Union{Array{Float64}, Array{Complex{Float64}}}
 RealOrComplexVector = Union{Array{Float64,1}, Array{Complex{Float64},1}}
