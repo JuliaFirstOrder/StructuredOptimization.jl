@@ -28,22 +28,22 @@ end
 
 function push!(obj::Storage, x::Array, x_prev::Array, gradx::Array, gradx_prev::Array)
 	
-	obj.curridx += 1
-	if obj.curridx > obj.mem obj.curridx = 1 end
-	obj.currmem += 1
-	if obj.currmem > obj.mem obj.currmem = obj.mem end
-
 	s = x-x_prev
 	y = gradx-gradx_prev
 	ys = real(vecdot(s,y))
 	
 	if ys > 0
+		obj.curridx += 1
+		if obj.curridx > obj.mem obj.curridx = 1 end
+		obj.currmem += 1
+		if obj.currmem > obj.mem obj.currmem = obj.mem end
+
 		obj.s_m[obj.curridx][:] = s
 		obj.y_m[obj.curridx][:] = y 
 		obj.ys_m[obj.curridx] = ys
 		obj.H = ys/real(vecdot(y,y))
-		obj.d[:] = matvec(obj,gradx)
 	end
+	obj.d[:] = matvec(obj,gradx)
 end
 
 function matvec(obj::Storage, gradx::Array)

@@ -13,10 +13,58 @@ type ZeroFPR <: ForwardBackwardSolver
 	name::AbstractString
 end
 
-ZeroFPR(; tol::Float64 = 1e-8, maxit::Int64 = 10000,
-          mem::Int64 = 5, verbose::Int64 = 1, 
-	  stp_cr::Function = halt, linesearch::Bool = true, gamma::Float64 = Inf) =
-ZeroFPR(tol, maxit, verbose, mem, stp_cr, gamma,
+
+"""
+# Zero Fixed Point Residual Solver
+
+Default solver of RegLS. 
+
+## Usage 
+
+* `slv = ZeroFPR()` creates a `Solver` object that can be used in the function `solve`.
+
+* Can be used with convex and noncovex regularizers.
+
+* After solving a problem use `show(slv)` to visualize number of iterations, fixed point residual value, cost funtion value and time elapsed. 
+
+
+## Keyword Arguments
+
+* `tol::Float64=1e-8`: tolerance used in stopping criterion 
+* `maxit::Int64=10000`: maximum number of iterations 
+* `mem::Int64=5`: L-BFGS memory 
+* `verbose::Int64=1`: `0` verbose off, `1` print every 100 iteration, `2` print every iteration  
+* `stp_cr::Function=halt`: stopping criterion function 
+  * this function may be specified by the user and must have the following structure:
+
+    `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,FBE::Float64,FBEx::Float64)`   
+
+    * `normfpr0` is the fixed point residual at x0 
+    * `FBE` is the Forward-Backward Envelope value of the current iteration  
+    * `FBEprev` is the Forward-Backward Envelope value of the previous iteration  
+    * example: `myhalt(slv,normfpr0,FBE,FBEx) = slv.normfpr<slv.tol`
+
+* `gamma::Float64=Inf`: stepsize γ, if γ = Inf upper bound is computed using: 
+
+  γ0 = || x0-(x0+ɛ) || / || ∇f(x0) - ∇f(x0+ɛ) ||    
+
+* `linesearch::Bool=true`: activates linesearch on stepsize γ  
+
+
+"""
+ZeroFPR(;tol::Float64 = 1e-8, 
+	 maxit::Int64 = 10000,
+         mem::Int64 = 5, 
+	 verbose::Int64 = 1, 
+	 stp_cr::Function = halt, 
+	 gamma::Float64 = Inf,
+	 linesearch::Bool = true) = 
+ZeroFPR(tol, 
+	maxit, 
+	verbose, 
+	mem, 
+	stp_cr, 
+	gamma,
         0, Inf, Inf, NaN, linesearch, "ZeroFPR")
 
 function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::ZeroFPR)
@@ -54,7 +102,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 		# stopping criterion
 		# TODO make this slv.stp_cr(slv::)
-		if slv.stp_cr(slv.tol, slv.gamma, normfpr0, slv.normfpr, FBEprev, FBEx) break end
+		if slv.stp_cr(slv, normfpr0, FBEx, FBEprev) break end
 		FBEprev = copy(FBEx)
 
 		resxbar = L(xbar) - b

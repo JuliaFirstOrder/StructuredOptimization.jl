@@ -14,9 +14,15 @@ function print_status(slv::ForwardBackwardSolver, verbose::Int)
   end
 end
 
-function halt(tol::Float64, gamma::Float64, fpr0::Float64, fpr::Float64, fun_prev::Float64, fun::Float64)
-	conv_fpr = fpr <= (1+fpr0)*tol
-	conv_fun = abs(fun-fun_prev) <= (1+abs(fun))*tol
+function halt(slv::ForwardBackwardSolver, normfpr0::Float64, cost_prev::Float64)
+	conv_fpr = slv.normfpr <= (1+normfpr0)*slv.tol
+	conv_fun = abs(slv.cost-cost_prev) <= (1+abs(slv.cost))*slv.tol
+	return conv_fpr && conv_fun
+end
+
+function halt(slv::ZeroFPR, normfpr0::Float64, FBEx::Float64, FBEprev::Float64,)
+	conv_fpr = slv.normfpr <= (1+normfpr0)*slv.tol
+	conv_fun = abs(FBEx-FBEprev) <= (1+abs(FBEx))*slv.tol
 	return conv_fpr && conv_fun
 end
 

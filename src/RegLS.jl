@@ -12,7 +12,6 @@ include("solvers.jl")
 
 export solve
 
-
 function solve(A, b::Array, g::ProximableFunction, args...) 
 
 	y = zeros(typeof(b[1]),size(A,1))

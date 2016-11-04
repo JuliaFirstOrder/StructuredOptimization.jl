@@ -13,7 +13,7 @@ sigma = 1e-2
 y = A*x_orig + sigma*randn(m) # add noise to measurement
 
 using RegLS
-using Prox
+using ProximalOperators
 lambda_max = norm(A'*y, Inf)
 lambda = 0.01*lambda_max # regularization parameter
 x_L1, info_L1 = solve(A, y, NormL1(lambda), zeros(n))

@@ -17,7 +17,7 @@ minimize (1/2)*||L(x) - b||^2 + g(x)
 ```
 
 Here `L` is a linear operator, `b` is an `Array` of data, and `g` is a regularization
-taken from [Prox.jl](https://github.com/kul-forbes/Prox.jl).
+taken from [ProximalOperators.jl](https://github.com/kul-forbes/ProximalOperators.jl).
 You can use any `AbstractMatrix` object to describe `L`, or any matrix-like object
 implementing the matrix-vector product and transpose operations
 (see for example [LinearOperators.jl](https://github.com/JuliaSmoothOptimizers/LinearOperators.jl)).
@@ -56,7 +56,7 @@ least squares problem using the `NormL0` function, as in the following snippet
 
 ```julia
 using RegLS
-using Prox
+using ProximalOperators
 lambda_max = norm(A'*y, Inf)
 lambda = 0.01*lambda_max # regularization parameter
 x_L1, info = solve(A, y, normL1(lambda), zeros(n))
