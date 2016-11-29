@@ -39,10 +39,12 @@ using PyPlot
 figure()
 subplot(2,1,1)
 plot(y, label = "y")
+xlim([1,length(y)])
 legend()
 subplot(2,1,2)
 plot(x, label = "ground truth")
 plot(x_NN_MF, label = "NND")
 #plot(x_LS, label = "LS")
+xlim([1,length(y)])
 legend()
 

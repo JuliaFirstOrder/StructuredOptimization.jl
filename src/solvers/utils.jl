@@ -27,10 +27,18 @@ function halt(slv::ZeroFPR, normfpr0::Float64, FBEx::Float64, FBEprev::Float64,)
 end
 
 #compute upper bound for Lipschitz constant using fd
-function get_gamma0(L::Function, Ladj::Function, x::Array, gradx::Array, b::Array)
+function get_gamma0{T<:Union{Complex{Float64},Float64}}(L::Function, Ladj::Function, x::Array{T}, gradx::Array, b::Array)
 	resy  = L( x+sqrt(eps()) ) - b
 	grady = Ladj(resy)
 	return vecnorm( sqrt(eps())*ones(x))/vecnorm(gradx-grady)
+end
+
+function get_gamma0{T<:Array}(L::Function, Ladj::Function, x::Array{T}, gradx::Array, b::Array)
+	resy  = L( x+sqrt(eps()) ) - b
+	grady = Ladj(resy)
+	z = similar(x)
+	[z[i] = ones(x[i]) for i in eachindex(z)]
+	return vecnorm( sqrt(eps())*z)/vecnorm(gradx-grady)
 end
 
 function Base.show(io::IO, slv::ForwardBackwardSolver)

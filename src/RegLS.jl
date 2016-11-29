@@ -4,13 +4,9 @@ module RegLS
 
 using ProximalOperators
 
-RealOrComplexArray = Union{Array{Float64}, Array{Complex{Float64}}}
-RealOrComplexVector = Union{Array{Float64,1}, Array{Complex{Float64},1}}
-RealOrComplexMatrix = Union{Array{Float64,2}, Array{Complex{Float64},2}}
-
 include("solvers.jl")
 
-export solve
+export solve, solve!
 
 function solve(A, b::Array, g::ProximableFunction, args...) 
 

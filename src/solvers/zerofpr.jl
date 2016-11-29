@@ -94,9 +94,9 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 
 	# initialize variables
 	fxbar, normfpr0, FBEprev, = NaN, NaN, NaN
-	rbar_prev = zeros(x)
-	xbar_prev = zeros(x)
-	xbarbar = copy(x)
+	rbar_prev = deepcopy(x)
+	xbar_prev = 0.*deepcopy(x)
+	xbarbar = deepcopy(x)
 
 	for slv.it = 1:slv.maxit
 
@@ -131,7 +131,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		print_status(slv)
 
 		# compute rbar
-		gradxbar = copy(Ladj(resxbar))
+		gradxbar = deepcopy(Ladj(resxbar))
 		prox!(g, xbar - slv.gamma*gradxbar, xbarbar, slv.gamma)
 		rbar = xbar - xbarbar
 
@@ -143,8 +143,8 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		end
 
 		# store xbar and rbar for later use
-		copy!(rbar_prev, rbar)
-		copy!(xbar_prev, xbar)
+		rbar_prev = deepcopy(rbar)
+		xbar_prev =  deepcopy(xbar)
 
 		# line search on tau
 		level = FBEx - sigma*slv.normfpr^2
@@ -174,7 +174,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 end
 
 function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x0::Array, slv::ZeroFPR)
-	x = copy(x0) #copy initial conditions
+	x = deepcopy(x0) #copy initial conditions
 	x, slv = solve!(L,Ladj,b,g,x,slv)
 	return x, slv
 end

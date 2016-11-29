@@ -75,7 +75,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	costprev = Inf
 
 	# initialize variables
-	z = copy(x)
+	z = deepcopy(x)
 
 	for slv.it = 1:slv.maxit
 
@@ -107,7 +107,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		print_status(slv)
 
 		# update iterates
-		copy!(x,z)
+		x = deepcopy(z)
 		fx = copy(fz)
 
 	end
@@ -121,7 +121,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 end
 
 function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x0::Array, slv::PG)
-	x = copy(x0) #copy initial conditions
+	x = deepcopy(x0) #copy initial conditions
 	x, slv = solve!(L,Ladj,b,g,x,slv)
 	return x, slv
 end

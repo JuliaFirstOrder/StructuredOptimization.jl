@@ -12,18 +12,34 @@ type Storage
   d::Array
 end
 
-function create(mem::Int64,x::Array)
+function create{T<:Union{Complex{Float64},Float64}}(mem::Int64,x::Array{T})
 	s_m = Array{Array,1}(mem)
 	y_m = Array{Array,1}(mem)
 	ys_m = zeros(Float64,mem)
 	alphas = zeros(Float64,mem)
-	s_m = [ zeros(x) for i=1:mem ]
-	y_m = [ zeros(x) for i=1:mem ]
+	s_m = [ similar(x) for i=1:mem ]
+	y_m = [ similar(x) for i=1:mem ]
 	Storage(mem, 0, 0, s_m, y_m, ys_m, alphas, 1., zeros(x))
 end
 
+function create{T<:Array}(mem::Int64,x::Array{T})
+	s_m = Array{Array,1}(mem)
+	y_m = Array{Array,1}(mem)
+	ys_m = zeros(Float64,mem)
+	alphas = zeros(Float64,mem)
+	s_m,y_m,d = similar(x),similar(x),similar(x)
+	s_m = [ similar(x) for i=1:mem ]
+	y_m = [ similar(x) for i=1:mem ]
+	d   = [ similar(xx) for xx in x ]
+	for l = 1:mem
+		[s_m[l][i] = similar(x[i]) for i in eachindex(s_m[l])]
+		[y_m[l][i] = similar(x[i]) for i in eachindex(y_m[l])]
+	end
+	Storage(mem, 0, 0, s_m, y_m, ys_m, alphas, 1., d)
+end
+
 function push!(obj::Storage, gradx::Array)
-	obj.d[:] = gradx
+	obj.d = gradx
 end
 
 function push!(obj::Storage, x::Array, x_prev::Array, gradx::Array, gradx_prev::Array)
@@ -38,8 +54,8 @@ function push!(obj::Storage, x::Array, x_prev::Array, gradx::Array, gradx_prev::
 		obj.currmem += 1
 		if obj.currmem > obj.mem obj.currmem = obj.mem end
 
-		obj.s_m[obj.curridx][:] = s
-		obj.y_m[obj.curridx][:] = y 
+		obj.s_m[obj.curridx] = deepcopy(s)
+		obj.y_m[obj.curridx] = deepcopy(y) 
 		obj.ys_m[obj.curridx] = ys
 		obj.H = ys/real(vecdot(y,y))
 	end

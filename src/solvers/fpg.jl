@@ -72,8 +72,8 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	end
 		
 	# initialize variables
-	xprev    = copy(x)
-	resxprev = copy(resx)
+	xprev    = deepcopy(x)
+	resxprev = deepcopy(resx)
 
 	for slv.it = 1:slv.maxit
 
@@ -85,8 +85,8 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		resy = resx + slv.it/(slv.it+3) * (resx - resxprev)
 
 		# update iterates
-		copy!(xprev,      x)
-		copy!(resxprev,resx)
+		xprev =  deepcopy(x)
+		resxprev = deepcopy(resx)
 		costprev = copy(slv.cost)
 
 		# compute gradient and f(y)
@@ -124,7 +124,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 end
 
 function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x0::Array, slv::FPG)
-	x = copy(x0) #copy initial conditions
+	x = deepcopy(x0) #copy initial conditions
 	x, slv = solve!(L,Ladj,b,g,x,slv)
 	return x, slv
 end
