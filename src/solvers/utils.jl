@@ -38,8 +38,21 @@ function get_gamma0{T<:Array}(L::Function, Ladj::Function, x::Array{T}, gradx::A
 	grady = Ladj(resy)
 	z = similar(x)
 	[z[i] = ones(x[i]) for i in eachindex(z)]
-	return vecnorm( sqrt(eps())*z)/vecnorm(gradx-grady)
+	return myVecnorm( sqrt(eps())*z)/myVecnorm(gradx-grady)
 end
+
+function myVecnorm{T<:Union{Complex{Float64},Float64}}(x::Array{T})
+	return vecnorm(x)
+end
+
+function myVecnorm{T<:Array}(x::Array{T})
+	out = 0.
+	for a in x
+		out += vecnorm(a)^2
+	end
+	return sqrt(out)
+end
+
 
 function Base.show(io::IO, slv::ForwardBackwardSolver)
   println(io, slv.name)

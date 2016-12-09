@@ -97,7 +97,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		for j = 1:32
 			gz = prox!(g, y - slv.gamma*grady, x, slv.gamma)
 			fpr = y-x
-			slv.normfpr = vecnorm(fpr)
+			slv.normfpr = myVecnorm(fpr)
 			resx = L(x) - b
 			fz = 0.5*vecnorm(resx)^2
 			uppbnd = fy - real(vecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2

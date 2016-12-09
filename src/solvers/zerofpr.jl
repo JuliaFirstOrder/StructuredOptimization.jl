@@ -88,7 +88,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	# compute least squares residual and gradient
 	xbar, gxbar = prox(g, x-slv.gamma*gradx, slv.gamma)
 	r = x - xbar
-	slv.normfpr = vecnorm(r)
+	slv.normfpr = myVecnorm(r)
 	uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 	FBEx = uppbnd + gxbar
 
@@ -114,8 +114,8 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 			slv.gamma = 0.5*slv.gamma
 			sigma = 2*sigma
 			gxbar = prox!(g, x-slv.gamma*gradx, xbar, slv.gamma)
-			r[:] = x - xbar
-			slv.normfpr = vecnorm(r)
+			r = x - xbar
+			slv.normfpr = myVecnorm(r)
 			resxbar[:] = L(xbar) - b
 			fxbar = 0.5*vecnorm(resxbar)^2
 			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
@@ -158,7 +158,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 			gradx[:] = gradxbar + tau*ATAd
 			gxbar = prox!(g, x - slv.gamma*gradx, xbar, slv.gamma)
 			r[:] = x - xbar
-			slv.normfpr = vecnorm(r)
+			slv.normfpr = myVecnorm(r)
 			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 			if uppbnd + gxbar <= level break end
 			tau = 0.5*tau
