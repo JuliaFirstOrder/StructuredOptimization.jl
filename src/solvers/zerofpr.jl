@@ -17,57 +17,57 @@ end
 """
 # Zero Fixed Point Residual Solver
 
-Default solver of RegLS. 
+Default solver of RegLS.
 
-## Usage 
+## Usage
 
 * `slv = ZeroFPR()` creates a `Solver` object that can be used in the function `solve`.
 
 * Can be used with convex and noncovex regularizers.
 
-* After solving a problem use `show(slv)` to visualize number of iterations, fixed point residual value, cost funtion value and time elapsed. 
+* After solving a problem use `show(slv)` to visualize number of iterations, fixed point residual value, cost funtion value and time elapsed.
 
 
 ## Keyword Arguments
 
-* `tol::Float64=1e-8`: tolerance used in stopping criterion 
-* `maxit::Int64=10000`: maximum number of iterations 
-* `mem::Int64=5`: L-BFGS memory 
-* `verbose::Int64=1`: `0` verbose off, `1` print every 100 iteration, `2` print every iteration  
-* `stp_cr::Function=halt`: stopping criterion function 
+* `tol::Float64=1e-8`: tolerance used in stopping criterion
+* `maxit::Int64=10000`: maximum number of iterations
+* `mem::Int64=5`: L-BFGS memory
+* `verbose::Int64=1`: `0` verbose off, `1` print every 100 iteration, `2` print every iteration
+* `stp_cr::Function=halt`: stopping criterion function
   * this function may be specified by the user and must have the following structure:
 
-    `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,FBE::Float64,FBEx::Float64)`   
+    `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,FBE::Float64,FBEx::Float64)`
 
-    * `normfpr0` is the fixed point residual at x0 
-    * `FBE` is the Forward-Backward Envelope value of the current iteration  
-    * `FBEprev` is the Forward-Backward Envelope value of the previous iteration  
+    * `normfpr0` is the fixed point residual at x0
+    * `FBE` is the Forward-Backward Envelope value of the current iteration
+    * `FBEprev` is the Forward-Backward Envelope value of the previous iteration
     * example: `myhalt(slv,normfpr0,FBE,FBEx) = slv.normfpr<slv.tol`
 
-* `gamma::Float64=Inf`: stepsize γ, if γ = Inf upper bound is computed using: 
+* `gamma::Float64=Inf`: stepsize γ, if γ = Inf upper bound is computed using:
 
-  γ0 = || x0-(x0+ɛ) || / || ∇f(x0) - ∇f(x0+ɛ) ||    
+  γ0 = || x0-(x0+ɛ) || / || ∇f(x0) - ∇f(x0+ɛ) ||
 
-* `linesearch::Bool=true`: activates linesearch on stepsize γ  
+* `linesearch::Bool=true`: activates linesearch on stepsize γ
 
 
 """
-ZeroFPR(;tol::Float64 = 1e-8, 
+ZeroFPR(;tol::Float64 = 1e-8,
 	 maxit::Int64 = 10000,
-         mem::Int64 = 5, 
-	 verbose::Int64 = 1, 
-	 stp_cr::Function = halt, 
+         mem::Int64 = 5,
+	 verbose::Int64 = 1,
+	 stp_cr::Function = halt,
 	 gamma::Float64 = Inf,
-	 linesearch::Bool = true) = 
-ZeroFPR(tol, 
-	maxit, 
-	verbose, 
-	mem, 
-	stp_cr, 
+	 linesearch::Bool = true) =
+ZeroFPR(tol,
+	maxit,
+	verbose,
+	mem,
+	stp_cr,
 	gamma,
         0, Inf, Inf, NaN, linesearch, "ZeroFPR")
 
-function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x::Array, slv::ZeroFPR)
+function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x::AbstractArray, slv::ZeroFPR)
 
 	tic();
 	lbfgs = LBFGS.create(slv.mem, x)
@@ -79,7 +79,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	if slv.gamma == Inf #compute upper bound for Lipschitz constant using fd
 		slv.gamma = get_gamma0(L,Ladj,x,gradx,b)
 	end
-	
+
 	beta = 0.05
 	sigma = beta/(4*slv.gamma)
 
@@ -175,7 +175,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 	return xbar, slv
 end
 
-function solve(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x0::Array, slv::ZeroFPR)
+function solve(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x0::AbstractArray, slv::ZeroFPR)
 	x = deepcopy(x0) #copy initial conditions
 	x, slv = solve!(L,Ladj,b,g,x,slv)
 	return x, slv
