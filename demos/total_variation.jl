@@ -48,7 +48,7 @@ g = IndBallLinf(lambda)
 #g = Conjugate(NormL21(lambda))
 
 Y = 0*Y
-solve!(Ladj, L, R_w, g, Y, ZeroFPR(verbose = 1, tol = 1e-7))
+Y, = solve(Ladj, L, R_w, g, Y, ZeroFPR(verbose = 1, tol = 1e-7))
 
 R_r = (-(Ladj(Y)-R_w))
 

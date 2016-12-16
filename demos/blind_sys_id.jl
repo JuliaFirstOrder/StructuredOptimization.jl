@@ -1,7 +1,7 @@
 
 using RegLS
 using ProximalOperators
-using RIM
+#using RIM
 using DSP
 
 srand(123)
@@ -9,16 +9,15 @@ Fs = 8e3
 Nx = 4000    #length of input singal
 Nh = 300    #length of IR
 
-env = AcEnv(Fs)
-
 Km = 3 #num of mics
-Lx = [5.;6.;3.]
-geo = CuboidRoom(Lx[1],Lx[2],Lx[3],0.1,env);
-xs = rand(3).*Lx
-xr = rand(3,Km).*Lx
+#env = AcEnv(Fs)
+#Lx = [5.;6.;3.]
+#geo = CuboidRoom(Lx[1],Lx[2],Lx[3],0.1,env);
+#xs = rand(3).*Lx
+#xr = rand(3,Km).*Lx
+#h_true = rim(xs,xr,Nh,geo,env; N = [4;4;4], Tw = 20);
 
-h_true = rim(xs,xr,Nh,geo,env; N = [4;4;4], Tw = 20);
-h_true = randn(size(h_true))
+h_true = randn(Nh,Km)
 
 y = zeros(Nx,Km)
 x = [randn(round(Int64,Nx/2));zeros(round(Int64,Nx/2))]

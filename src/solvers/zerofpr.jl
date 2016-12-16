@@ -109,6 +109,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 		fxbar = 0.5*vecnorm(resxbar)^2
 
 		# line search on gamma
+		if slv.linesearch == true
 		for j = 1:32
 			if fxbar <= uppbnd break end
 			slv.gamma = 0.5*slv.gamma
@@ -120,6 +121,7 @@ function solve!(L::Function, Ladj::Function, b::Array, g::ProximableFunction, x:
 			fxbar = 0.5*vecnorm(resxbar)^2
 			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 		end
+	        end
 
 		if slv.it == 1 normfpr0 = copy(slv.normfpr) end
 
