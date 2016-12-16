@@ -29,6 +29,6 @@ X = full(sprandn(l,m,0.1))
 Y = D*X+0.001*randn(n,m) 
 
 gg = SlicedSeparableSum(repmat([IndSphereL2(1.)],l),[[i] for i = 1:l ],2)
-g = SeparableSum([gg,IndBallL0(countnz(X)+10) ])
+g = SeparableSum([gg,IndBallL0(countnz(X)) ])
 DX = [ones(D),ones(X)]
-DX, =  solve!(L, Ladj, Y, g, DX, ZeroFPR(verbose = 1, tol = 1e-7, gamma = 1e-7, linesearch = false))
+DX, =  solve!(L, Ladj, Y, g, DX, ZeroFPR(verbose = 2, tol = 1e-7,  linesearch = false))
