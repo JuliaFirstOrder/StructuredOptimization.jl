@@ -1,23 +1,35 @@
 using RegLS
 using ProximalOperators
 using Base.Test
+using MathProgBase
+using Ipopt
 
-n = 2000 # number of features
-m = 300 # number of data points
+n = 2100 # number of features
+m = 130 # number of data points
 
-w = sprandn(n, 0.3) # N(0,1), 30% sparse
-v = randn() # random intercept
+w = randn(n)
 
-X = sprandn(m, n, 10/n)
-btrue = sign(X*w + v)
+A = randn(m, n)
+btrue = sign(A*w)
 
-b = sign(X*w + v + sqrt(0.1)*randn(m)); # labels with noise
+b = sign(btrue + sqrt(0.1)*randn(m))
+mu = 1.0
 
-A = [X ones(m)]; # add bias term coefficient
+# solve dual problem (it's a QP)
+BA = b.*A;
+Q = BA*BA';
+q = ones(size(A, 1));
+sol = quadprog(-q, Q, eye(m), '<', Inf, 0.0, mu, IpoptSolver(print_level=0))
+x_qp = BA'*sol.sol;
 
-ratio = sum(b .== 1)/m
-idx_hi = (b .== 1)
-idx_lo = (b .== -1)
-lam = 0.1 * norm((1-ratio)*sum(A[idx_hi, :], 1) + ratio*sum(A[idx_lo, :], 1), Inf)
+println("Solving random SVM problem: default solver/options")
+y, slv = solve(zeros(n+1), HingeLoss(b, mu), A)
 
-y, slv = solve(zeros(n+1), HingeLoss(b, 1/lam), A)
+println("Solving random SVM problem: random initial point")
+y, slv = solve(zeros(n+1), HingeLoss(b, mu), A, randn(m))
+
+println("Solving random SVM problem: proximal gradient (quiet)")
+y, slv = solve(zeros(n+1), HingeLoss(b, mu), A, zeros(m), PG(verbose = 0))
+
+println("Solving random SVM problem: fast proximal gradient (quiet)")
+y, slv = solve(zeros(n+1), HingeLoss(b, mu), A, zeros(m), FPG(verbose = 0))
