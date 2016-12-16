@@ -23,13 +23,17 @@ sol = quadprog(-q, Q, eye(m), '<', Inf, 0.0, mu, IpoptSolver(print_level=0))
 x_qp = BA'*sol.sol;
 
 println("Solving random SVM problem: default solver/options")
-y, slv = solve(zeros(n+1), HingeLoss(b, mu), A)
+x, slv = solve(zeros(n), HingeLoss(b, mu), A)
+@test norm(x-x_qp, Inf)/norm(x_qp, Inf) <= 1e-5
 
 println("Solving random SVM problem: random initial point")
-y, slv = solve(zeros(n+1), HingeLoss(b, mu), A, randn(m))
+x, slv = solve(zeros(n), HingeLoss(b, mu), A, randn(m))
+@test norm(x-x_qp, Inf)/norm(x_qp, Inf) <= 1e-5
 
 println("Solving random SVM problem: proximal gradient (quiet)")
-y, slv = solve(zeros(n+1), HingeLoss(b, mu), A, zeros(m), PG(verbose = 0))
+x, slv = solve(zeros(n), HingeLoss(b, mu), A, zeros(m), PG(verbose = 0))
+@test norm(x-x_qp, Inf)/norm(x_qp, Inf) <= 1e-5
 
 println("Solving random SVM problem: fast proximal gradient (quiet)")
-y, slv = solve(zeros(n+1), HingeLoss(b, mu), A, zeros(m), FPG(verbose = 0))
+x, slv = solve(zeros(n), HingeLoss(b, mu), A, zeros(m), FPG(verbose = 0))
+@test norm(x-x_qp, Inf)/norm(x_qp, Inf) <= 1e-5

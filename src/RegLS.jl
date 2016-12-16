@@ -27,10 +27,17 @@ solve(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x::A
   solve(L, Ladj, b, g, x, ZeroFPR())
 
 # when linear operator is composed with g (instead of the least squares term)
+# then matrix/linear operator arguments is passed after g in the arguments list
+# in this case the dual problem is solved, then the primal solution is recovered
 
-solve(b::AbstractArray, g::ProximableFunction, A, args...) =
-	solve(A', b, Conjugate(g), args...)
-solve(b::AbstractArray, g::ProximableFunction, L::Function, Ladj::Function, x::Array) =
-	solve(Ladj, L, b, Conjugate(g), x, ZeroFPR())
+function solve(b::AbstractArray, g::ProximableFunction, A, args...)
+	y, slv = solve(A', b, Conjugate(g), args...)
+	return -A'*y, slv
+end
+
+function solve(b::AbstractArray, g::ProximableFunction, L::Function, Ladj::Function, x::Array)
+	y, slv = solve(Ladj, L, b, Conjugate(g), x, ZeroFPR())
+	return -Ladj(y), slv
+end
 
 end
