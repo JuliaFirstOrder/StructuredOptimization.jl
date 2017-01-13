@@ -35,24 +35,22 @@ R_w = R+sqrt(0.006*norm(R[:],Inf))*randn(Nx,Ny)
 # l-1 norm
 lambda_max = vecnorm(L(R),Inf)   #this is not right...
 lambda = 0.08*lambda_max
-g = IndBallLinf(lambda)
+g = NormL1(lambda)
 
 ### l-2 norm
 #lambda_max = 100                #this is not right...
 #lambda = 0.15*lambda_max
-#g = IndBallL2(lambda)
-#
-### with group sparsity
+#g = NormL2(lambda)
+##
+#### with group sparsity
 #lambda_max = vecnorm(sqrt(sum(abs2(L(R)),1)), 1)  #this is not right...
 #lambda = 0.3*lambda_max
-#g = Conjugate(NormL21(lambda))
+#g = NormL21(lambda)
 
 Y = 0*Y
-Y, = solve(Ladj, L, R_w, g, Y, ZeroFPR(verbose = 1, tol = 1e-7))
-
-R_r = (-(Ladj(Y)-R_w))
+Y, = solve(R_w, g, L, Ladj, Y)
 
 ImageView.view(R,xy=["y","x"])
 ImageView.view(R_w,xy=["y","x"])
-ImageView.view(R_r,xy=["y","x"])
+ImageView.view(Y,xy=["y","x"])
 

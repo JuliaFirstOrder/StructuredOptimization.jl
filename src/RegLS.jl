@@ -28,12 +28,12 @@ solve(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x::A
 
 function solve(b::AbstractArray, g::ProximableFunction, A, args...)
 	y, slv = solve(A', b, Conjugate(g), args...)
-	return -A'*y, slv
+	return -A'*y+b, slv
 end
 
 function solve(b::AbstractArray, g::ProximableFunction, L::Function, Ladj::Function, x::Array)
 	y, slv = solve(Ladj, L, b, Conjugate(g), x, ZeroFPR())
-	return -Ladj(y), slv
+	return -Ladj(y)+b, slv
 end
 
 end
