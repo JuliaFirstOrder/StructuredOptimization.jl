@@ -31,8 +31,8 @@ function solve(b::AbstractArray, g::ProximableFunction, A, args...)
 	return -A'*y+b, slv
 end
 
-function solve(b::AbstractArray, g::ProximableFunction, L::Function, Ladj::Function, x::Array)
-	y, slv = solve(Ladj, L, b, Conjugate(g), x, ZeroFPR())
+function solve(b::AbstractArray, g::ProximableFunction, L::Function, Ladj::Function, args...)
+	y, slv = solve(Ladj, L, b, Conjugate(g), args...)
 	return -Ladj(y)+b, slv
 end
 

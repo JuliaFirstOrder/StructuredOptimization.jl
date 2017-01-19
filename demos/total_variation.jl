@@ -48,7 +48,8 @@ g = NormL1(lambda)
 #g = NormL21(lambda)
 
 Y = 0*Y
-Y, = solve(R_w, g, L, Ladj, Y)
+println("$(size(Y))")
+@time Y, = solve(R_w, g, L, Ladj, Y, FPG(tol = 1e-4))
 
 ImageView.view(R,xy=["y","x"])
 ImageView.view(R_w,xy=["y","x"])
