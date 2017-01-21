@@ -26,26 +26,24 @@ function halt(slv::ZeroFPR, normfpr0::Float64, FBEx::Float64, FBEprev::Float64,)
 	return conv_fpr && conv_fun
 end
 
-#compute upper bound for Lipschitz constant using fd
-function get_gamma0{T<:Union{Complex{Float64},Float64}}(L::Function, Ladj::Function, x::Array{T}, gradx::Array, b::Array)
-	resy  = L( x+sqrt(eps()) ) - b
+# compute upper bound for Lipschitz constant using finite differences
+function get_gamma0{T<:Union{Complex{Float64},Float64}}(L::Function, Ladj::Function, x::AbstractArray{T}, gradx::AbstractArray, b::AbstractArray)
+	resy  = L(x+sqrt(eps())) - b
 	grady = Ladj(resy)
 	return vecnorm( sqrt(eps())*ones(x))/vecnorm(gradx-grady)
 end
 
-function get_gamma0{T<:Array}(L::Function, Ladj::Function, x::Array{T}, gradx::Array, b::Array)
-	resy  = L( x+sqrt(eps()) ) - b
+function get_gamma0{T<:AbstractArray}(L::Function, Ladj::Function, x::AbstractArray{T}, gradx::AbstractArray, b::AbstractArray)
+	resy  = L(x+sqrt(eps())) - b
 	grady = Ladj(resy)
 	z = similar(x)
 	[z[i] = ones(x[i]) for i in eachindex(z)]
-	return myVecnorm( sqrt(eps())*z)/myVecnorm(gradx-grady)
+	return deepvecnorm( sqrt(eps())*z)/deepvecnorm(gradx-grady)
 end
 
-function myVecnorm{T<:Union{Complex{Float64},Float64}}(x::Array{T})
-	return vecnorm(x)
-end
+deepvecnorm{T<:Union{Complex{Float64},Float64}}(x::AbstractArray{T}) = vecnorm(x)
 
-function myVecnorm{T<:Array}(x::Array{T})
+function deepvecnorm{T<:AbstractArray}(x::AbstractArray{T})
 	out = 0.
 	for a in x
 		out += vecnorm(a)^2

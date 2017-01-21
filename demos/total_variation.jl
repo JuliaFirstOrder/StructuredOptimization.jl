@@ -1,7 +1,8 @@
 
 using RegLS
 using ProximalOperators
-using Images, ImageView
+using Images
+# using ImageView
 srand(123)
 
 using TestImages
@@ -15,11 +16,11 @@ end
 
 Nx,Ny = size(R,1),size(R,2)
 
-dx = X-> [l == Nx ? X[l,m]-X[l-1,m] : X[l,m]-X[l+1,m] for l = 1:Nx, m = 1:Ny] 
+dx = X-> [l == Nx ? X[l,m]-X[l-1,m] : X[l,m]-X[l+1,m] for l = 1:Nx, m = 1:Ny]
 dy = X-> [m == Ny ? X[l,m]-X[l,m-1] : X[l,m]-X[l,m+1] for l = 1:Nx, m = 1:Ny]
-dxa = Y-> [l==1 ? Y[l,m] : (l==Nx-1 ? Y[l,m]-Y[l-1,m]-Y[l+1,m] : Y[l,m]-Y[l-1,m] ) 
+dxa = Y-> [l==1 ? Y[l,m] : (l==Nx-1 ? Y[l,m]-Y[l-1,m]-Y[l+1,m] : Y[l,m]-Y[l-1,m] )
 	   for l = 1:Nx, m = 1:Ny]
-dya = Y-> [m==1 ? Y[l,m] : (m==Ny-1 ? Y[l,m]-Y[l,m-1]-Y[l,m+1] : Y[l,m]-Y[l,m-1] ) 
+dya = Y-> [m==1 ? Y[l,m] : (m==Ny-1 ? Y[l,m]-Y[l,m-1]-Y[l,m+1] : Y[l,m]-Y[l,m-1] )
 	   for l = 1:Nx, m = 1:Ny]
 
 L = X-> -[dx(X)[:] dy(X)[:]]
@@ -49,9 +50,12 @@ g = NormL1(lambda)
 
 Y = 0*Y
 println("$(size(Y))")
-@time Y, = solve(R_w, g, L, Ladj, Y, FPG(tol = 1e-4))
 
-ImageView.view(R,xy=["y","x"])
-ImageView.view(R_w,xy=["y","x"])
-ImageView.view(Y,xy=["y","x"])
+Y1, = solve(R_w, g, L, Ladj, Y, PG(tol = 1e-4))
+Profile.clear_malloc_data()
+@time Y1, = solve(R_w, g, L, Ladj, Y, PG(tol = 1e-4))
+# @time Y2, = solve(R_w, g, L, Ladj, Y, ZeroFPR(tol = 1e-4))
 
+# ImageView.view(R,xy=["y","x"])
+# ImageView.view(R_w,xy=["y","x"])
+# ImageView.view(Y,xy=["y","x"])

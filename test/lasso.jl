@@ -16,7 +16,7 @@ tol_test = 1e-4
 
 @printf("Solving a small lasso instance (m = %d, n = %d)\n", m, n)
 
-x_star, ~ = solve(A, b, g, x0, FPG(verbose = verb))
+x_star, ~ = solve(A, b, g, x0, FPG(verbose = verb, maxit = maxit))
 
 @time x_ista,  slv =  solve(A, b, g, x0, PG(verbose = verb, tol = tol))
 @test slv.it < maxit

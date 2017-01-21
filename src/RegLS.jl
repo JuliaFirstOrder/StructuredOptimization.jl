@@ -12,15 +12,23 @@ solve(A, b::AbstractArray, g::ProximableFunction) =
 	solve(A, b::AbstractArray, g::ProximableFunction, zeros(eltype(b), size(A,2)))
 
 function solve(A, b::AbstractArray, g::ProximableFunction, args...)
-	y = zeros(eltype(b), size(A,1))
-	y2 = zeros(eltype(b), size(A,2))
-	L! = x -> A_mul_B!(y, A, x)
-	Ladj! = x -> Ac_mul_B!(y2, A, x)
-	solve(L!, Ladj!, b, g, args...)
+	# y = zeros(eltype(b), size(A,1))
+	# y2 = zeros(eltype(b), size(A,2))
+	# L! = x -> A_mul_B!(y, A, x)
+	# Ladj! = x -> Ac_mul_B!(y2, A, x)
+	L = x -> A*x
+	Ladj = x -> A'*x
+	solve(L, Ladj, b, g, args...)
 end
 
 solve(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x::Array) =
   solve(L, Ladj, b, g, x, ZeroFPR())
+
+function solve(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x0::AbstractArray, args...)
+	x = deepcopy(x0) # copy initial conditions
+	x, slv = solve!(L, Ladj, b, g, x, args...)
+	return x, slv
+end
 
 # when linear operator is composed with g (instead of the least squares term)
 # then matrix/linear operator arguments is passed after g in the arguments list
