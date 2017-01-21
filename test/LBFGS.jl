@@ -50,9 +50,9 @@ for i=1:5
     x = xs[:,i]
     grad = Q*x + q
     if i > 1
-	    RegLS.LBFGS.push!(lbfgs, x, x_old, grad, grad_old)
+	    @time RegLS.LBFGS.push!(lbfgs, x, x_old, grad, grad_old)
     else
-	    RegLS.LBFGS.push!(lbfgs, -grad)
+	    @time RegLS.LBFGS.push!(lbfgs, -grad)
     end
     dir = lbfgs.d
     dirs[:, i] = dir
