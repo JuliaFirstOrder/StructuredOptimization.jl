@@ -52,8 +52,6 @@ end
 
 deepvecdot{T <: Number}(x::AbstractArray{T}, y::AbstractArray{T}) = vecdot(x, y)
 
-deepvecdot{T <: Complex}(x::AbstractArray{T}, y::AbstractArray{T}) = vecdot(x, y)
-
 deepvecnorm(x::AbstractArray) = sqrt(deepvecdot(x, x))
 
 deepvecnorm{T <: Number}(x::AbstractArray{T}) = vecnorm(x)
