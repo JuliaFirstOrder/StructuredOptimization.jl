@@ -6,10 +6,7 @@ export PG,
        ZeroFPR
 
 include("solvers/pg.jl")
-include("solvers/fpg.jl")
 include("solvers/zerofpr.jl")
 
 include("solvers/utils.jl")
 include("solvers/lbfgs.jl")
-
-

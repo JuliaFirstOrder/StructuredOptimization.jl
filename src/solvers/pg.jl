@@ -2,14 +2,17 @@ type PG <: ForwardBackwardSolver
 	tol::Float64
 	maxit::Int64
 	verbose::Int64
-	stp_cr::Function
+	halt::Function
 	gamma::Float64
 	it::Int
 	normfpr::Float64
 	cost::Float64
 	time::Float64
 	linesearch::Bool
+	fast::Bool
 	name::AbstractString
+	cnt_matvec::Int
+	cnt_prox::Int
 end
 
 """
@@ -17,8 +20,9 @@ end
 
 ## Usage
 
+
 * `slv = PG()` creates a `Solver` object that can be used in the function `solve`.
-* Can be used with convex and noncovex regularizers.
+* Can be used with convex regularizers only.
 * After solving a problem use `show(slv)` to visualize number of iterations, fixed point residual value, cost funtion value and time elapsed.
 
 
@@ -27,75 +31,92 @@ end
 * `tol::Float64=1e-8`: tolerance
 * `maxit::Int64=10000`: maximum number of iterations
 * `verbose::Int64=1`: `0` verbose off, `1` print every 100 iteration, `2` print every iteration
-* `stp_cr::Function=halt`: stopping criterion function
-  * the function must have the following structure:
+* `halt::Function`: custom stopping criterion function
+  * this function may be specified by the user and must have the following structure:
 
-   `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,costprev::Float64)`
+    `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,Fcurr::Float64,Fprev::Float64)`
 
-    * where `normfpr0` is the fixed point residual at x0
-    * and `costprev` is the cost function value at the previous iteration
-    * example: `myhalt(slv,normfpr0,FBE,FBEx) = slv.normfpr<slv.tol`
+    * `normfpr0` is the fixed point residual at x0
+    * `Fcurr` is the objective value at the current iteration
+    * `Fprev` is the objective value at the previous iteration
+    * example: `myhalt(slv,normfpr0,FBE,FBEx) = slv.normfpr < tol`
 
 * `gamma::Float64=Inf`: stepsize γ, if γ = Inf upper bound is computed using:
 
   γ = || x0-(x0+ɛ) || / || ∇f(x0) - ∇f(x0+ɛ) ||
 
 * `linesearch::Bool=true`: activates linesearch on stepsize γ
-
+* `fast::Bool=true`: switches between proximal gradient and fast proximal gradient
 """
+
 PG(; tol::Float64 = 1e-8,
-     maxit::Int64 = 10000,
-     verbose::Int64 = 1,
-     stp_cr::Function = halt,
-     gamma::Float64 = Inf,
-     linesearch::Bool = true) =
-PG(tol,
-   maxit,
-   verbose,
-   stp_cr,
-   gamma,
-   0, Inf, Inf, NaN, linesearch, "Proximal Gradient")
+      maxit::Int64 = 10000,
+      verbose::Int64 = 1,
+      halt::Function = halt_default,
+      linesearch::Bool = true,
+			fast::Bool = false,
+      gamma::Float64 = Inf) =
+	PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, fast, fast ? "Fast Proximal Gradient" : "Proximal Gradient", 0, 0)
+
+# alias for fast = true
+FPG(; tol::Float64 = 1e-8,
+      maxit::Int64 = 10000,
+      verbose::Int64 = 1,
+      halt::Function = halt_default,
+      linesearch::Bool = true,
+      gamma::Float64 = Inf) =
+	PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
 function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x::AbstractArray, slv::PG)
 
-	tic();
+	tic()
 
 	# compute least squares residual and f(x)
 	resx = L(x) - b
-	gradx = deepcopy(Ladj(resx))
-	fx = 0.5*vecnorm(resx)^2
-
-	if slv.gamma == Inf #compute upper bound for Lipschitz constant using fd
-		slv.gamma = get_gamma0(L,Ladj,x,gradx,b)
-	end
-	normfpr0 = Inf
-
-	fz = copy(fx)
+	gradx = Ladj(resx)
+	slv.cnt_matvec += 2
+	fx = 0.5*deepvecnorm(resx)^2
+	fz = fx
 	gz = Inf
 	costprev = Inf
+	normfpr0 = Inf
+
+	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
+		resx_eps  = L(x+sqrt(eps())) - b
+		gradx_eps = Ladj(resx_eps)
+		slv.cnt_matvec += 2
+		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
+		slv.gamma = 1/Lf
+	end
 
 	# initialize variables
-	z = deepcopy(x)
+	xprev = deepcopy(x)
+	resxprev = deepcopy(resx)
+	y = deepcopy(x)
+	fy = fx
+	grady = gradx
+
+	gradstep = deepcopy(x)
 
 	for slv.it = 1:slv.maxit
 
 		# stopping criterion
-		if slv.stp_cr(slv, normfpr0, costprev) break end
-		costprev = copy(slv.cost)
-
-		# compute gradient
-		gradx = Ladj(resx)
+		if slv.halt(slv, normfpr0, costprev) break end
 
 		# line search on gamma
 		for j = 1:32
-			gz = prox!(g, x - slv.gamma*gradx, z, slv.gamma)
-			fpr = x-z
-			slv.normfpr = myVecnorm(fpr)
-			resx = L(z) - b
-			fz = 0.5*vecnorm(resx)^2
-			uppbnd = fx - real(vecdot(gradx,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
-			if slv.linesearch == false; break; end
-			if fz <= uppbnd; break; end
+			gradstep .= (*).(-slv.gamma, grady)
+			gradstep .+= y
+			gz = prox!(g, gradstep, x, slv.gamma)
+			slv.cnt_prox += 1
+			fpr = y-x
+			slv.normfpr = deepvecnorm(fpr)
+			resx = L(x) - b
+			slv.cnt_matvec += 1
+			fz = 0.5*deepvecnorm(resx)^2
+			if slv.linesearch == false break end
+			uppbnd = fy - real(deepvecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
+			if fz <= uppbnd break end
 			slv.gamma = 0.5*slv.gamma
 		end
 
@@ -106,22 +127,31 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 		# print out stuff
 		print_status(slv)
 
+		# extrapolation
+		if slv.fast
+			y = x + (slv.it-1)/(slv.it+2) * (x - xprev)
+			resy = resx + (slv.it-1)/(slv.it+2) * (resx - resxprev)
+		else
+			y = x
+			resy = resx
+		end
+
+		# compute gradient and f(y)
+		fy = 0.5*deepvecnorm(resy)^2
+		grady = Ladj(resy)
+		slv.cnt_matvec += 1
+
 		# update iterates
-		x = deepcopy(z)
-		fx = copy(fz)
+		x, xprev = xprev, x
+		resx, resxprev = resxprev, resx
+		costprev = slv.cost
 
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
 
-	slv.time = toq();
+	slv.time = toq()
 
-	return z, slv
-
-end
-
-function solve(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x0::AbstractArray, slv::PG)
-	x = deepcopy(x0) #copy initial conditions
-	x, slv = solve!(L,Ladj,b,g,x,slv)
 	return x, slv
+
 end

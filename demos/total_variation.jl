@@ -1,7 +1,8 @@
 
 using RegLS
 using ProximalOperators
-using Images, ImageView
+using Images
+using ImageView
 srand(123)
 
 using TestImages
@@ -21,11 +22,11 @@ Dy[end,end-1] = -1
 DDx = kron(speye(Ny),Dy)
 DDy = kron(Dx,speye(Ny))
 
-dx = X-> [l == Nx ? X[l,m]-X[l-1,m] : X[l,m]-X[l+1,m] for l = 1:Nx, m = 1:Ny] 
+dx = X-> [l == Nx ? X[l,m]-X[l-1,m] : X[l,m]-X[l+1,m] for l = 1:Nx, m = 1:Ny]
 dy = X-> [m == Ny ? X[l,m]-X[l,m-1] : X[l,m]-X[l,m+1] for l = 1:Nx, m = 1:Ny]
-dxa = Y-> [l==1 ? Y[l,m] : (l==Nx-1 ? Y[l,m]-Y[l-1,m]-Y[l+1,m] : Y[l,m]-Y[l-1,m] ) 
+dxa = Y-> [l==1 ? Y[l,m] : (l==Nx-1 ? Y[l,m]-Y[l-1,m]-Y[l+1,m] : Y[l,m]-Y[l-1,m] )
 	   for l = 1:Nx, m = 1:Ny]
-dya = Y-> [m==1 ? Y[l,m] : (m==Ny-1 ? Y[l,m]-Y[l,m-1]-Y[l,m+1] : Y[l,m]-Y[l,m-1] ) 
+dya = Y-> [m==1 ? Y[l,m] : (m==Ny-1 ? Y[l,m]-Y[l,m-1]-Y[l,m+1] : Y[l,m]-Y[l,m-1] )
 	   for l = 1:Nx, m = 1:Ny]
 
 L = X-> [dx(X)[:] dy(X)[:]]
@@ -56,12 +57,18 @@ g = NormL1(lambda)
 #lambda = 0.3*lambda_max
 #g = NormL21(lambda)
 
-Y = 0*Y
-@time R_t, = solve(R_w, g, L, Ladj, Y, FPG(tol = 1e-4))
-Y = 0*Y
-@time R_t, = solve(R_w, g, L, Ladj, Y, ZeroFPR(tol = 1e-4, verbose = 1))
+tol = 1e-4
+Lf = 8
+
+slv1 = PG(tol = tol, fast = true, gamma = 1/Lf, linesearch = false)
+Y1, = solve(R_w, g, L, Ladj, Y, slv1)
+@time Y1, = solve(R_w, g, L, Ladj, Y, slv1)
+slv2 = ZeroFPR(tol = tol, gamma = 0.95/Lf, linesearch = false)
+Y2, = solve(R_w, g, L, Ladj, Y, slv2)
+@time Y2, = solve(R_w, g, L, Ladj, Y, slv2)
 
 ImageView.view(R,xy=["y","x"])
 ImageView.view(R_w,xy=["y","x"])
-ImageView.view(R_t,xy=["y","x"])
+ImageView.view(Y2,xy=["y","x"])
 
+return

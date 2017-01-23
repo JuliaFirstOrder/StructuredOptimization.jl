@@ -1,7 +1,3 @@
-using RegLS
-using ProximalOperators
-using Base.Test
-
 m, n = 20, 50
 r = 5
 s = 0.1
@@ -20,7 +16,7 @@ tol = 1e-6
 @printf("Solving matrix completion (m = %d, n = %d)\n", m, n)
 
 @time x_ista, slv = solve(L, Ladj, B, g, x0, PG(verbose = verb, tol = tol))
-@test slv.it < maxit
+@test slv.it < slv.maxit
 
 @time x_zerofpr, slv = solve(L, Ladj, B, g, x0, ZeroFPR(verbose = verb, tol = tol))
-@test slv.it < maxit
+@test slv.it < slv.maxit
