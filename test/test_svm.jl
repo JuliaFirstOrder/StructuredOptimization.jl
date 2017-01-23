@@ -1,9 +1,3 @@
-using RegLS
-using ProximalOperators
-using Base.Test
-using MathProgBase
-using Ipopt
-
 n = 2100 # number of features
 m = 130 # number of data points
 
@@ -23,7 +17,7 @@ sol = quadprog(-q, Q, eye(m), '<', Inf, 0.0, mu, IpoptSolver(print_level=0))
 x_qp = BA'*sol.sol;
 
 println("Solving random SVM problem: default solver/options")
-x, slv = solve(zeros(n), HingeLoss(b, mu), A)
+x, slv = solve(zeros(n), HingeLoss(b, mu), A, zeros(m))
 @test norm(x-x_qp, Inf)/norm(x_qp, Inf) <= 1e-5
 
 println("Solving random SVM problem: random initial point")

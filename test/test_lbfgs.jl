@@ -1,6 +1,3 @@
-using RegLS
-using Base.Test
-
 @printf("Testing L-BFGS routines\n")
 
 Q = [32.0000 13.1000 -4.9000 -3.0000  6.0000  2.2000  2.6000  3.4000 -1.9000 -7.5000;
@@ -38,21 +35,21 @@ dirs_ref = [
 dirs = zeros(10, 5) # matrix of directions (to be filled in)
 
 mem = 3;
-col = 0; # last column of Sk, Yk that was filled in
-currmem = 0;
-H0 = 1.0
+# col = 0; # last column of Sk, Yk that was filled in
+# currmem = 0;
+# H0 = 1.0
 
-lbfgs = RegLS.LBFGS.create(mem,zeros(10))
+lbfgs = RegLS.LBFGS(mem,zeros(10))
 x_old = 0;
 grad_old = 0;
 
-for i=1:5
+for i = 1:5
     x = xs[:,i]
     grad = Q*x + q
     if i > 1
-	    @time RegLS.LBFGS.push!(lbfgs, x, x_old, grad, grad_old)
+	    @time RegLS.push!(lbfgs, x, x_old, grad, grad_old)
     else
-	    @time RegLS.LBFGS.push!(lbfgs, -grad)
+	    @time RegLS.push!(lbfgs, grad)
     end
     dir = lbfgs.d
     dirs[:, i] = dir
