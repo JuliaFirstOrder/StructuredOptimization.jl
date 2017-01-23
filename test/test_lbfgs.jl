@@ -1,6 +1,3 @@
-using RegLS
-using Base.Test
-
 @printf("Testing L-BFGS routines\n")
 
 Q = [32.0000 13.1000 -4.9000 -3.0000  6.0000  2.2000  2.6000  3.4000 -1.9000 -7.5000;
@@ -52,7 +49,7 @@ for i=1:5
     if i > 1
 	    @time RegLS.LBFGS.push!(lbfgs, x, x_old, grad, grad_old)
     else
-	    @time RegLS.LBFGS.push!(lbfgs, -grad)
+	    @time RegLS.LBFGS.push!(lbfgs, grad)
     end
     dir = lbfgs.d
     dirs[:, i] = dir

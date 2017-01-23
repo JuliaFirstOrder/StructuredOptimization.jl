@@ -51,11 +51,18 @@ g = NormL1(lambda)
 Y = 0*Y
 println("$(size(Y))")
 
-Y1, = solve(R_w, g, L, Ladj, Y, PG(tol = 1e-4))
-Profile.clear_malloc_data()
-@time Y1, = solve(R_w, g, L, Ladj, Y, PG(tol = 1e-4))
-# @time Y2, = solve(R_w, g, L, Ladj, Y, ZeroFPR(tol = 1e-4))
+tol = 1e-4
+Lf = 8
+
+slv1 = PG(tol = tol, fast = true, gamma = 1/Lf, linesearch = false)
+Y1, = solve(R_w, g, L, Ladj, Y, slv1)
+@time Y1, = solve(R_w, g, L, Ladj, Y, slv1)
+slv2 = ZeroFPR(tol = tol, gamma = 0.95/Lf, linesearch = false)
+Y2, = solve(R_w, g, L, Ladj, Y, slv2)
+@time Y2, = solve(R_w, g, L, Ladj, Y, slv2)
 
 # ImageView.view(R,xy=["y","x"])
 # ImageView.view(R_w,xy=["y","x"])
-# ImageView.view(Y,xy=["y","x"])
+# ImageView.view(Y2,xy=["y","x"])
+
+return

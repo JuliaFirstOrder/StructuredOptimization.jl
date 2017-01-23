@@ -1,7 +1,3 @@
-using RegLS
-using ProximalOperators
-using Base.Test
-
 m, n = 5, 3 #sources, receivers
 F = 2*pi*collect(1:20)  #frequencies
 d = randn(n,m)  #delays
@@ -13,7 +9,6 @@ function MulDel(x::Array{Complex{Float64},2},d::Array{Float64,2},F::Array{Float6
 	end
 	return y
 end
-
 
 L    = x -> MulDel(x, d,F,n,m)
 Ladj = x -> MulDel(x,-d',F,m,n)
@@ -29,23 +24,19 @@ lambda = 0.006*vecnorm(Ladj(b), Inf)
 g = NormL1(lambda)
 x0 = zeros(Complex{Float64} ,m,length(F))
 tol = 1e-8
-maxit = 100000
 verb = 0
 tol_test = 1e-2
 
 @printf("Solving a complex multidim lasso instance (m = %d, n = %d)\n", m, n)
 
-x_ista,  slv =  solve(L, Ladj, b, g, x0, PG(verbose = verb, tol = tol, maxit = maxit))
-@time x_ista,  slv =  solve(L, Ladj, b, g, x0, PG(verbose = verb, tol = tol, maxit = maxit))
-@test slv.it < maxit
+@time x_ista,  slv =  solve(L, Ladj, b, g, x0, PG(verbose = verb, tol = tol))
+@test slv.it < slv.maxit
 @test norm(x_ista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
-x_fista, slv = solve(L, Ladj, b, g, x0, FPG(verbose = verb, tol = tol, maxit = maxit))
-@time x_fista, slv = solve(L, Ladj, b, g, x0, FPG(verbose = verb, tol = tol, maxit = maxit))
-@test slv.it < maxit
+@time x_fista, slv = solve(L, Ladj, b, g, x0, FPG(verbose = verb, tol = tol))
+@test slv.it < slv.maxit
 @test norm(x_fista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
-x_zerofpr, slv = solve(L, Ladj, b, g, x0, ZeroFPR(verbose = verb, tol = tol, maxit = maxit))
-@time x_zerofpr, slv = solve(L, Ladj, b, g, x0, ZeroFPR(verbose = verb, tol = tol, maxit = maxit))
-@test slv.it < maxit
+@time x_zerofpr, slv = solve(L, Ladj, b, g, x0, ZeroFPR(verbose = verb, tol = tol))
+@test slv.it < slv.maxit
 @test norm(x_zerofpr-x_star, Inf)/norm(x_star, Inf) <= tol_test

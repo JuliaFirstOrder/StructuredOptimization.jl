@@ -1,3 +1,5 @@
+# Solver trace
+
 function print_status(slv::ForwardBackwardSolver)
   if slv.verbose > 0 && slv.it == 1
     @printf("%6s | %10s | %10s | %14s\n", "it", "gamma", "fpr", "cost")
@@ -14,43 +16,49 @@ function print_status(slv::ForwardBackwardSolver, verbose::Int)
   end
 end
 
+# Stopping criteria
+
 function halt(slv::ForwardBackwardSolver, normfpr0::Float64, cost_prev::Float64)
 	conv_fpr = slv.normfpr <= (1+normfpr0)*slv.tol
 	conv_fun = abs(slv.cost-cost_prev) <= (1+abs(slv.cost))*slv.tol
 	return conv_fpr && conv_fun
 end
 
-function halt(slv::ZeroFPR, normfpr0::Float64, FBEx::Float64, FBEprev::Float64,)
+function halt(slv::ZeroFPR, normfpr0::Float64, FBEx::Float64, FBEprev::Float64)
 	conv_fpr = slv.normfpr <= (1+normfpr0)*slv.tol
 	conv_fun = abs(FBEx-FBEprev) <= (1+abs(FBEx))*slv.tol
 	return conv_fpr && conv_fun
 end
 
-# compute upper bound for Lipschitz constant using finite differences
-function get_gamma0{T<:Union{Complex{Float64},Float64}}(L::Function, Ladj::Function, x::AbstractArray{T}, gradx::AbstractArray, b::AbstractArray)
-	resy  = L(x+sqrt(eps())) - b
-	grady = Ladj(resy)
-	return vecnorm( sqrt(eps())*ones(x))/vecnorm(gradx-grady)
-end
+# Generalized length, dot product and norm, for nested Array objects
 
-function get_gamma0{T<:AbstractArray}(L::Function, Ladj::Function, x::AbstractArray{T}, gradx::AbstractArray, b::AbstractArray)
-	resy  = L(x+sqrt(eps())) - b
-	grady = Ladj(resy)
-	z = similar(x)
-	[z[i] = ones(x[i]) for i in eachindex(z)]
-	return deepvecnorm( sqrt(eps())*z)/deepvecnorm(gradx-grady)
-end
-
-deepvecnorm{T<:Union{Complex{Float64},Float64}}(x::AbstractArray{T}) = vecnorm(x)
-
-function deepvecnorm{T<:AbstractArray}(x::AbstractArray{T})
-	out = 0.
-	for a in x
-		out += vecnorm(a)^2
+function deeplength(x::AbstractArray)
+  len = 0
+	for k in eachindex(x)
+		len += deeplength(x[k])
 	end
-	return sqrt(out)
+	return len
 end
 
+deeplength{T <: Number}(x::AbstractArray{T}) = length(x)
+
+function deepvecdot(x::AbstractArray, y::AbstractArray)
+	out = 0.0
+	for k in eachindex(x)
+		out += deepvecdot(x[k], y[k])
+	end
+	return out
+end
+
+deepvecdot{T <: Number}(x::AbstractArray{T}, y::AbstractArray{T}) = vecdot(x, y)
+
+deepvecdot{T <: Complex}(x::AbstractArray{T}, y::AbstractArray{T}) = real(vecdot(x, y))
+
+deepvecnorm(x::AbstractArray) = sqrt(deepvecdot(x, x))
+
+deepvecnorm{T <: Number}(x::AbstractArray{T}) = vecnorm(x)
+
+# To print out solver objects
 
 function Base.show(io::IO, slv::ForwardBackwardSolver)
   println(io, slv.name)

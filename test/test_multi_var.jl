@@ -1,10 +1,4 @@
-
-using RegLS
-using ProximalOperators
-using Base.Test
-
-
-println("testing multi variable")
+println("Testing a problem with multiple variable blocks")
 verb = 0
 srand(123)
 n,m = 10,100
@@ -21,12 +15,12 @@ Ladj =y-> [y,reshape(y,n,m)]
 prox_col = [NormL1(2.), NormL1(0.5)]
 
 g = SeparableSum(prox_col)
- 
+
 x0 = [randn(size(x)),randn(size(X))]
-b = L([x,X]) 
-x_pg, ~ = solve(L,Ladj, b, g, x0, PG(verbose = verb))
-x_fpg, ~ = solve(L,Ladj, b, g, x0, FPG(verbose = verb))
-x_zerofpr, ~ = solve(L,Ladj, b, g, x0, ZeroFPR(verbose = verb))
+b = L([x,X])
+@time x_pg, ~ = solve(L,Ladj, b, g, x0, PG(verbose = verb))
+@time x_fpg, ~ = solve(L,Ladj, b, g, x0, FPG(verbose = verb))
+@time x_zerofpr, ~ = solve(L,Ladj, b, g, x0, ZeroFPR(verbose = verb))
 
 @test vecnorm(x_pg-x_fpg)<1e-5
 @test vecnorm(x_zerofpr-x_pg)<1e-5
@@ -46,7 +40,7 @@ L2 =x-> A*x[1:m]-x[m+1:m+n]
 Ladj2 =y-> [A'*y;-y]
 
 xx,yy = randn(size(x_star)),randn(size(y_star))
-zz = randn(n) 
+zz = randn(n)
 
 @test vecdot(L([xx,yy]),zz)-vecdot([xx,yy],Ladj(zz))<1e-12
 @test vecdot(L2([xx;yy]),zz)-vecdot([xx;yy],Ladj2(zz))<1e-12
@@ -55,10 +49,10 @@ g = SeparableSum(prox_col)
 g2 = SlicedSeparableSum([prox_col[1]=>1:m,prox_col[2]=>m+1:m+n])
 
 x0 = [zeros(x_star),zeros(y_star)]
-x_z, ~ = solve(L, Ladj, zeros(n), g, x0, ZeroFPR(tol = 1e-9,verbose = verb))
+@time x_z, ~ = solve(L, Ladj, zeros(n), g, x0, ZeroFPR(tol = 1e-9,verbose = verb))
 
 x0 = [zeros(x_star);zeros(y_star)]
-x_z2, ~ = solve(L2, Ladj2, zeros(n), g2, x0, ZeroFPR(tol = 1e-9,verbose = verb))
+@time x_z2, ~ = solve(L2, Ladj2, zeros(n), g2, x0, ZeroFPR(tol = 1e-9,verbose = verb))
 
 @test norm(x_z2-[x_z[1];x_z[2]])<1e-4
 
@@ -73,4 +67,3 @@ x_z2, ~ = solve(L2, Ladj2, zeros(n), g2, x0, ZeroFPR(tol = 1e-9,verbose = verb))
 #subplot(2,1,2)
 #plot(x_z[2])
 #plot(y_star)
-

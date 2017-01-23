@@ -11,8 +11,9 @@ type ZeroFPR <: ForwardBackwardSolver
 	time::Float64
 	linesearch::Bool
 	name::AbstractString
+	cnt_matvec::Int
+	cnt_prox::Int
 end
-
 
 """
 # Zero Fixed Point Residual Solver
@@ -34,24 +35,23 @@ Default solver of RegLS.
 * `maxit::Int64=10000`: maximum number of iterations
 * `mem::Int64=5`: L-BFGS memory
 * `verbose::Int64=1`: `0` verbose off, `1` print every 100 iteration, `2` print every iteration
-* `stp_cr::Function=halt`: stopping criterion function
+* `stp_cr::Function=halt`: custom stopping criterion function
   * this function may be specified by the user and must have the following structure:
 
-    `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,FBE::Float64,FBEx::Float64)`
+    `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,Fcurr::Float64,Fprev::Float64)`
 
     * `normfpr0` is the fixed point residual at x0
-    * `FBE` is the Forward-Backward Envelope value of the current iteration
-    * `FBEprev` is the Forward-Backward Envelope value of the previous iteration
-    * example: `myhalt(slv,normfpr0,FBE,FBEx) = slv.normfpr<slv.tol`
+    * `Fcurr` is the objective value at the current iteration
+    * `Fprev` is the objective value at the previous iteration
+    * example: `myhalt(slv,normfpr0,FBE,FBEx) = slv.normfpr < tol`
 
 * `gamma::Float64=Inf`: stepsize γ, if γ = Inf upper bound is computed using:
 
   γ0 = || x0-(x0+ɛ) || / || ∇f(x0) - ∇f(x0+ɛ) ||
 
 * `linesearch::Bool=true`: activates linesearch on stepsize γ
-
-
 """
+
 ZeroFPR(;tol::Float64 = 1e-8,
 	 maxit::Int64 = 10000,
          mem::Int64 = 5,
@@ -65,31 +65,37 @@ ZeroFPR(tol,
 	mem,
 	stp_cr,
 	gamma,
-        0, Inf, Inf, NaN, linesearch, "ZeroFPR")
+        0, Inf, Inf, NaN, linesearch, "ZeroFPR", 0, 0)
 
 function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x::AbstractArray, slv::ZeroFPR)
 
 	tic()
+
 	lbfgs = LBFGS.create(slv.mem, x)
+	beta = 0.05
 
 	resx = L(x) - b
-	fx = 0.5*vecnorm(resx)^2
-	gradx = copy(Ladj(resx))
+	fx = 0.5*deepvecnorm(resx)^2
+	gradx = Ladj(resx)
+	slv.cnt_matvec += 2
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		slv.gamma = get_gamma0(L, Ladj, x, gradx, b)
+		resx_eps  = L(x+sqrt(eps())) - b
+		gradx_eps = Ladj(resx_eps)
+		slv.cnt_matvec += 2
+		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
+		slv.gamma = (1-beta)/Lf
 	end
 
-	beta = 0.05
 	sigma = beta/(4*slv.gamma)
-
 	tau = 1.
 
 	# compute least squares residual and gradient
 	xbar, gxbar = prox(g, x-slv.gamma*gradx, slv.gamma)
+	slv.cnt_prox += 1
 	r = x - xbar
 	slv.normfpr = deepvecnorm(r)
-	uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
+	uppbnd = fx - real(deepvecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 	FBEx = uppbnd + gxbar
 
 	# initialize variables
@@ -101,12 +107,12 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 	for slv.it = 1:slv.maxit
 
 		# stopping criterion
-		# TODO make this slv.stp_cr(slv::)
 		if slv.stp_cr(slv, normfpr0, FBEx, FBEprev) break end
-		FBEprev = copy(FBEx)
+		FBEprev = FBEx
 
 		resxbar = L(xbar) - b
-		fxbar = 0.5*vecnorm(resxbar)^2
+		slv.cnt_matvec += 1
+		fxbar = 0.5*deepvecnorm(resxbar)^2
 
 		# line search on gamma
 		if slv.linesearch == true
@@ -115,11 +121,13 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 				slv.gamma = 0.5*slv.gamma
 				sigma = 2*sigma
 				gxbar = prox!(g, x-slv.gamma*gradx, xbar, slv.gamma)
+				slv.cnt_prox += 1
 				r = x - xbar
 				slv.normfpr = deepvecnorm(r)
 				resxbar = L(xbar) - b
-				fxbar = 0.5*vecnorm(resxbar)^2
-				uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
+				slv.cnt_matvec += 1
+				fxbar = 0.5*deepvecnorm(resxbar)^2
+				uppbnd = fx - real(deepvecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 			end
 		end
 
@@ -134,7 +142,9 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 
 		# compute rbar
 		gradxbar = deepcopy(Ladj(resxbar))
+		slv.cnt_matvec += 1
 		prox!(g, xbar - slv.gamma*gradxbar, xbarbar, slv.gamma)
+		slv.cnt_prox += 1
 		rbar = xbar - xbarbar
 
 		# compute direction according to L-BFGS
@@ -153,15 +163,17 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 		tau = 1.0
 		Ad = L(lbfgs.d)
 		ATAd = Ladj(Ad)
+		slv.cnt_matvec += 2
 		for j = 1:32
 			x = xbar_prev + tau*lbfgs.d
 			resx = resxbar + tau*Ad
-			fx = 0.5*vecnorm(resx)^2
+			fx = 0.5*deepvecnorm(resx)^2
 			gradx = gradxbar + tau*ATAd
 			gxbar = prox!(g, x - slv.gamma*gradx, xbar, slv.gamma)
+			slv.cnt_prox += 1
 			r = x - xbar
 			slv.normfpr = deepvecnorm(r)
-			uppbnd = fx - real(vecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
+			uppbnd = fx - real(deepvecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 			if uppbnd + gxbar <= level break end
 			tau = 0.5*tau
 		end

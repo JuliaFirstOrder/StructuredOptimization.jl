@@ -21,7 +21,7 @@ function create{T <: AbstractArray}(mem::Int64,x::T)
 end
 
 function push!(obj::Storage, gradx::Array)
-	obj.d = gradx
+	obj.d = -gradx
 end
 
 function push!(obj::Storage, x::Array, x_prev::Array, gradx::Array, gradx_prev::Array)
@@ -45,7 +45,6 @@ function push!(obj::Storage, x::Array, x_prev::Array, gradx::Array, gradx_prev::
 end
 
 function twoloop(obj::Storage, gradx::Array)
-	# TODO maybe this operation alone can be taken from libLBFGS
 	d = -gradx
 	idx = obj.curridx
 	for i=1:obj.currmem
@@ -54,7 +53,7 @@ function twoloop(obj::Storage, gradx::Array)
 		idx -= 1
 		if idx == 0 idx = obj.mem end
 	end
-	d = obj.H*d # modify here
+	d = obj.H*d
 	for i=1:obj.currmem
 		idx += 1
 		if idx > obj.mem idx = 1 end

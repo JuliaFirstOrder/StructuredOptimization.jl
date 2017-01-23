@@ -11,8 +11,9 @@ type PG <: ForwardBackwardSolver
 	linesearch::Bool
 	fast::Bool
 	name::AbstractString
+	cnt_matvec::Int
+	cnt_prox::Int
 end
-
 
 """
 # Proximal Gradient Solver
@@ -30,14 +31,15 @@ end
 * `tol::Float64=1e-8`: tolerance
 * `maxit::Int64=10000`: maximum number of iterations
 * `verbose::Int64=1`: `0` verbose off, `1` print every 100 iteration, `2` print every iteration
-* `stp_cr::Function=halt`: stopping criterion function
-  * the function must have the following structure:
+* `stp_cr::Function=halt`: custom stopping criterion function
+  * this function may be specified by the user and must have the following structure:
 
-   `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,costprev::Float64)`
+    `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,Fcurr::Float64,Fprev::Float64)`
 
-    * where `normfpr0` is the fixed point residual at x0
-    * and `costprev` is the cost function value at the previous iteration
-    * example: `myhalt(slv,normfpr0,FBE,FBEx) = slv.normfpr<slv.tol`
+    * `normfpr0` is the fixed point residual at x0
+    * `Fcurr` is the objective value at the current iteration
+    * `Fprev` is the objective value at the previous iteration
+    * example: `myhalt(slv,normfpr0,FBE,FBEx) = slv.normfpr < tol`
 
 * `gamma::Float64=Inf`: stepsize γ, if γ = Inf upper bound is computed using:
 
@@ -45,8 +47,8 @@ end
 
 * `linesearch::Bool=true`: activates linesearch on stepsize γ
 * `fast::Bool=true`: switches between proximal gradient and fast proximal gradient
-
 """
+
 PG(; tol::Float64 = 1e-8,
       maxit::Int64 = 10000,
       verbose::Int64 = 1,
@@ -54,7 +56,7 @@ PG(; tol::Float64 = 1e-8,
       linesearch::Bool = true,
 			fast::Bool = false,
       gamma::Float64 = Inf) =
-	PG(tol, maxit, verbose, stp_cr, gamma,  0, Inf, Inf, NaN, linesearch, fast, fast ? "Fast Proximal Gradient" : "Proximal Gradient")
+	PG(tol, maxit, verbose, stp_cr, gamma,  0, Inf, Inf, NaN, linesearch, fast, fast ? "Fast Proximal Gradient" : "Proximal Gradient", 0, 0)
 
 # alias for fast = true
 FPG(; tol::Float64 = 1e-8,
@@ -72,6 +74,7 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 	# compute least squares residual and f(x)
 	resx = L(x) - b
 	gradx = Ladj(resx)
+	slv.cnt_matvec += 2
 	fx = 0.5*vecnorm(resx)^2
 	fz = fx
 	gz = Inf
@@ -79,7 +82,11 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 	normfpr0 = Inf
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		slv.gamma = get_gamma0(L, Ladj, x, gradx, b)
+		resx_eps  = L(x+sqrt(eps())) - b
+		gradx_eps = Ladj(resx_eps)
+		slv.cnt_matvec += 2
+		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
+		slv.gamma = 1/Lf
 	end
 
 	# initialize variables
@@ -101,13 +108,15 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 			gradstep .= (*).(-slv.gamma, grady)
 			gradstep .+= y
 			gz = prox!(g, gradstep, x, slv.gamma)
+			slv.cnt_prox += 1
 			fpr = y-x
 			slv.normfpr = deepvecnorm(fpr)
 			resx = L(x) - b
+			slv.cnt_matvec += 1
 			fz = 0.5*vecnorm(resx)^2
+			if slv.linesearch == false break end
 			uppbnd = fy - real(vecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
-			if slv.linesearch == false; break; end
-			if fz <= uppbnd; break; end
+			if fz <= uppbnd break end
 			slv.gamma = 0.5*slv.gamma
 		end
 
@@ -130,6 +139,7 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 		# compute gradient and f(y)
 		fy = 0.5*vecnorm(resy)^2
 		grady = Ladj(resy)
+		slv.cnt_matvec += 1
 
 		# update iterates
 		x, xprev = xprev, x
