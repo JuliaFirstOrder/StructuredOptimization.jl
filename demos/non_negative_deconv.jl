@@ -33,7 +33,7 @@ x_LS = H\y #least suqares solution
 #non-negative deconvolution with H
 @time x_NN,  = solve(H, y, IndBox(0., Inf))
 #Matrix free non-negative deconvolution
-@time x_NN_MF, = solve(L, Ladj, y, IndBox(0., Inf),zeros(x),FPG() )
+@time x_NN_MF, = solve(L, Ladj, y, IndBox(0., Inf),zeros(x) )
 
 using PyPlot
 figure()

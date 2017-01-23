@@ -35,7 +35,7 @@ norm(vecdot(L(XX),RGB)-vecdot(XX,Ladj(RGB))) #verify adjoint operator
 
 g = SeparableSum([NormL21(0.1,2), IndBallRank(1)])
 
-@time X,  = solve(L,Ladj, RGB, g, [Frg,Bkg], ZeroFPR(verbose = 2))
+@time X,  = solve(L,Ladj, RGB, g, [Frg,Bkg], ZeroFPR(verbose = 2, tol = 1e-3))
 
 Frg = copy(X[1])
 Frg[Frg.!=0] = Frg[Frg.!=0]+reshape(X[2],N*m*n*3)[Frg.!=0]
