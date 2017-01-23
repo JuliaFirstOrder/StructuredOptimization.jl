@@ -22,8 +22,8 @@ b = L([x,X])
 @time x_fpg, ~ = solve(L,Ladj, b, g, x0, FPG(verbose = verb))
 @time x_zerofpr, ~ = solve(L,Ladj, b, g, x0, ZeroFPR(verbose = verb))
 
-@test vecnorm(x_pg-x_fpg)<1e-5
-@test vecnorm(x_zerofpr-x_pg)<1e-5
+@test vecnorm(x_pg-x_fpg)/(1+norm(x_fpg)) < 1e-5
+@test vecnorm(x_zerofpr-x_pg)/(1+norm(x_zerofpr)) < 1e-5
 
 n,m = 100,50
 srand(123)

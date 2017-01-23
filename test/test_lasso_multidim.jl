@@ -31,12 +31,11 @@ tol_test = 1e-2
 
 @time x_ista,  slv =  solve(L, Ladj, b, g, x0, PG(verbose = verb, tol = tol))
 @test slv.it < slv.maxit
-@test norm(x_ista-x_star, Inf)/norm(x_star, Inf) <= tol_test
 
 @time x_fista, slv = solve(L, Ladj, b, g, x0, FPG(verbose = verb, tol = tol))
 @test slv.it < slv.maxit
-@test norm(x_fista-x_star, Inf)/norm(x_star, Inf) <= tol_test
+@test norm(x_fista-x_ista, Inf)/(1+norm(x_ista, Inf)) <= tol_test
 
 @time x_zerofpr, slv = solve(L, Ladj, b, g, x0, ZeroFPR(verbose = verb, tol = tol))
 @test slv.it < slv.maxit
-@test norm(x_zerofpr-x_star, Inf)/norm(x_star, Inf) <= tol_test
+@test norm(x_zerofpr-x_ista, Inf)/(1+norm(x_ista, Inf)) <= tol_test

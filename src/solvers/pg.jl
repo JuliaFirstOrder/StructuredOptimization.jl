@@ -2,7 +2,7 @@ type PG <: ForwardBackwardSolver
 	tol::Float64
 	maxit::Int64
 	verbose::Int64
-	stp_cr::Function
+	halt::Function
 	gamma::Float64
 	it::Int
 	normfpr::Float64
@@ -31,7 +31,7 @@ end
 * `tol::Float64=1e-8`: tolerance
 * `maxit::Int64=10000`: maximum number of iterations
 * `verbose::Int64=1`: `0` verbose off, `1` print every 100 iteration, `2` print every iteration
-* `stp_cr::Function=halt`: custom stopping criterion function
+* `halt::Function`: custom stopping criterion function
   * this function may be specified by the user and must have the following structure:
 
     `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,Fcurr::Float64,Fprev::Float64)`
@@ -52,20 +52,20 @@ end
 PG(; tol::Float64 = 1e-8,
       maxit::Int64 = 10000,
       verbose::Int64 = 1,
-      stp_cr::Function = halt,
+      halt::Function = halt_default,
       linesearch::Bool = true,
 			fast::Bool = false,
       gamma::Float64 = Inf) =
-	PG(tol, maxit, verbose, stp_cr, gamma,  0, Inf, Inf, NaN, linesearch, fast, fast ? "Fast Proximal Gradient" : "Proximal Gradient", 0, 0)
+	PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, fast, fast ? "Fast Proximal Gradient" : "Proximal Gradient", 0, 0)
 
 # alias for fast = true
 FPG(; tol::Float64 = 1e-8,
       maxit::Int64 = 10000,
       verbose::Int64 = 1,
-      stp_cr::Function = halt,
+      halt::Function = halt_default,
       linesearch::Bool = true,
       gamma::Float64 = Inf) =
-	PG(tol = tol, maxit = maxit, verbose = verbose, stp_cr = stp_cr, linesearch = linesearch, fast = true, gamma = gamma)
+	PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
 function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x::AbstractArray, slv::PG)
 
@@ -75,7 +75,7 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 	resx = L(x) - b
 	gradx = Ladj(resx)
 	slv.cnt_matvec += 2
-	fx = 0.5*vecnorm(resx)^2
+	fx = 0.5*deepvecnorm(resx)^2
 	fz = fx
 	gz = Inf
 	costprev = Inf
@@ -101,7 +101,7 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 	for slv.it = 1:slv.maxit
 
 		# stopping criterion
-		if slv.stp_cr(slv, normfpr0, costprev) break end
+		if slv.halt(slv, normfpr0, costprev) break end
 
 		# line search on gamma
 		for j = 1:32
@@ -113,9 +113,9 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 			slv.normfpr = deepvecnorm(fpr)
 			resx = L(x) - b
 			slv.cnt_matvec += 1
-			fz = 0.5*vecnorm(resx)^2
+			fz = 0.5*deepvecnorm(resx)^2
 			if slv.linesearch == false break end
-			uppbnd = fy - real(vecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
+			uppbnd = fy - real(deepvecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
 			if fz <= uppbnd break end
 			slv.gamma = 0.5*slv.gamma
 		end
@@ -137,7 +137,7 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 		end
 
 		# compute gradient and f(y)
-		fy = 0.5*vecnorm(resy)^2
+		fy = 0.5*deepvecnorm(resy)^2
 		grady = Ladj(resy)
 		slv.cnt_matvec += 1
 

@@ -18,13 +18,13 @@ end
 
 # Stopping criteria
 
-function halt(slv::ForwardBackwardSolver, normfpr0::Float64, cost_prev::Float64)
+function halt_default(slv::ForwardBackwardSolver, normfpr0::Float64, cost_prev::Float64)
 	conv_fpr = slv.normfpr <= (1+normfpr0)*slv.tol
 	conv_fun = abs(slv.cost-cost_prev) <= (1+abs(slv.cost))*slv.tol
 	return conv_fpr && conv_fun
 end
 
-function halt(slv::ZeroFPR, normfpr0::Float64, FBEx::Float64, FBEprev::Float64)
+function halt_default(slv::ZeroFPR, normfpr0::Float64, FBEx::Float64, FBEprev::Float64)
 	conv_fpr = slv.normfpr <= (1+normfpr0)*slv.tol
 	conv_fun = abs(FBEx-FBEprev) <= (1+abs(FBEx))*slv.tol
 	return conv_fpr && conv_fun

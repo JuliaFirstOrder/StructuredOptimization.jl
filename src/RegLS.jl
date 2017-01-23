@@ -12,10 +12,6 @@ solve(A, b::AbstractArray, g::ProximableFunction) =
 	solve(A, b::AbstractArray, g::ProximableFunction, zeros(eltype(b), size(A,2)))
 
 function solve(A, b::AbstractArray, g::ProximableFunction, args...)
-	# y = zeros(eltype(b), size(A,1))
-	# y2 = zeros(eltype(b), size(A,2))
-	# L! = x -> A_mul_B!(y, A, x)
-	# Ladj! = x -> Ac_mul_B!(y2, A, x)
 	L = x -> A*x
 	Ladj = x -> A'*x
 	solve(L, Ladj, b, g, args...)

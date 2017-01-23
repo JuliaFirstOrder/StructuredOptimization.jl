@@ -3,7 +3,7 @@ type ZeroFPR <: ForwardBackwardSolver
 	maxit::Int64
 	verbose::Int64
 	mem::Int64
-	stp_cr::Function
+	halt::Function
 	gamma::Float64
 	it::Int
 	normfpr::Float64
@@ -35,7 +35,7 @@ Default solver of RegLS.
 * `maxit::Int64=10000`: maximum number of iterations
 * `mem::Int64=5`: L-BFGS memory
 * `verbose::Int64=1`: `0` verbose off, `1` print every 100 iteration, `2` print every iteration
-* `stp_cr::Function=halt`: custom stopping criterion function
+* `stp_cr::Function`: custom stopping criterion function
   * this function may be specified by the user and must have the following structure:
 
     `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,Fcurr::Float64,Fprev::Float64)`
@@ -56,14 +56,14 @@ ZeroFPR(;tol::Float64 = 1e-8,
 	 maxit::Int64 = 10000,
          mem::Int64 = 5,
 	 verbose::Int64 = 1,
-	 stp_cr::Function = halt,
+	 halt::Function = halt_default,
 	 gamma::Float64 = Inf,
 	 linesearch::Bool = true) =
 ZeroFPR(tol,
 	maxit,
 	verbose,
 	mem,
-	stp_cr,
+	halt,
 	gamma,
         0, Inf, Inf, NaN, linesearch, "ZeroFPR", 0, 0)
 
@@ -71,7 +71,7 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 
 	tic()
 
-	lbfgs = LBFGS.create(slv.mem, x)
+	lbfgs = LBFGS(slv.mem, x)
 	beta = 0.05
 
 	resx = L(x) - b
@@ -107,7 +107,7 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 	for slv.it = 1:slv.maxit
 
 		# stopping criterion
-		if slv.stp_cr(slv, normfpr0, FBEx, FBEprev) break end
+		if slv.halt(slv, normfpr0, FBEx, FBEprev) break end
 		FBEprev = FBEx
 
 		resxbar = L(xbar) - b
@@ -149,9 +149,9 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 
 		# compute direction according to L-BFGS
 		if slv.it == 1
-			LBFGS.push!(lbfgs, rbar)
+			push!(lbfgs, rbar)
 		else
-			LBFGS.push!(lbfgs, xbar, xbar_prev, rbar, rbar_prev)
+			push!(lbfgs, xbar, xbar_prev, rbar, rbar_prev)
 		end
 
 		# store xbar and rbar for later use
