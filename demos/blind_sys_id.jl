@@ -65,7 +65,7 @@ h = zeros(Nh,Km)
 h = h[:]
 
 # ||x|| = 1
-g = IndSphereSqrL2(1.)  
+g = IndSphereL2(1.)  
 
 # x[ind] = 1
 #indx = [round(Int64,Nh/2)]

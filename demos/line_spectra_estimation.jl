@@ -19,9 +19,9 @@ for i in eachindex(fk) y0+= ak[i]*sin(2*π*fk[i].*t) end
 y = y0+0.4*randn(Nt)  # sum of sinusoids corrupted by noise
 Y = rfft(y)          # dft of y
 
-zp = 20 #zeropad samples
-fzp = 0:fs/(zp*Nt):fs/2
-Yzp = rfft([y;zeros((zp-1)*length(y))])
+zp = 10 #zeropad samples
+fzp = 0:fs/(zp*Nt-1):fs
+Yzp = fft([y;zeros((zp-1)*length(y))])
 
 
 s = 10 #super-resolution factor
@@ -38,10 +38,11 @@ norm(vecdot(L(XX),YY)-vecdot(XX,Ladj(YY))) #verify adjoint operator
 lambda_max = norm(Ladj(y), Inf)
 
 X0 = zeros(Complex{Float64},s*Nt) #initial guess 
-@time X,  = solve(L,Ladj, y, NormL1(lambda_max*0.03), X0, ZeroFPR())
+@time X,  = solve(L,Ladj, y, NormL1(lambda_max*0.03), X0, ZeroFPR(tol=1e-5,verbose = 1))
 Xnnz = countnz(abs(X).>=0.1*maximum(abs(X)))               #count non zero values with threshold
-@time XL0,  = solve(L,Ladj, y, IndBallL0(Xnnz), X, ZeroFPR()) #solve with IndBallL0
+@time XL0,  = solve(L,Ladj, y, IndBallL0(Xnnz), X, ZeroFPR(tol = 1e-5)) #solve with IndBallL0
 
+figure()
 using PyPlot
 subplot(2,1,1)
 plot(t,y, label = "y")
