@@ -16,21 +16,11 @@ end
 
 Nx,Ny = size(R,1),size(R,2)
 Dx = spdiagm((ones(Nx),-ones(Nx-1)),(0,1),Nx,Nx)
-Dx[end,end-1] = -1
+Dx[end,end] = 1
 Dy = spdiagm((ones(Ny),-ones(Ny-1)),(0,1),Ny,Ny)
 Dy[end,end-1] = -1
 DDx = kron(speye(Ny),Dy)
 DDy = kron(Dx,speye(Ny))
-
-dx = X-> [l == Nx ? X[l,m]-X[l-1,m] : X[l,m]-X[l+1,m] for l = 1:Nx, m = 1:Ny]
-dy = X-> [m == Ny ? X[l,m]-X[l,m-1] : X[l,m]-X[l,m+1] for l = 1:Nx, m = 1:Ny]
-dxa = Y-> [l==1 ? Y[l,m] : (l==Nx-1 ? Y[l,m]-Y[l-1,m]-Y[l+1,m] : Y[l,m]-Y[l-1,m] )
-	   for l = 1:Nx, m = 1:Ny]
-dya = Y-> [m==1 ? Y[l,m] : (m==Ny-1 ? Y[l,m]-Y[l,m-1]-Y[l,m+1] : Y[l,m]-Y[l,m-1] )
-	   for l = 1:Nx, m = 1:Ny]
-
-L = X-> [dx(X)[:] dy(X)[:]]
-Ladj = Y-> dxa(reshape(Y[:,1],Nx,Ny))+dya(reshape(Y[:,2],Nx,Ny))
 
 L = X-> [DDx*X[:] DDy*X[:]]
 Ladj = Y-> reshape((DDx'*Y[:,1]+DDy'*Y[:,2]),Nx,Ny)
@@ -49,7 +39,7 @@ g = NormL1(lambda)
 
 ### l-2 norm
 #lambda_max = 100                #this is not right...
-#lambda = 0.15*lambda_max
+#lambda = 0.1*lambda_max
 #g = NormL2(lambda)
 ##
 #### with group sparsity
@@ -60,15 +50,27 @@ g = NormL1(lambda)
 tol = 1e-4
 Lf = 8
 
-slv1 = PG(tol = tol, fast = true, gamma = 1/Lf, linesearch = false)
-Y1, = solve(R_w, g, L, Ladj, Y, slv1)
-@time Y1, = solve(R_w, g, L, Ladj, Y, slv1)
-slv2 = ZeroFPR(tol = tol, gamma = 0.95/Lf, linesearch = false)
-Y2, = solve(R_w, g, L, Ladj, Y, slv2)
-@time Y2, = solve(R_w, g, L, Ladj, Y, slv2)
+verb = 0
+slv = PG(tol = tol, fast = true, gamma = 1/Lf, linesearch = false, verbose = verb)
+slv = ZeroFPR(tol = tol, gamma = 1/Lf, linesearch = false, verbose = verb)
+Y2 = zeros(Y)
+lambdas = linspace(1e-5,0.08,100)*lambda_max
+@time for lambda in lambdas
+#	Y2 = zeros(Y)
+	g = NormL1(lambda)
+	Y2, slv = solve(Ladj, L, R_w, Conjugate(g), Y2, slv)
+	show(slv)
+end
 
-ImageView.view(R,xy=["y","x"])
-ImageView.view(R_w,xy=["y","x"])
-ImageView.view(Y2,xy=["y","x"])
+Y2 = zeros(Y)
+g = NormL1(lambdas[end])
+Y2, slv = solve(Ladj, L, R_w, Conjugate(g), Y2, slv)
+show(slv)
+
+Y3 =-Ladj(Y2)+R_w
+
+#ImageView.view(R,xy=["y","x"])
+#ImageView.view(R_w,xy=["y","x"])
+#ImageView.view(Y3,xy=["y","x"])
 
 return

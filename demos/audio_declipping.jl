@@ -19,22 +19,26 @@ y_clip = copy(xx)
 y_clip[abs(y_clip).>=C] = C.*sign(y_clip[abs(y_clip).>=C])
 
 Nl = 2^10 #frame length
-overlap = round(Int64,Nl*0.75)
+overlap = round(Int64,Nl*0.5)
 y_f = arraysplit(y_clip[:],Nl,overlap) #split array into frames
 x_f = arraysplit(xx[:],Nl,overlap)     #split array into frames
 y_df = [zeros(Nl) for i = 1:length(y_f) ] #declipped frames
-wa = hamming(Nl)    #analysis window
-ws = hamming(Nl)    #synthesis window
+wa = sqrt(hamming(Nl))    #analysis window
+ws = sqrt(hamming(Nl))    #synthesis window
 
 s = 1 #redundancy
-L    = x-> idct(x[1])[1:Nl] - x[2]
-Ladj = x-> [dct([x;zeros((s-1)*Nl)]),-x]
+
+Lidct = plan_idct(ones(s*Nl))
+Ldct  = plan_dct(ones(s*Nl))
+
+L    = x-> (Lidct*x[1])[1:Nl] - x[2]
+Ladj = x-> [Ldct*[x;zeros((s-1)*Nl)],-x]
 
 #test operators
 XX = [randn(s*Nl),randn(Nl)]
 YY = randn(Nl)
 norm(vecdot(L(XX),YY)-vecdot(XX,Ladj(YY))) #verify adjoint operator
-fit_tol = 1e-4
+fit_tol = 1e-5
 greedy = true
 reg = IndBallL0
 #reg = NormL1
@@ -59,15 +63,15 @@ for f = 1:length(y_f)
 		k = 0
 		if greedy == true
 			if reg == IndBallL0
-				for k=10:10:10*div(s*Nl,10)
+				for k=20:20:20*div(s*Nl,20)
 					g = SeparableSum( [reg(k),gg] )
-					X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-5,verbose = 0))
+					X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-6,verbose = 0))
 					if slv.cost <= fit_tol break; end
 				end
 			elseif reg == NormL1
 				for k in logspace(-1,-5,40)
 					g = SeparableSum( [reg(k),gg] )
-					X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-5,verbose = 0))
+					X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-6,verbose = 0))
 					if slv.cost <= fit_tol break; end
 				end
 				##
@@ -76,11 +80,11 @@ for f = 1:length(y_f)
 			if reg == IndBallL0
 				k = 400
 				g = SeparableSum( [reg(k),gg] )
-				X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-5,verbose = 0))
+				X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-6,verbose = 0))
 			elseif reg == NormL1
 			  k = 1e-3
 				g = SeparableSum( [reg(k),gg] )
-				X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-5,verbose = 0))
+				X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-6,verbose = 0))
 			end
 		end
 		@printf("frame: %3d / %3d | nnz: %3d \n ", f, length(y_f), k)

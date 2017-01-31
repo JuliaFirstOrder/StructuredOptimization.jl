@@ -27,8 +27,11 @@ Yzp = fft([y;zeros((zp-1)*length(y))])
 s = 10 #super-resolution factor
 f_s = 0:fs/(s*Nt-1):fs        # super resolution frequency axis
 
-L =    X-> ifft(X)[1:Nt]*sqrt(s*Nt)              #linear dft operator
-Ladj = x-> fft([x;zeros((s-1)*length(x))])/sqrt(s*Nt) #adjoint
+Lifft = plan_ifft(ones(s*Nt))
+Lfft  = plan_fft(ones(s*Nt))
+
+L =    X-> (Lifft*X)[1:Nt]*sqrt(s*Nt)              #linear dft operator
+Ladj = x-> Lfft*([x;zeros((s-1)*length(x))])/sqrt(s*Nt) #adjoint
 
 XX = randn(s*Nt)+im*randn(s*Nt)
 YY = randn(Nt) 
@@ -42,8 +45,8 @@ X0 = zeros(Complex{Float64},s*Nt) #initial guess
 Xnnz = countnz(abs(X).>=0.1*maximum(abs(X)))               #count non zero values with threshold
 @time XL0,  = solve(L,Ladj, y, IndBallL0(Xnnz), X, ZeroFPR(tol = 1e-5)) #solve with IndBallL0
 
-figure()
 using PyPlot
+figure()
 subplot(2,1,1)
 plot(t,y, label = "y")
 plot(t,y0, label = "ground truth")
