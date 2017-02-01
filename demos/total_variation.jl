@@ -58,16 +58,15 @@ lambdas = linspace(1e-5,0.08,100)*lambda_max
 @time for lambda in lambdas
 #	Y2 = zeros(Y)
 	g = NormL1(lambda)
-	Y2, slv = solve(Ladj, L, R_w, Conjugate(g), Y2, slv)
+	Y3, slv,Y2  = solve(R_w, g, L, Ladj, Y2, slv)
 	show(slv)
 end
 
 Y2 = zeros(Y)
 g = NormL1(lambdas[end])
-Y2, slv = solve(Ladj, L, R_w, Conjugate(g), Y2, slv)
+Y3, slv, = solve(R_w, g, L, Ladj, Y2, slv)
 show(slv)
 
-Y3 =-Ladj(Y2)+R_w
 
 #ImageView.view(R,xy=["y","x"])
 #ImageView.view(R_w,xy=["y","x"])
