@@ -8,11 +8,7 @@ srand(123)
 using TestImages
 img = testimage("lena_gray")
 
-R = zeros(size(img.data))
-
-for i in eachindex(img.data)
-	R[i] = img.data[i]
-end
+R = convert(Array{Float64},img)
 
 Nx,Ny = size(R,1),size(R,2)
 Dx = spdiagm((ones(Nx),-ones(Nx-1)),(0,1),Nx,Nx)
@@ -68,8 +64,8 @@ Y3, slv, = solve(R_w, g, L, Ladj, Y2, slv)
 show(slv)
 
 
-#ImageView.view(R,xy=["y","x"])
-#ImageView.view(R_w,xy=["y","x"])
-#ImageView.view(Y3,xy=["y","x"])
+#imshow(R)
+#imshow(R_w)
+#imshow(Y3)
 
 return

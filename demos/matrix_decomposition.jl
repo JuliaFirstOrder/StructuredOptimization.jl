@@ -6,7 +6,7 @@ srand(123)
 N = 20
 Nframes = 2621 #number of frames
 frames =  randperm(Nframes)[1:N]
-n,m = 160,120 #frame size
+n,m = 120,160 #frame size
 
 # data from http://research.microsoft.com/en-us/um/people/jckrumm/wallflower/testimages.htm
 # Bootstrapt.zip
@@ -14,7 +14,7 @@ R,G,B = zeros(Float64,n,m,N),zeros(Float64,n,m,N),zeros(Float64,n,m,N)
 
 for f in eachindex(frames)
 	a = @sprintf("%5.5i",frames[f])
-	img = data(load("bootstrap/b$a.bmp"))
+	img = load("bootstrap/b$a.bmp")
 	for i =1:n,ii =1:m
 		R[i,ii,f] = convert(Float64,img[i,ii].r)
 		G[i,ii,f] = convert(Float64,img[i,ii].g)
@@ -22,7 +22,7 @@ for f in eachindex(frames)
 	end
 end
 
-RGB = [reshape(R,n*m,N); reshape(G,n*m,N); reshape(B,n*m,N)]'
+F = [reshape(R,n*m,N); reshape(G,n*m,N); reshape(B,n*m,N)]'
 
 
 Frg = zeros(Float64,N*n*m,3)
@@ -30,12 +30,12 @@ Bkg = zeros(Float64,N,3*n*m)
 L = X-> reshape(X[1],N,3*n*m)+X[2]
 Ladj = Y-> [reshape(Y,N*n*m,3),Y]
 
-XX =[randn(size(Frg)),randn(size(Bkg))] 
-norm(vecdot(L(XX),RGB)-vecdot(XX,Ladj(RGB))) #verify adjoint operator
+#XX =[randn(size(Frg)),randn(size(Bkg))] 
+#norm(vecdot(L(XX),F)-vecdot(XX,Ladj(F))) #verify adjoint operator
 
 g = SeparableSum([NormL21(0.1,2), IndBallRank(1)])
 
-@time X,  = solve(L,Ladj, RGB, g, [Frg,Bkg], ZeroFPR(verbose = 2, tol = 1e-3))
+@time X,  = solve(L,Ladj, F, g, [Frg,Bkg], ZeroFPR(verbose = 2, tol = 1e-3))
 
 Frg = copy(X[1])
 Frg[Frg.!=0] = Frg[Frg.!=0]+reshape(X[2],N*m*n*3)[Frg.!=0]
@@ -44,14 +44,15 @@ Frg = reshape(Frg,N,3*n*m)
 
 f = 1	
 a = @sprintf("%5.5i",frames[f])
-img = data(load("bootstrap/b$a.bmp"))
-Bkgim = shareproperties(img, reshape(X[2][1,:],n,m,3))
+img = load("bootstrap/b$a.bmp")
+Bkg = reshape(X[2][1,:],n,m,3)
 Frgf = reshape(Frg[f,:],n,m,3)
+Bkgim = [ RGB(Bkg[i,ii,1],Bkg[i,ii,2],Bkg[i,ii,3]) for i = 1:n,ii =1:m]
+Frgim = [ RGB(Frgf[i,ii,1],Frgf[i,ii,2],Frgf[i,ii,3]) for i = 1:n,ii =1:m]
 
-Frgim = shareproperties(img, Frgf)
-ImageView.view(img,xy=["y","x"])
-ImageView.view(Frgim,xy=["y","x"])
-ImageView.view(Bkgim,xy=["y","x"])
+imshow(img)
+imshow(Frgim)
+imshow(Bkgim)
 
 
 
