@@ -15,6 +15,10 @@ function LBFGS{T <: AbstractArray}(mem::Int64,x::T)
 	alphas = zeros(Float64,mem)
   s_m = Array(T, mem)
   y_m = Array(T, mem)
+	for i = 1:mem
+		s_m[i] = similar(x)
+		y_m[i] = similar(x)
+	end
   d = deepcopy(x)
 	LBFGS{T}(mem, 0, 0, s_m, y_m, ys_m, alphas, 1., d)
 end
@@ -25,20 +29,20 @@ end
 
 function push!(obj::LBFGS, x::Array, x_prev::Array, gradx::Array, gradx_prev::Array)
 
-	s = x-x_prev
-	y = gradx-gradx_prev
-	ys = real(deepvecdot(s,y))
+	obj.curridx += 1
+	if obj.curridx > obj.mem obj.curridx = 1 end
+	obj.currmem += 1
+	if obj.currmem > obj.mem obj.currmem = obj.mem end
 
-	if ys > 0
-		obj.curridx += 1
-		if obj.curridx > obj.mem obj.curridx = 1 end
-		obj.currmem += 1
-		if obj.currmem > obj.mem obj.currmem = obj.mem end
+	obj.s_m[obj.curridx] .= (-).(x, x_prev)
+	obj.y_m[obj.curridx] .= (-).(gradx, gradx_prev)
+	obj.ys_m[obj.curridx] .= real(deepvecdot(obj.s_m[obj.curridx],obj.y_m[obj.curridx]))
 
-		obj.s_m[obj.curridx] = s
-		obj.y_m[obj.curridx] = y
-		obj.ys_m[obj.curridx] = ys
-		obj.H = ys/real(deepvecdot(y,y))
+	if obj.ys_m[obj.curridx] > 0
+		obj.H = obj.ys_m[obj.curridx]/real(deepvecdot(obj.y_m[obj.curridx],obj.y_m[obj.curridx]))
+	else
+		obj.curridx -= 1
+		obj.currmem -= 1
 	end
 
 	twoloop(obj, gradx)
@@ -60,9 +64,4 @@ function twoloop(obj::LBFGS, gradx::Array)
 		beta = real(deepvecdot(obj.y_m[idx], obj.d))/obj.ys_m[idx]
 		obj.d .= (+).(obj.d, (*).((obj.alphas[idx]-beta), obj.s_m[idx]))
 	end
-end
-
-function reset(obj::LBFGS)
-	obj.currmem = 0
-	obj.curridx = 0
 end

@@ -101,8 +101,10 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 	# initialize variables
 	fxbar, normfpr0, FBEprev, = NaN, NaN, NaN
 	rbar_prev = deepcopy(x)
+	rbar      = deepcopy(x)
 	xbar_prev = deepcopy(x)
 	xbarbar = deepcopy(x)
+	resxbar = deepcopy(resx)
 
 	for slv.it = 1:slv.maxit
 
@@ -110,7 +112,7 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 		if slv.halt(slv, normfpr0, FBEx, FBEprev) break end
 		FBEprev = FBEx
 
-		resxbar = L(xbar) - b
+		resxbar .= (-).(L(xbar), b)
 		slv.cnt_matvec += 1
 		fxbar = 0.5*deepvecnorm(resxbar)^2
 
@@ -122,9 +124,9 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 				sigma = 2*sigma
 				gxbar = prox!(g, x-slv.gamma*gradx, xbar, slv.gamma)
 				slv.cnt_prox += 1
-				r = x - xbar
+				r .= (-).(x, xbar)
 				slv.normfpr = deepvecnorm(r)
-				resxbar = L(xbar) - b
+				resxbar .= (-).(L(xbar), b)
 				slv.cnt_matvec += 1
 				fxbar = 0.5*deepvecnorm(resxbar)^2
 				uppbnd = fx - real(deepvecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
@@ -141,11 +143,11 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 		print_status(slv)
 
 		# compute rbar
-		gradxbar = deepcopy(Ladj(resxbar))
+		gradxbar = Ladj(resxbar)
 		slv.cnt_matvec += 1
 		prox!(g, xbar - slv.gamma*gradxbar, xbarbar, slv.gamma)
 		slv.cnt_prox += 1
-		rbar = xbar - xbarbar
+		rbar .=(-).(xbar, xbarbar)
 
 		# compute direction according to L-BFGS
 		if slv.it == 1
@@ -165,17 +167,17 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 		ATAd = Ladj(Ad)
 		slv.cnt_matvec += 2
 		for j = 1:32
-			x = xbar_prev + tau*lbfgs.d
-			resx = resxbar + tau*Ad
+			x .= (+).(xbar_prev, (*).(tau,lbfgs.d))
+			resx .= (+).(resxbar, (*).(tau,Ad))
 			fx = 0.5*deepvecnorm(resx)^2
-			gradx = gradxbar + tau*ATAd
+			gradx .= (+).(gradxbar, (*).(tau,ATAd))
 			gxbar = prox!(g, x - slv.gamma*gradx, xbar, slv.gamma)
 			slv.cnt_prox += 1
-			r = x - xbar
+			r .= (-).(x, xbar)
 			slv.normfpr = deepvecnorm(r)
 			uppbnd = fx - real(deepvecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 			if uppbnd + gxbar <= level break end
-			tau = 0.5*tau
+			tau = 0.4*tau
 		end
 
 	end

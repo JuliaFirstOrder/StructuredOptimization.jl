@@ -1,4 +1,3 @@
-
 using RegLS
 using ProximalOperators
 using Images
@@ -31,41 +30,26 @@ R_w = R+sqrt(0.006*norm(R[:],Inf))*randn(Nx,Ny)
 # l-1 norm
 lambda_max = vecnorm(L(R),Inf)   #this is not right...
 lambda = 0.08*lambda_max
-g = NormL1(lambda)
-
-### l-2 norm
-#lambda_max = 100                #this is not right...
-#lambda = 0.1*lambda_max
-#g = NormL2(lambda)
-##
-#### with group sparsity
-#lambda_max = vecnorm(sqrt(sum(abs2(L(R)),1)), 1)  #this is not right...
-#lambda = 0.3*lambda_max
-#g = NormL21(lambda)
 
 tol = 1e-4
 Lf = 8
 
-verb = 0
-slv = PG(tol = tol, fast = true, gamma = 1/Lf, linesearch = false, verbose = verb)
-slv = ZeroFPR(tol = tol, gamma = 1/Lf, linesearch = false, verbose = verb)
-Y2 = zeros(Y)
-lambdas = linspace(1e-5,0.08,100)*lambda_max
-@time for lambda in lambdas
-#	Y2 = zeros(Y)
-	g = NormL1(lambda)
-	Y3, slv,Y2  = solve(R_w, g, L, Ladj, Y2, slv)
-	show(slv)
-end
+verb = 1
+slv1 = PG(tol = tol, fast = true, gamma = 1/Lf, linesearch = false, verbose = verb)
+slv2 = ZeroFPR(tol = tol, gamma = 1/Lf, linesearch = false, verbose = verb)
 
 Y2 = zeros(Y)
-g = NormL1(lambdas[end])
-Y3, slv, = solve(R_w, g, L, Ladj, Y2, slv)
-show(slv)
 
+g = Regularize(NormL1(lambda),1-lambda)
+#g = NormL1(lambda)
+@time Y3,slv1 = solve(R_w, g, L, Ladj, Y2, slv1)
+println("prox eval:$(slv1.cnt_prox), matvec: $(slv1.cnt_matvec)")
 
-#imshow(R)
-#imshow(R_w)
-#imshow(Y3)
+@time Y3,slv2 = solve(R_w, g, L, Ladj, Y2, slv2)
+println("prox eval:$(slv2.cnt_prox), matvec: $(slv2.cnt_matvec)")
+
+imshow(R)
+imshow(R_w)
+imshow(Y3)
 
 return
