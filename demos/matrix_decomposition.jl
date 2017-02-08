@@ -35,7 +35,9 @@ Ladj = Y-> [reshape(Y,N*n*m,3),Y]
 
 g = SeparableSum([NormL21(0.1,2), IndBallRank(1)])
 
-@time X,  = solve(L,Ladj, F, g, [Frg,Bkg], ZeroFPR(verbose = 2, tol = 1e-3))
+@time X,slv  = solve(L,Ladj, F, g, [Frg,Bkg], FPG(verbose = 1, tol = 1e-3, 
+																									linesearch = false, gamma = 0.5))
+show(slv)
 
 Frg = copy(X[1])
 Frg[Frg.!=0] = Frg[Frg.!=0]+reshape(X[2],N*m*n*3)[Frg.!=0]

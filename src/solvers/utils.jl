@@ -30,7 +30,25 @@ function halt_default(slv::ZeroFPR, normfpr0::Float64, FBEx::Float64, FBEprev::F
 	return conv_fpr && conv_fun
 end
 
-# Generalized length, dot product and norm, for nested Array objects
+# Generalized length, dot product, norm, similar and deepcopy for nested Array objects
+
+function deepsimilar(x::AbstractArray)
+	y = similar(x)
+	for k in eachindex(x)
+		y[k] = similar(x[k])
+	end
+	return y
+end
+
+deepsimilar{T <: Number}(x::AbstractArray{T}) = similar(x)
+
+function deepcopy!(y::AbstractArray, x::AbstractArray)
+	for k in eachindex(x)
+		copy!(y[k],x[k])
+	end
+end
+
+deepcopy!{T <: Number}(y::AbstractArray{T}, x::AbstractArray{T}) = copy!(y,x)
 
 function deeplength(x::AbstractArray)
   len = 0
@@ -65,4 +83,6 @@ function Base.show(io::IO, slv::ForwardBackwardSolver)
   println(io, "cost       : $(slv.cost)")
   println(io, "γ          : $(slv.gamma)")
   println(io, "time       : $(slv.time)")
+  println(io, "prox   eval: $(slv.cnt_prox)")
+  println(io, "matvec eval: $(slv.cnt_matvec)")
 end

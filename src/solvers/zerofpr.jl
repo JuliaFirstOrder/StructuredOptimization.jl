@@ -157,8 +157,8 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 		end
 
 		# store xbar and rbar for later use
-		rbar_prev = deepcopy(rbar)
-		xbar_prev = deepcopy(xbar)
+		deepcopy!(rbar_prev,rbar)
+		deepcopy!(xbar_prev,xbar)
 
 		# line search on tau
 		level = FBEx - sigma*slv.normfpr^2
