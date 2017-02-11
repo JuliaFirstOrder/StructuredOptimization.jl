@@ -5,6 +5,7 @@ module RegLS
 using ProximalOperators
 
 include("solvers.jl")
+include("linOp.jl")
 
 export solve, solve!
 
