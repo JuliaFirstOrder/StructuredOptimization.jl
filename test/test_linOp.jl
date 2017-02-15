@@ -18,29 +18,18 @@ stuff = [
 							 ),
 				 Dict( 
 					"Operator" => (fft,),
+					"params" => ((), ),
+					"args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
+							 ),
+				 Dict( 
+					"Operator" => (fft,),
 					"params" => ((),),
 					"args"   => ( randn(64,64), randn(64,64)+im*randn(64,64) )
 							 ),
 				 Dict( 
-					"Operator" => (fft,),
-					"params" => ((), ),
-					"args"   => ( randn(64)+im*randn(64), randn(64) )
-							 ),
-				 Dict( 
-					"Operator" => (fft,),
-					"params" => ((), ),
-					"args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
-							 ),
-
-				 Dict( 
 					"Operator" => (ifft,),
 					"params" => ((), ),
 					"args"   => ( randn(64,64), randn(64,64)+im*randn(64,64) )
-							 ),
-				 Dict( 
-					"Operator" => (ifft,),
-					"params" => ((), ),
-					"args"   => ( randn(64)+im*randn(64), randn(64) )
 							 ),
 				 Dict( 
 					"Operator" => (ifft,),
@@ -62,6 +51,11 @@ stuff = [
 					"params" => ((10,10), ),
 					"args"   => ( randn(100), randn(10,10) )
 							 ),
+				 Dict(
+					"Operator" => (*, dct),
+					"params" => ((randn(32,64)) ,() ),
+					"args"   => ( randn(64), randn(32) )
+							 ),
 				 Dict( 
 					"Operator" => (ifft, reshape, dct),
 					"params" => ((),(10,10),() ),
@@ -71,11 +65,6 @@ stuff = [
 					"Operator" => (dct, ifft, reshape, dct),
 					"params" => ((),(),(10,10),() ),
 					"args"   => ( randn(100), randn(10,10)+im*randn(10,10) )
-							 ),
-				 Dict(
-					"Operator" => (*, dct),
-					"params" => ((randn(32,64)) ,() ),
-					"args"   => ( randn(64), randn(32) )
 							 ),
 				]
 
@@ -118,7 +107,56 @@ for i in eachindex(stuff)
 	@test norm(x-x2) < 1e-8 #verify equivalence
 
 	X,Y = deepcopy(stuff[i]["args"])
-	@test norm(real(vecdot(A*X,Y))-real(vecdot(X,A'*Y))) <1e-8  #verify operator and its ajoint
+	@test norm( real(vecdot(A*X,Y)) - real(vecdot(X,A'*Y))) <1e-8  #verify operator and its ajoint
 
 end
+
+
+#x,y = randn(64), randn(32)
+#X = OptVar(x)
+#A = dct(randn(32,64)*X) 
+#
+#show(A)
+#
+#y2 = 0*copy(y)
+#y1 = A*x
+#@time y1 = A*x
+#
+#A_mul_B!(y2,A,x)
+#@time A_mul_B!(y2,A,x)
+#@test norm(y1-y2)<1e-8
+#
+##Ops,mids = RegLS.disassamble(A)
+##show(Ops)
+##show(mids)
+##N = RegLS.NestedLinearOp(Ops,mids)
+##show(N)
+#
+#x1 = A'*y
+#@time x1 = A'*y
+#
+#x2 = 0*copy(x)
+#
+#Ac_mul_B!(x2,A,y)
+#@time Ac_mul_B!(x2,A,y)
+#
+#@test norm(x1-x2)<1e-8
+#
+#x,y = randn(64), randn(32)
+#@test norm( (real(vecdot(A*x,y))) - real((vecdot(x,A'*y)))) <1e-8  #verify operator and its ajoint
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -1,27 +1,20 @@
 import Base: dct, idct
 
-immutable DCT{D1} <: LinearOp{D1}
-	x::OptVar{D1}
-	y::OptVar{D1}
+immutable DCT{D1,D2} <: LinearOp{D1,D2}
 	A::Base.DFT.Plan
 	Ainv::Base.DFT.Plan
+	dim::Tuple
 end
 
-function dct(x::OptVar) 
-	X = OptVar(similar(x.x))
-	DCT(X,X,plan_dct(x.x),plan_idct(x.x))
-end
+dct{D1}(x::OptVar{D1}) = DCT{D1,D1}(plan_dct(x.x),plan_idct(x.x),(size(x),size(x)))
 
-immutable IDCT{D1} <: LinearOp{D1}
-	x::OptVar{D1}
-	y::OptVar{D1}
+immutable IDCT{D1,D2} <: LinearOp{D1,D2}
 	A::Base.DFT.Plan
 	Ainv::Base.DFT.Plan
+	dim::Tuple
 end
-function idct(x::OptVar) 
-	X = OptVar(similar(x.x))
-	IDCT(X,X,plan_idct(x.x),plan_dct(x.x))
-end
+
+idct{D1}(x::OptVar{D1}) = IDCT{D1,D1}(plan_idct(x.x),plan_dct(x.x),(size(x),size(x)))
 
 *(A::DCT, b::AbstractArray)  = A.A*b
 *(A::IDCT,b::AbstractArray)  = A.A*b
@@ -35,8 +28,8 @@ function A_mul_B!(y::AbstractArray,A::IDCT,b::AbstractArray)
 	y .= A.A*b 
 end
 
-transpose(A::DCT)  = IDCT(A.y, A.x, A.Ainv, A.A)
-transpose(A::IDCT) =  DCT(A.y, A.x, A.Ainv, A.A)
+transpose{D1}(A::DCT{D1,D1} ) = IDCT{D1,D1}(A.Ainv, A.A, A.dim)
+transpose{D1}(A::IDCT{D1,D1}) =  DCT{D1,D1}(A.Ainv, A.A, A.dim)
 
 fun_name(A::DCT)  = "Discrete Cosine Transform"
 fun_name(A::IDCT) = "Inverse Discrete Cosine Transform"

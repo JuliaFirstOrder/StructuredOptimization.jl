@@ -13,7 +13,8 @@ immutable OptVar{T<:Union{Real,Complex}}
 	x::AbstractArray{T}
 end
 size(x::OptVar) = size(x.x)
-size(A::LinearOp) = (size(A.x),size(A.y))
+size(A::LinearOp) = A.dim
+size(A::LinearOp,i::Int64) = A.dim[i]
 
 export OptVar
 
@@ -39,6 +40,3 @@ fun_dom{D1<:Complex, D2<:Real   }(A::LinearOp{D1,D2}) = "ℂ^$(size(A)[1]) →  
 fun_dom{D1<:Complex, D2<:Complex}(A::LinearOp{D1,D2}) = "ℂ^$(size(A)[1]) →  ℂ^$(size(A)[2])"
 fun_dom{D1<:Real,    D2<:Complex}(A::LinearOp{D1,D2}) = "ℝ^$(size(A)[1]) →  ℂ^$(size(A)[2])"
 fun_dom{D1<:Real,    D2<:Real   }(A::LinearOp{D1,D2}) = "ℝ^$(size(A)[1]) →  ℝ^$(size(A)[2])"
-
-fun_dom{D1<:Complex}(A::LinearOp{D1}) = "ℂ^$(size(A)[1]) →  ℂ^$(size(A)[2])"
-fun_dom{D1<:Real   }(A::LinearOp{D1}) = "ℝ^$(size(A)[1]) →  ℝ^$(size(A)[2])"
