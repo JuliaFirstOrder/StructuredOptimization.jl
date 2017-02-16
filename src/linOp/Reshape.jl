@@ -3,6 +3,7 @@ import Base: reshape
 immutable Reshape{D1,D2} <: LinearOp{D1,D2}
 	dim::Tuple
 end
+size(A::Reshape) = A.dim
 
 reshape{D1}(x::OptVar{D1}, dim::Vararg{Int64}) = Reshape{D1,D1}((size(x.x),dim))
 

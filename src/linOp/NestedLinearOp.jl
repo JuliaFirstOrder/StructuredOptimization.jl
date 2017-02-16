@@ -2,23 +2,23 @@ immutable NestedLinearOp{D1,D2} <: LinearOp{D1,D2}
 	A::LinearOp
 	B::LinearOp
 	mid::AbstractArray       # memory in the middle of the 2 Op
-	status::Array{Int64,1}   # 0 is input and output, 1 is input, 2 is mid, 3 is output  
 	dim::Tuple
 end
+size(A::NestedLinearOp) = A.dim
 
 function NestedLinearOp{D1,Dm}(f::Function,B::LinearOp{D1,Dm}, args...) 
-	mid = Array{Dm}(B.dim[2])
+	mid = Array{Dm}(size(B,2))
 	(f == *) ? A = f(args[1], OptVar(mid)) : A = f(OptVar(mid), args...)
 	return NestedLinearOp(A,B,mid)
 end
+#TODO: alternatevely construct using A*B*C...?
 
 NestedLinearOp{D1,Dm,D2}(A::LinearOp{Dm,D2},B::LinearOp{D1,Dm},mid::AbstractArray{Dm}) = 
-NestedLinearOp{D1,D2}(A,B,mid,[0],(B.dim[1],A.dim[2]))
+NestedLinearOp{D1,D2}(A,B,mid,(size(B,1),size(A,2)))
 
-function NestedLinearOp{D1,Dm,D2}(A::LinearOp{Dm,D2},B::NestedLinearOp{D1,Dm},mid::AbstractArray{Dm})  
-	B.status[1] == 0 ? B.status[1] = 1 : B.status[1] = 2 
-		
-	NestedLinearOp{D1,D2}(A,B,mid,[3],(B.dim[1],A.dim[2]))	
+function NestedLinearOp{D1,Dm,D2}(A::LinearOp{Dm,D2},B::LinearOp{D1,Dm})  
+	mid = Array{Dm}(size(B,2))
+	return NestedLinearOp{D1,D2}(A,B,mid,(size(B,1),size(A,2)))	
 end
 
 
@@ -31,36 +31,34 @@ function NestedLinearOp(Ops::Array,mids::Array)
 	return N
 end
 
-
-
 function transpose{D1,D2}(N::NestedLinearOp{D1,D2})  
-	if N.status == [0]
-		NestedLinearOp(N.B', N.A', N.mid)
-	else
+	if typeof(N.B) <: NestedLinearOp
 		Ops, mids = disassamble(N)
 		Ops = flipdim(Ops.'[:],1)
 		mids = flipdim(mids[:],1)
 		return NestedLinearOp(Ops,mids) 
+	else
+		return NestedLinearOp(N.B', N.A', N.mid)
 	end
 end
 
 
-*{D1,D2}(N::NestedLinearOp{D1,D2},b::AbstractArray) = N.A*(N.B*b) 
 
 function A_mul_B!{D1,D2}(y::AbstractArray,N::NestedLinearOp{D1,D2},b::AbstractArray) 
 		A_mul_B!(N.mid,   N.B, b    )
 		A_mul_B!(y,       N.A, N.mid)
 end
 
-fun_name(N::NestedLinearOp) = N.status[1] == 0 ? string(typeof(N.A))*" * "*string(typeof(N.B)) : "Nested Linear Operator"
+fun_name(N::NestedLinearOp) = ((typeof(N.B) <: NestedLinearOp) == false ) ? 
+fun_name(N.A)*" * "*fun_name(N.B) : "Nested Linear Operator"
 
 
 #count the number of operators
 function countOp(N::NestedLinearOp)
 	counter = 0
-	if N.status != [0]
+	if typeof(N.B) <: NestedLinearOp
 		AA = N
-		while AA.status != [1]
+		while typeof(AA.B) <: NestedLinearOp
 			counter += 1
 			AA = AA.B
 		end

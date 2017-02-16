@@ -5,6 +5,7 @@ immutable DCT{D1,D2} <: LinearOp{D1,D2}
 	Ainv::Base.DFT.Plan
 	dim::Tuple
 end
+size(A::DCT) = A.dim
 
 dct{D1}(x::OptVar{D1}) = DCT{D1,D1}(plan_dct(x.x),plan_idct(x.x),(size(x),size(x)))
 
@@ -13,6 +14,7 @@ immutable IDCT{D1,D2} <: LinearOp{D1,D2}
 	Ainv::Base.DFT.Plan
 	dim::Tuple
 end
+size(A::IDCT) = A.dim
 
 idct{D1}(x::OptVar{D1}) = IDCT{D1,D1}(plan_idct(x.x),plan_dct(x.x),(size(x),size(x)))
 

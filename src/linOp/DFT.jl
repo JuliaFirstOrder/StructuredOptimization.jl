@@ -5,6 +5,7 @@ immutable DFT{D1,D2} <: LinearOp{D1,D2}
 	Ainv::Base.DFT.Plan
 	dim::Tuple
 end
+size(A::DFT) = A.dim
 
 fft{D1<:Complex}(x::OptVar{D1}) = DFT{D1,D1}(plan_fft(x.x), plan_ifft(x.x),(size(x),size(x))) 
 fft{D1<:Float64}(x::OptVar{D1}) = 
@@ -15,6 +16,7 @@ immutable IDFT{D1,D2} <: LinearOp{D1,D2}
 	Ainv::Base.DFT.Plan
 	dim::Tuple
 end
+size(A::IDFT) = A.dim
 
 ifft{D1<:Complex}(x::OptVar{D1}) = IDFT{D1,D1}(plan_ifft(x.x), plan_fft(x.x),(size(x),size(x))) 
 ifft{D1<:Float64}(x::OptVar{D1}) = 
