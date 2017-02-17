@@ -17,6 +17,16 @@ stuff = [
 					"args"   => ( randn(100), randn(50) )
 							 ),
 				 Dict( 
+					"Operator" => (diagop,),
+					"params" => ((randn(2,2)+im*randn(2,2),),),
+					"args"   => ( randn(2,2)+im*randn(2,2), randn(2,2)+im*randn(2,2) )
+							 ),
+				 Dict( 
+					"Operator" => (diagop,),
+					"params" => ((2,),),
+					"args"   => ( randn(2,2), randn(2,2) )
+							 ),
+				 Dict( 
 					"Operator" => (*,),
 					"params" => ((randn(4,4)),),
 					"args"   => ( randn(4), randn(4) )
@@ -151,37 +161,41 @@ end
 
 
 # try out stuff
-#
-#x,y = randn(10,10),randn(10,2)
-#X,Y = OptVar(x), OptVar(y)
-#
-#A = getindex(dct(X),:,1:2)
-#
-#println(); show(A); println()
-#
-#y = A*x          #verify linear operator works
-#println("forward")
-#@time y = A*x
-#
-#y2 = 0*copy(y)
-#A_mul_B!(y2,A,x) #verify in-place linear operator works
-#println("forward preallocated")
-#@time A_mul_B!(y2,A,x)
-#@test norm(y-y2) < 1e-8 #verify equivalence
-#
-#At = A'
-#x = At*y          #verify adjoint operator works
-#println("adjoint")
-#@time x = At*y
-#
-#x2 = 0*copy(x)
-#A_mul_B!(x2,At,y) #verify in-place linear operator works
-#println("adjoint preallocated")
-#@time A_mul_B!(x2,At,y)
-#
-#@test norm(x-x2) < 1e-8 #verify equivalence
-#
-#X,Y = randn(size(x)),randn(size(y))
-#@test norm( (vecdot(A*X,Y)) - (vecdot(X,A'*Y))) <1e-8  #verify operator and its ajoint
+
+x1,x2,x3 = randn(3),randn(3),randn(3)
+X1,X2,X3 = OptVar(x1), OptVar(x2), OptVar(x3)
+y = randn(3)
+x = [x1,x2,x3]
+
+A = dct(X1)+eye(X1)+dct(X2)+eye(X1)+eye(X3)
+show(A)
+show(length(A.A))
+
+y = A*x          #verify linear operator works
+println("forward")
+@time y = A*x
+
+y2 = 0*copy(y)
+A_mul_B!(y2,A,x) #verify in-place linear operator works
+println("forward preallocated")
+@time A_mul_B!(y2,A,x)
+@test vecnorm(y-y2) < 1e-8 #verify equivalence
+
+At = A'
+x = At*y          #verify adjoint operator works
+println("adjoint")
+@time x = At*y
+
+x2 = 0*copy(x)
+A_mul_B!(x2,At,y) #verify in-place linear operator works
+println("adjoint preallocated")
+@time A_mul_B!(x2,At,y)
+
+@test vecnorm(x-x2) < 1e-8 #verify equivalence
+
+x1,x2,x3 = randn(3),randn(3),randn(3)
+X,Y = [x1,x2,x3],randn(3)
+
+@test norm( (RegLS.deepvecdot(A*X,Y)) - (RegLS.deepvecdot(X,At*Y))) <1e-8  #verify operator and its ajoint
 
 

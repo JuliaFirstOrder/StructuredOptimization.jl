@@ -7,8 +7,7 @@ import Base: *,
 						 Ac_mul_B!, 
 						 transpose,
 						 size,
-						 ndims,
-						 +
+						 ndims
 
 immutable OptVar{T<:Union{Real,Complex}}
 	x::AbstractArray{T}
@@ -35,7 +34,9 @@ include("linOp/NestedLinearOp.jl")
 include("linOp/DFT.jl")
 include("linOp/DCT.jl")
 include("linOp/Eye.jl")
+include("linOp/DiagOp.jl")
 include("linOp/GetIndex.jl")
+include("linOp/Plus.jl")
 
 
 function Base.show(io::IO, f::LinearOp)

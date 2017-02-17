@@ -1,3 +1,5 @@
+import Base: push!
+
 type LBFGS{T <: AbstractArray}
   mem::Int64
   currmem::Int64

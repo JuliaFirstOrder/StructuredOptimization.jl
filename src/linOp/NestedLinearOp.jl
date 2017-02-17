@@ -1,4 +1,5 @@
 immutable NestedLinearOp{D1,D2} <: LinearOp{D1,D2}
+	x::OptVar
 	A::LinearOp
 	B::LinearOp
 	mid::AbstractArray       # memory in the middle of the 2 Op
@@ -9,16 +10,16 @@ size(A::NestedLinearOp) = A.dim
 function NestedLinearOp{D1,Dm}(f::Function,B::LinearOp{D1,Dm}, args...) 
 	mid = Array{Dm}(size(B,2))
 	(f == *) ? A = f(args[1], OptVar(mid)) : A = f(OptVar(mid), args...)
-	return NestedLinearOp(A,B,mid)
+	return NestedLinearOp(A, B, mid)
 end
 #TODO: alternatevely construct using A*B*C...?
 
-NestedLinearOp{D1,Dm,D2}(A::LinearOp{Dm,D2},B::LinearOp{D1,Dm},mid::AbstractArray{Dm}) = 
-NestedLinearOp{D1,D2}(A,B,mid,(size(B,1),size(A,2)))
+NestedLinearOp{D1,Dm,D2}(A::LinearOp{Dm,D2}, B::LinearOp{D1,Dm}, mid::AbstractArray{Dm}) = 
+NestedLinearOp{D1,D2}(B.x, A, B, mid, (size(B,1),size(A,2)))
 
 function NestedLinearOp{D1,Dm,D2}(A::LinearOp{Dm,D2},B::LinearOp{D1,Dm})  
 	mid = Array{Dm}(size(B,2))
-	return NestedLinearOp{D1,D2}(A,B,mid,(size(B,1),size(A,2)))	
+	return NestedLinearOp{D1,D2}(B.x, A, B, mid, (size(B,1),size(A,2)))	
 end
 
 
