@@ -28,6 +28,7 @@ function *{D1,D2}(A::LinearOp{D1,D2},b::AbstractArray)
 end
 
 
+include("linOp/utils.jl")
 include("linOp/FullOp.jl")
 include("linOp/Reshape.jl")
 include("linOp/NestedLinearOp.jl")
@@ -36,7 +37,9 @@ include("linOp/DCT.jl")
 include("linOp/Eye.jl")
 include("linOp/DiagOp.jl")
 include("linOp/GetIndex.jl")
+include("linOp/NegLinearOp.jl")
 include("linOp/Plus.jl")
+include("linOp/LBFGS.jl")
 
 
 function Base.show(io::IO, f::LinearOp)

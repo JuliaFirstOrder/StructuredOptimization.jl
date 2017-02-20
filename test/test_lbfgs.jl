@@ -33,13 +33,16 @@ dirs_ref = [
 ]
 
 dirs = zeros(10, 5) # matrix of directions (to be filled in)
+dir  = zeros(10) # matrix of directions (to be filled in)
 
 mem = 3;
 # col = 0; # last column of Sk, Yk that was filled in
 # currmem = 0;
 # H0 = 1.0
+x = OptVar(zeros(10))
 
-lbfgs = RegLS.LBFGS(mem,zeros(10))
+A = lbfgs(x,mem)
+show(A)
 x_old = 0;
 grad_old = 0;
 
@@ -47,12 +50,12 @@ for i = 1:5
     x = xs[:,i]
     grad = Q*x + q
     if i > 1
-	    @time RegLS.push!(lbfgs, x, x_old, grad, grad_old)
+	    @time update!(A, x, x_old, grad, grad_old)
+			A_mul_B!(dir,A,grad)
     else
-	    @time RegLS.push!(lbfgs, grad)
+	    copy!(dir, -grad)
     end
-    dir = lbfgs.d
-    dirs[:, i] = dir
+		dirs[:, i] = copy(dir)
     x_old = x;
     grad_old = grad;
 end

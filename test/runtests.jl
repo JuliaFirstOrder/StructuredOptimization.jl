@@ -8,8 +8,8 @@ using Ipopt
 srand(0)
 
 include("test_linOp.jl")
-#include("test_lbfgs.jl")
-#include("test_lbfgs_larger.jl")
+include("test_lbfgs.jl")
+include("test_lbfgs_larger.jl")
 #include("test_lasso_random.jl")
 #include("test_lasso_complex.jl")
 #include("test_lasso_multidim.jl")

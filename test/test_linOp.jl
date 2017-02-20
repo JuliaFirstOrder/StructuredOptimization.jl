@@ -130,72 +130,68 @@ for i in eachindex(stuff)
 			A = Op(A, params...)
 		end
 	end
-	println(); show(A); println()
-
-	println("forward")
-	y = A*x          #verify linear operator works
-	@time y = A*x
-
-	y2 = 0*copy(y)
-	println("forward preallocated")
-	A_mul_B!(y2,A,x) #verify in-place linear operator works
-	@time A_mul_B!(y2,A,x)
-	@test vecnorm(y-y2) < 1e-8 #verify equivalence
-
-	println("adjoint")
-	At = A'
-	x = At*y          #verify adjoint operator works
-	@time x = At*y
-
-	println("adjoint preallocated")
-	x2 = 0*copy(x)
-	A_mul_B!(x2,At,y) #verify in-place linear operator works
-	@time A_mul_B!(x2,At,y)
-
-	@test vecnorm(x-x2) < 1e-8 #verify equivalence
-
-	X,Y = deepcopy(stuff[i]["args"])
-	@test vecnorm( vecdot(A*X,Y) - vecdot(X,A'*Y)) <1e-8  #verify operator and its ajoint
+	test1,test2 = RegLS.test_FwAdj(A, x, y)
+	@test test1 < 1e-8
+	@test test2 < 1e-8
+	test3 = RegLS.test_Op(A, x, y)
+	@test test3 < 1e-8
 
 end
 
 
-# try out stuff
+## test sum of linear operators
+
+x1,x2 = randn(3), randn(3)
+X1,X2 = OptVar(x1), OptVar(x2)
+y = randn(3)
+x = [x1,x2]
+
+A = X1+X2
+
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
+
+x1,x2 = randn(3,3), randn(3,3)
+X1,X2 = OptVar(x1), OptVar(x2)
+y = randn(3,3)
+x = [x1,x2]
+
+A = X1-dct(X2)
+
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
+
+x1,x2 = randn(9), randn(3,3)
+X1,X2 = OptVar(x1), OptVar(x2)
+y = randn(3,3)
+x = [x1,x2]
+
+A = reshape(X1,3,3)-dct(X2)
+
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
+
 
 x1,x2,x3 = randn(3),randn(3),randn(3)
 X1,X2,X3 = OptVar(x1), OptVar(x2), OptVar(x3)
 y = randn(3)
 x = [x1,x2,x3]
 
-A = dct(X1)+eye(X1)+dct(X2)+eye(X1)+eye(X3)
-show(A)
-show(length(A.A))
+A = dct(X1)-X1+dct(X2)+eye(X1)+X3
 
-y = A*x          #verify linear operator works
-println("forward")
-@time y = A*x
-
-y2 = 0*copy(y)
-A_mul_B!(y2,A,x) #verify in-place linear operator works
-println("forward preallocated")
-@time A_mul_B!(y2,A,x)
-@test vecnorm(y-y2) < 1e-8 #verify equivalence
-
-At = A'
-x = At*y          #verify adjoint operator works
-println("adjoint")
-@time x = At*y
-
-x2 = 0*copy(x)
-A_mul_B!(x2,At,y) #verify in-place linear operator works
-println("adjoint preallocated")
-@time A_mul_B!(x2,At,y)
-
-@test vecnorm(x-x2) < 1e-8 #verify equivalence
-
-x1,x2,x3 = randn(3),randn(3),randn(3)
-X,Y = [x1,x2,x3],randn(3)
-
-@test norm( (RegLS.deepvecdot(A*X,Y)) - (RegLS.deepvecdot(X,At*Y))) <1e-8  #verify operator and its ajoint
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
 
 
