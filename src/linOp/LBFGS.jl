@@ -42,7 +42,7 @@ function update!{D1,D2}(A::LBFGS{D1,D2}, x::Array, x_prev::Array, gradx::Array, 
 
 	A.s .= (-).(x, x_prev)
 	A.y .= (-).(gradx, gradx_prev)
-	ys = real(deepvecdot(A.s,A.y))
+	ys = real(vecdot(A.s,A.y))
 
 	if ys > 0
 		A.curridx += 1
@@ -50,10 +50,10 @@ function update!{D1,D2}(A::LBFGS{D1,D2}, x::Array, x_prev::Array, gradx::Array, 
 		A.currmem += 1
 		if A.currmem > A.mem A.currmem = A.mem end
 
-		deepcopy!(A.s_m[A.curridx], A.s)
-		deepcopy!(A.y_m[A.curridx], A.y)
+		copy!(A.s_m[A.curridx], A.s)
+		copy!(A.y_m[A.curridx], A.y)
 		A.ys_m[A.curridx] = ys
-		A.H = ys/real(deepvecdot(A.y,A.y))
+		A.H = ys/real(vecdot(A.y,A.y))
 	end
 
 end
@@ -73,7 +73,7 @@ function A_mul_B!(d::AbstractArray, A::LBFGS, gradx::AbstractArray)
 	d .= (-).(gradx)
 	idx = A.curridx
 	for i=1:A.currmem
-		A.alphas[idx] = real(deepvecdot(A.s_m[idx], d))/A.ys_m[idx]
+		A.alphas[idx] = real(vecdot(A.s_m[idx], d))/A.ys_m[idx]
 		d .= (-).(d, (*).(A.alphas[idx], A.y_m[idx]))
 		idx -= 1
 		if idx == 0 idx = A.mem end
@@ -82,7 +82,7 @@ function A_mul_B!(d::AbstractArray, A::LBFGS, gradx::AbstractArray)
 	for i=1:A.currmem
 		idx += 1
 		if idx > A.mem idx = 1 end
-		beta = real(deepvecdot(A.y_m[idx], d))/A.ys_m[idx]
+		beta = real(vecdot(A.y_m[idx], d))/A.ys_m[idx]
 		d .= (+).(d, (*).((A.alphas[idx]-beta), A.s_m[idx]))
 	end
 end

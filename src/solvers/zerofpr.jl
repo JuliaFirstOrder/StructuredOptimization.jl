@@ -164,7 +164,7 @@ function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::Proximabl
 
 		# compute direction according to L-BFGS
 		if slv.it == 1
-			copy!(d,-rbar)
+			deepcopy!(d,-rbar)
 		else
 	    update!(LBFGS, xbar, xbar_prev, rbar, rbar_prev)
 			A_mul_B!(d,LBFGS, rbar)
