@@ -30,12 +30,16 @@ Bkg = zeros(Float64,N,3*n*m)
 L = X-> reshape(X[1],N,3*n*m)+X[2]
 Ladj = Y-> [reshape(Y,N*n*m,3),Y]
 
-#XX =[randn(size(Frg)),randn(size(Bkg))] 
-#norm(vecdot(L(XX),F)-vecdot(XX,Ladj(F))) #verify adjoint operator
+X = OptVar(zeros(Float64,N*n*m,3))
+Y = OptVar(zeros(Float64,N,3*n*m))
+A = reshape(X,N,3*n*m)+Y
+
+XX =[randn(size(Frg)),randn(size(Bkg))] 
+vecnorm(A*XX-L(XX)) #verify adjoint operator
 
 g = SeparableSum([NormL21(0.1,2), IndBallRank(1)])
 
-@time X,slv  = solve(L,Ladj, F, g, [Frg,Bkg], FPG(verbose = 1, tol = 1e-3, 
+@time X,slv  = solve(A, F, g, [Frg,Bkg], ZeroFPR(verbose = 1, tol = 1e-3, 
 																									linesearch = false, gamma = 0.5))
 show(slv)
 
@@ -55,12 +59,12 @@ Frgim = [ RGB(Frgf[i,ii,1],Frgf[i,ii,2],Frgf[i,ii,3]) for i = 1:n,ii =1:m]
 imshow(img)
 imshow(Frgim)
 imshow(Bkgim)
-
-
-
-
-
-
-
-
-
+#
+#
+#
+#
+#
+#
+#
+#
+#
