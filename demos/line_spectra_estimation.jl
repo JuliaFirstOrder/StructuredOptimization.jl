@@ -33,6 +33,9 @@ Lfft  = plan_fft(ones(s*Nt))
 L =    X-> (Lifft*X)[1:Nt]*sqrt(s*Nt)              #linear dft operator
 Ladj = x-> Lfft*([x;zeros((s-1)*length(x))])/sqrt(s*Nt) #adjoint
 
+x = OptVar(randn(s*Nt)+im*randn(s*Nt))
+A = ifft(x)[1:Nt] 
+
 XX = randn(s*Nt)+im*randn(s*Nt)
 YY = randn(Nt) 
 
@@ -41,9 +44,9 @@ norm(vecdot(L(XX),YY)-vecdot(XX,Ladj(YY))) #verify adjoint operator
 lambda_max = norm(Ladj(y), Inf)
 
 X0 = zeros(Complex{Float64},s*Nt) #initial guess 
-@time X,  = solve(L,Ladj, y, NormL1(lambda_max*0.03), X0, ZeroFPR(tol=1e-5,verbose = 1))
+@time X,  = solve(A, y, NormL1(lambda_max*0.03), X0, ZeroFPR(tol=1e-5,verbose = 1))
 Xnnz = countnz(abs(X).>=0.1*maximum(abs(X)))               #count non zero values with threshold
-@time XL0,  = solve(L,Ladj, y, IndBallL0(Xnnz), X, ZeroFPR(tol = 1e-5)) #solve with IndBallL0
+@time XL0,  = solve(A, y, IndBallL0(Xnnz), X, ZeroFPR(tol = 1e-5)) #solve with IndBallL0
 
 using PyPlot
 figure()
