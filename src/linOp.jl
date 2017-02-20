@@ -12,6 +12,13 @@ import Base: *,
 immutable OptVar{T<:Union{Real,Complex}}
 	x::AbstractArray{T}
 end
+function OptVar{T <:AbstractArray}(xyz::Array{T,1})
+	x = Array{OptVar,1}(length(xyz))
+	for i in eachindex(xyz)
+		x[i] = OptVar(xyz[i])
+	end
+	return x
+end
 size(x::OptVar) = size(x.x)
 size(A::LinearOp, i::Int64) = size(A)[i]
 ndims(A::LinearOp) = (length(size(A,1)),length(size(A,2)))
@@ -54,3 +61,5 @@ fun_dom{D1<:Complex, D2<:Real   }(A::LinearOp{D1,D2}) = "ℂ^$(size(A,1)) →  �
 fun_dom{D1<:Complex, D2<:Complex}(A::LinearOp{D1,D2}) = "ℂ^$(size(A,1)) →  ℂ^$(size(A,2))"
 fun_dom{D1<:Real,    D2<:Complex}(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℂ^$(size(A,2))"
 fun_dom{D1<:Real,    D2<:Real   }(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℝ^$(size(A,2))"
+
+

@@ -67,13 +67,14 @@ FPG(; tol::Float64 = 1e-8,
       gamma::Float64 = Inf) =
 	PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
-function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x::AbstractArray, slv::PG)
+function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::ProximableFunction, x::AbstractArray, slv::PG)
 
 	tic()
 
+	At = A'
 	# compute least squares residual and f(x)
-	resx = L(x) - b
-	gradx = Ladj(resx)
+	resx = A*x - b
+	gradx = At*resx
 	slv.cnt_matvec += 2
 	fx = 0.5*deepvecnorm(resx)^2
 	fz = fx
@@ -82,8 +83,8 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 	normfpr0 = Inf
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps  = L(x+sqrt(eps())) - b
-		gradx_eps = Ladj(resx_eps)
+		resx_eps  = A*(x+sqrt(eps())) - b
+		gradx_eps = At*resx_eps
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = 1/Lf
@@ -111,7 +112,8 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 			slv.cnt_prox += 1
 			fpr = y-x
 			slv.normfpr = deepvecnorm(fpr)
-			resx = L(x) - b
+			A_mul_B!(resx, A, x)
+			resx .-= b
 			slv.cnt_matvec += 1
 			fz = 0.5*deepvecnorm(resx)^2
 			if slv.linesearch == false break end
@@ -138,7 +140,7 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 
 		# compute gradient and f(y)
 		fy = 0.5*deepvecnorm(resy)^2
-		grady = Ladj(resy)
+		A_mul_B!(grady, At, resy)
 		slv.cnt_matvec += 1
 
 		# update iterates

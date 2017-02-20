@@ -19,8 +19,8 @@ fun_name(A::LBFGS)  = "LBFGS Operator"
 function lbfgs{D1}(x::OptVar{D1}, mem::Int64)
 	ys_m = zeros(Float64,mem)
 	alphas = zeros(Float64,mem)
-	s_m = Array{Array{D1,1},1}(mem)
-  y_m = Array{Array{D1,1},1}(mem)
+	s_m = Array{Array{D1},1}(mem)
+  y_m = Array{Array{D1},1}(mem)
 	for i in eachindex(s_m)
 		s_m[i] = similar(x.x)
 		y_m[i] = similar(x.x)
@@ -28,6 +28,14 @@ function lbfgs{D1}(x::OptVar{D1}, mem::Int64)
 	s = similar(x.x)
 	y = similar(x.x)
 	return LBFGS{D1,D1}(x, mem, 0, 0, s, y, s_m, y_m, ys_m, alphas, 1.)
+end
+
+function lbfgs(xyz::Array{OptVar,1},mem::Int64)
+	LBFGSs = Array{LBFGS,1}(length(xyz))
+	for i in eachindex(LBFGSs)
+		LBFGSs[i] = lbfgs(xyz[i],mem)
+	end
+	return LBFGSs
 end
 
 function update!{D1,D2}(A::LBFGS{D1,D2}, x::Array, x_prev::Array, gradx::Array, gradx_prev::Array)
@@ -50,6 +58,17 @@ function update!{D1,D2}(A::LBFGS{D1,D2}, x::Array, x_prev::Array, gradx::Array, 
 
 end
 
+function update!{T<:AbstractArray}(As::Array{LBFGS,1}, 
+																	 x::Array{T,1}, 
+																	 x_prev::Array{T,1}, 
+																	 gradx::Array{T,1}, 
+																	 gradx_prev::Array{T,1})
+
+	for i = 1:length(As)
+		update!(As[i],x[i],x_prev[i],gradx[i],gradx_prev[i])
+	end
+end
+
 function A_mul_B!(d::AbstractArray, A::LBFGS, gradx::AbstractArray)
 	d .= (-).(gradx)
 	idx = A.curridx
@@ -65,6 +84,12 @@ function A_mul_B!(d::AbstractArray, A::LBFGS, gradx::AbstractArray)
 		if idx > A.mem idx = 1 end
 		beta = real(deepvecdot(A.y_m[idx], d))/A.ys_m[idx]
 		d .= (+).(d, (*).((A.alphas[idx]-beta), A.s_m[idx]))
+	end
+end
+
+function A_mul_B!{T<:AbstractArray}(d::Array{T,1},As::Array{LBFGS,1},gradx::Array{T,1})
+	for i = 1:length(As)
+		A_mul_B!(d[i],As[i],gradx[i])
 	end
 end
 

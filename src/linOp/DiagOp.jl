@@ -10,8 +10,7 @@ diagop{D1}(x::OptVar{D1}, d::AbstractArray{D1}) = DiagOp{D1,D1}(x,d,(size(x),siz
 diagop{D1,T<:Number}(x::OptVar{D1}, d::T) = DiagOp{D1,D1}(x,d,(size(x),size(x)))
 
 function A_mul_B!{T}(y::AbstractArray{T},A::DiagOp,b::AbstractArray{T})
-	y .= (*).(A.d,y)
-	copy!(y,1,b,1,length(b))
+	y .= (*).(A.d,b)
 end
 
 transpose{D1}(A::DiagOp{D1,D1}) = DiagOp{D1,D1}(A.x,conj(A.d),A.dim)

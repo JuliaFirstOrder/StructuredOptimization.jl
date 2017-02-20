@@ -67,21 +67,23 @@ ZeroFPR(tol,
 	gamma,
         0, Inf, Inf, NaN, linesearch, "ZeroFPR", 0, 0)
 
-function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunction, x::AbstractArray, slv::ZeroFPR)
+function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::ProximableFunction, x::AbstractArray, slv::ZeroFPR)
 
 	tic()
 
-	lbfgs = LBFGS(slv.mem, x)
+	At = A'
+
+	LBFGS = lbfgs(OptVar(x),slv.mem)
 	beta = 0.05
 
-	resx = L(x) - b
+	resx = A*x - b
 	fx = 0.5*deepvecnorm(resx)^2
-	gradx = Ladj(resx)
+	gradx = At*resx
 	slv.cnt_matvec += 2
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps  = L(x+sqrt(eps())) - b
-		gradx_eps = Ladj(resx_eps)
+		resx_eps  = A*(x+sqrt(eps())) - b
+		gradx_eps = At*(resx_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = (1-beta)/Lf
@@ -103,7 +105,12 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 	rbar_prev = deepcopy(x)
 	rbar      = deepcopy(x)
 	xbar_prev = deepcopy(x)
+	d         = deepcopy(x)
+	ATAd      = deepcopy(x)
+	gradstep  = deepcopy(x)
+	gradxbar = deepcopy(x)
 	xbarbar = deepcopy(x)
+	Ad        = deepcopy(resx)
 	resxbar = deepcopy(resx)
 
 	for slv.it = 1:slv.maxit
@@ -112,7 +119,8 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 		if slv.halt(slv, normfpr0, FBEx, FBEprev) break end
 		FBEprev = FBEx
 
-		resxbar .= (-).(L(xbar), b)
+		A_mul_B!(resxbar,A,xbar)
+		resxbar .-= b
 		slv.cnt_matvec += 1
 		fxbar = 0.5*deepvecnorm(resxbar)^2
 
@@ -122,11 +130,14 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 				if fxbar <= uppbnd break end
 				slv.gamma = 0.5*slv.gamma
 				sigma = 2*sigma
-				gxbar = prox!(g, x-slv.gamma*gradx, xbar, slv.gamma)
+				gradstep .= (*).(-slv.gamma, gradx)
+				gradstep .+= x
+				gxbar = prox!(g, gradstep, xbar, slv.gamma)
 				slv.cnt_prox += 1
 				r .= (-).(x, xbar)
 				slv.normfpr = deepvecnorm(r)
-				resxbar .= (-).(L(xbar), b)
+				A_mul_B!(resxbar,A,xbar)
+				resxbar .-= b
 				slv.cnt_matvec += 1
 				fxbar = 0.5*deepvecnorm(resxbar)^2
 				uppbnd = fx - real(deepvecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
@@ -143,17 +154,20 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 		print_status(slv)
 
 		# compute rbar
-		gradxbar = Ladj(resxbar)
+		A_mul_B!(gradxbar, At, resxbar)
 		slv.cnt_matvec += 1
-		prox!(g, xbar - slv.gamma*gradxbar, xbarbar, slv.gamma)
+		gradstep .= (*).(-slv.gamma, gradxbar)
+		gradstep .+= xbar
+		prox!(g, gradstep, xbarbar, slv.gamma)
 		slv.cnt_prox += 1
 		rbar .=(-).(xbar, xbarbar)
 
 		# compute direction according to L-BFGS
 		if slv.it == 1
-			push!(lbfgs, rbar)
+			copy!(d,-rbar)
 		else
-			push!(lbfgs, xbar, xbar_prev, rbar, rbar_prev)
+	    update!(LBFGS, xbar, xbar_prev, rbar, rbar_prev)
+			A_mul_B!(d,LBFGS, rbar)
 		end
 
 		# store xbar and rbar for later use
@@ -163,15 +177,17 @@ function solve!(L::Function, Ladj::Function, b::AbstractArray, g::ProximableFunc
 		# line search on tau
 		level = FBEx - sigma*slv.normfpr^2
 		tau = 1.0
-		Ad = L(lbfgs.d)
-		ATAd = Ladj(Ad)
+		A_mul_B!(Ad,   A,  d)
+		A_mul_B!(ATAd,At, Ad)
 		slv.cnt_matvec += 2
 		for j = 1:32
-			x .= (+).(xbar_prev, (*).(tau,lbfgs.d))
+			x .= (+).(xbar_prev, (*).(tau,d))
 			resx .= (+).(resxbar, (*).(tau,Ad))
 			fx = 0.5*deepvecnorm(resx)^2
 			gradx .= (+).(gradxbar, (*).(tau,ATAd))
-			gxbar = prox!(g, x - slv.gamma*gradx, xbar, slv.gamma)
+			gradstep .= (*).(-slv.gamma, gradx)
+			gradstep .+= x
+			gxbar = prox!(g, gradstep, xbar, slv.gamma)
 			slv.cnt_prox += 1
 			r .= (-).(x, xbar)
 			slv.normfpr = deepvecnorm(r)
