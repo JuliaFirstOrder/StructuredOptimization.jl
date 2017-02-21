@@ -12,13 +12,7 @@ import Base: *,
 immutable OptVar{T<:Union{Real,Complex}}
 	x::AbstractArray{T}
 end
-function OptVar{T <:AbstractArray}(xyz::Array{T,1})
-	x = Array{OptVar,1}(length(xyz))
-	for i in eachindex(xyz)
-		x[i] = OptVar(xyz[i])
-	end
-	return x
-end
+
 size(x::OptVar) = size(x.x)
 size(A::LinearOp, i::Int64) = size(A)[i]
 ndims(A::LinearOp) = (length(size(A,1)),length(size(A,2)))

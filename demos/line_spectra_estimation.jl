@@ -33,20 +33,16 @@ Lfft  = plan_fft(ones(s*Nt))
 L =    X-> (Lifft*X)[1:Nt]*sqrt(s*Nt)              #linear dft operator
 Ladj = x-> Lfft*([x;zeros((s-1)*length(x))])/sqrt(s*Nt) #adjoint
 
-x = OptVar(randn(s*Nt)+im*randn(s*Nt))
+x = OptVar(zeros(Complex{Float64},s*Nt))
+
 A = ifft(x)[1:Nt] 
-
-XX = randn(s*Nt)+im*randn(s*Nt)
-YY = randn(Nt) 
-
-norm(vecdot(L(XX),YY)-vecdot(XX,Ladj(YY))) #verify adjoint operator
 
 lambda_max = norm(Ladj(y), Inf)
 
 X0 = zeros(Complex{Float64},s*Nt) #initial guess 
 @time X,  = solve(A, y, NormL1(lambda_max*0.03), X0, ZeroFPR(tol=1e-5,verbose = 1))
-Xnnz = countnz(abs(X).>=0.1*maximum(abs(X)))               #count non zero values with threshold
-@time XL0,  = solve(A, y, IndBallL0(Xnnz), X, ZeroFPR(tol = 1e-5)) #solve with IndBallL0
+#Xnnz = countnz(abs(X).>=0.1*maximum(abs(X)))               #count non zero values with threshold
+#@time XL0,  = solve(A, y, IndBallL0(Xnnz), X, ZeroFPR(tol = 1e-5)) #solve with IndBallL0
 
 using PyPlot
 figure()
@@ -60,7 +56,7 @@ plot(fzp,abs(Yzp./Nt), label = "dft zero pad.")
 plot(f,abs(Y./Nt), label = "dft")
 plot(fk,abs(ak)/2, "rd", label = "true amp.")
 plot(f_s,abs(X)/sqrt(s*Nt), "k*", label = "LASSO")
-plot(f_s,abs(XL0)/sqrt(s*Nt), "bo", label = "IndBallL0")
+#plot(f_s,abs(XL0)/sqrt(s*Nt), "bo", label = "IndBallL0")
 xlim([0;2000])
 legend()
 

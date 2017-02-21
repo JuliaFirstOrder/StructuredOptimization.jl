@@ -20,8 +20,11 @@ g = SeparableSum(prox_col)
 
 x0 = [randn(size(x)),randn(size(X))]
 b = A*[x,X]
+x_pg, ~ = solve(A, b, g, x0, PG(verbose = verb))
 @time x_pg, ~ = solve(A, b, g, x0, PG(verbose = verb))
+x_fpg, ~ = solve(A, b, g, x0, FPG(verbose = verb))
 @time x_fpg, ~ = solve(A, b, g, x0, FPG(verbose = verb))
+x_zerofpr, ~ = solve(A, b, g, x0, ZeroFPR(verbose = verb))
 @time x_zerofpr, ~ = solve(A, b, g, x0, ZeroFPR(verbose = verb))
 
 @test vecnorm(x_pg-x_fpg)/(1+norm(x_fpg)) < 1e-5

@@ -11,24 +11,43 @@ N = 15 # number of steps
 
 mem = 5;
 
-x = OptVar(zeros(n))
+x = zeros(n)
 A = lbfgs(x,mem)
 show(A)
+nh = round(Int64,n/2)
+x2 = [zeros(nh),zeros(nh)]
+
+A2 = lbfgs(x2,mem)
+#show(A2)
 
 x_old = 0;
+x_old2 = 0;
 grad_old = 0;
+grad_old2 = 0;
 dir  = zeros(n) # matrix of directions (to be filled in)
+dir2 = [zeros(round(Int64,n/2)),zeros(round(Int64,n/2))] # matrix of directions (to be filled in)
 
 for i = 1:N
     x = randn(n)
+		x2 = [x[1:nh],x[nh+1:end]]
     grad = Q*x + q
+		grad2 = [grad[1:nh],grad[nh+1:end]]
     if i > 1
-	    @time update!(A, x, x_old, grad, grad_old)
+	    @time update!(A,   x, x_old,   grad,  grad_old)
+	    update!(A2, x2, x_old2, grad2, grad_old2)
 			A_mul_B!(dir,A,grad)
+			A_mul_B!(dir2,A2,grad2)
     else
 	    copy!(dir, -grad)
+	    dir2 = deepcopy(-grad2)
     end
     @assert vecdot(dir, grad) < 0
-    x_old = x
-    grad_old = grad
+    x_old  = x
+		x_old2 = deepcopy(x2)
+    grad_old  = grad
+		grad_old2 = deepcopy(grad2)
 end
+
+@test norm(dir[1:nh]-dir2[1])<1e-8
+@test norm(dir[nh+1:end]-dir2[2])<1e-8
+

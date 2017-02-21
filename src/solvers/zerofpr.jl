@@ -73,7 +73,7 @@ function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::Proximabl
 
 	At = A'
 
-	LBFGS = lbfgs(OptVar(x),slv.mem)
+	LBFGS = lbfgs(x,slv.mem)
 	beta = 0.05
 
 	resx = A*x - b
