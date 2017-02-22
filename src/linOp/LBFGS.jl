@@ -19,14 +19,15 @@ fun_name(A::LBFGS)  = "LBFGS Operator"
 lbfgs(x::AbstractArray, args...) = lbfgs(OptVar(x), args...)
 
 function lbfgs{D1}(x::OptVar{D1}, 
-									 mem::Int64, 
-									 currmem::Array{Int64,1},
-									 curridx::Array{Int64,1},
-									 ys_m::Array, 
-									 alphas::Array, 
-									 H::Array)
+		   mem::Int64,
+		   currmem::Array{Int64,1},
+		   curridx::Array{Int64,1},
+		   ys_m::Array, 
+		   alphas::Array, 
+		   H::Array)
+
 	s_m = Array{Array{D1},1}(mem)
-  y_m = Array{Array{D1},1}(mem)
+	y_m = Array{Array{D1},1}(mem)
 	for i in eachindex(s_m)
 		s_m[i] = similar(x.x)
 		y_m[i] = similar(x.x)
@@ -48,12 +49,11 @@ function lbfgs{T<:AbstractArray}(x::Array{T,1},mem::Int64)
 	LBFGS_col[1] = lbfgs(x[1],mem)
 	for i = 2:length(x)
 		LBFGS_col[i] = lbfgs(x[i],mem,
-											   LBFGS_col[1].currmem,
-												 LBFGS_col[1].curridx,
-												 LBFGS_col[1].ys_m,
-												 LBFGS_col[1].alphas,
-												 LBFGS_col[1].H
-												 ) 
+		                     LBFGS_col[1].currmem,
+				     LBFGS_col[1].curridx,
+				     LBFGS_col[1].ys_m,
+				     LBFGS_col[1].alphas,
+				     LBFGS_col[1].H) 
 	end
 	return LBFGS_col
 end
@@ -79,10 +79,10 @@ function update!{D1,D2}(A::LBFGS{D1,D2}, x::Array, x_prev::Array, gradx::Array, 
 end
 
 function update!{T<:AbstractArray}(A::Array{LBFGS,1}, 
-																	 x::Array{T,1}, 
-																	 x_prev::Array{T,1}, 
-																	 gradx::Array{T,1}, 
-																	 gradx_prev::Array{T,1})
+				   x::Array{T,1}, 
+				   x_prev::Array{T,1}, 
+				   gradx::Array{T,1}, 
+				   gradx_prev::Array{T,1})
 
 	ys = 0.
 	for i in eachindex(A)

@@ -43,7 +43,7 @@ end
 function A_mul_B!{D1<:Complex,D2<:Real}(y::AbstractArray,A::DFT{D1,D2},b::AbstractArray{D1})
 	y2 = complex(y) 
 	A_mul_B!(y2,A.A,b)
-	y .= real( (/).(y2,sqrt(length(b))) ) 
+	y .= real.( (/).(y2,sqrt(length(b))) ) 
 end
 
 function A_mul_B!(y::AbstractArray,A::IDFT,b::AbstractArray)
@@ -59,7 +59,7 @@ end
 function A_mul_B!{D1<:Complex,D2<:Real}(y::AbstractArray,A::IDFT{D1,D2},b::AbstractArray{D1})
 	y2 = complex(y) 
 	A_mul_B!(y2,A.A,b)
-	y .= real( (*).(y2,sqrt(length(b))) ) 
+	y .= real.( (*).(y2,sqrt(length(b))) ) 
 end
 
 transpose{D1,D2}( A::DFT{D1,D2})  = IDFT{D2,D1}(A.x, A.Ainv, A.A, A.dim )

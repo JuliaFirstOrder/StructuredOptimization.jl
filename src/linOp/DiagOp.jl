@@ -2,20 +2,27 @@
 immutable DiagOp{D1,D2} <: LinearOp{D1,D2}
 	x::OptVar
 	d::Union{AbstractArray{D1}, Number}
-	dim::Tuple
 end
-size(A::DiagOp) = A.dim
+size(A::DiagOp) = (size(A.x),size(A.x))
 
-diagop{D1}(x::OptVar{D1}, d::AbstractArray{D1}) = DiagOp{D1,D1}(x,d,(size(x),size(x)))
-diagop{D1,T<:Number}(x::OptVar{D1}, d::T) = DiagOp{D1,D1}(x,d,(size(x),size(x)))
+diagop{D1,D2}(x::OptVar{D1}, d::AbstractArray{D2}) = DiagOp{D1,D2}(x,d)
+diagop{D1,T<:Number}(x::OptVar{D1}, d::T) = DiagOp{D1,D1}(x,d)
+diagop{D1,T<:Complex}(x::OptVar{D1}, d::T) = DiagOp{D1,Complex{Float64}}(x,d)
 
-function A_mul_B!{T}(y::AbstractArray{T},A::DiagOp,b::AbstractArray{T})
+function A_mul_B!(y::AbstractArray,A::DiagOp,b::AbstractArray)
 	y .= (*).(A.d,b)
 end
 
-transpose{D1}(A::DiagOp{D1,D1}) = DiagOp{D1,D1}(A.x,conj(A.d),A.dim)
+function A_mul_B!{D1<:Complex{Float64},D2<:Float64}(y::AbstractArray,A::DiagOp{D1,D2},b::AbstractArray)
+	y .= real.((*).(A.d,b))
+end
+
+transpose{D1,D2}(A::DiagOp{D1,D2}) = DiagOp{D2,D1}(A.x,conj(A.d))
 fun_name(A::DiagOp)  = "Diagonal Operator"
 
 diagop(B::LinearOp, args...) = NestedLinearOp(diagop,B, args...)
+*(d::Union{Float64,Complex{Float64}}, B::LinearOp) = NestedLinearOp(diagop, B, d)
+*{D1,T<:Number}(d::T, x::OptVar{D1})  = DiagOp{D1,D1}(x,d)
+*{D1,T<:Complex}(d::T, x::OptVar{D1}) = DiagOp{D1,Complex{Float64}}(x,d)
 
 export diagop

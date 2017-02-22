@@ -4,10 +4,10 @@ abstract LinearOp{D1<: Union{Real,Complex},D2<: Union{Real,Complex}}
 
 import Base: *,  
              A_mul_B!, 
-						 Ac_mul_B!, 
-						 transpose,
-						 size,
-						 ndims
+	     Ac_mul_B!, 
+	     transpose,
+	     size,
+	     ndims
 
 immutable OptVar{T<:Union{Real,Complex}}
 	x::AbstractArray{T}
@@ -38,7 +38,7 @@ include("linOp/DCT.jl")
 include("linOp/Eye.jl")
 include("linOp/DiagOp.jl")
 include("linOp/GetIndex.jl")
-include("linOp/NegLinearOp.jl")
+include("linOp/Zeros.jl")
 include("linOp/Plus.jl")
 include("linOp/LBFGS.jl")
 
