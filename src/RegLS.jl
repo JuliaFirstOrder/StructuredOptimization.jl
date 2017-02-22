@@ -4,8 +4,9 @@ module RegLS
 
 using ProximalOperators
 
-include("linOp.jl")
-include("OptTerm.jl")
+include("variables.jl")
+include("operators.jl")
+include("functions.jl")
 include("solvers.jl")
 
 end

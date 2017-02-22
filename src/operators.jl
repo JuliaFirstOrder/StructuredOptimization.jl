@@ -3,47 +3,39 @@ abstract LinearOp{D1,D2} <: AffineOp
 #abstract DiagGramOp <: LinearOp
 #abstract DiagonalOp <: DiagGramOp
 
-import Base: *,  
-             A_mul_B!, 
-	     Ac_mul_B!, 
-	     transpose,
-	     size,
-	     ndims
+import Base:
+  *,
+  A_mul_B!,
+  Ac_mul_B!,
+  transpose,
+  size,
+  ndims
 
-immutable OptVar{T<:Union{Real,Complex}}
-	x::AbstractArray{T}
-end
-
-size(x::OptVar) = size(x.x)
 size(A::LinearOp, i::Int64) = size(A)[i]
 ndims(A::LinearOp) = (length(size(A,1)),length(size(A,2)))
 ndims(A::LinearOp, i::Int64) = length(size(A,i))
 
-export OptVar
-
 Ac_mul_B!(y::AbstractArray,A::LinearOp,b::AbstractArray)  = A_mul_B!(y, A',b)
 
-function *{D1,D2}(A::LinearOp{D1,D2},b::AbstractArray) 
+function *{D1,D2}(A::LinearOp{D1,D2},b::AbstractArray)
 	y = Array{D2}(size(A,2))
 	A_mul_B!(y,A,b)
 	return y
 end
 
-
-include("linOp/utils.jl")
-include("linOp/Affine.jl")
-include("linOp/FullOp.jl")
-include("linOp/Reshape.jl")
-include("linOp/NestedLinearOp.jl")
-include("linOp/DFT.jl")
-include("linOp/DCT.jl")
-include("linOp/Eye.jl")
-include("linOp/DiagOp.jl")
-include("linOp/GetIndex.jl")
-include("linOp/Zeros.jl")
-include("linOp/Plus.jl")
-include("linOp/LBFGS.jl")
-
+include("operators/utils.jl")
+include("operators/Affine.jl")
+include("operators/FullOp.jl")
+include("operators/Reshape.jl")
+include("operators/NestedLinearOp.jl")
+include("operators/DFT.jl")
+include("operators/DCT.jl")
+include("operators/Eye.jl")
+include("operators/DiagOp.jl")
+include("operators/GetIndex.jl")
+include("operators/Zeros.jl")
+include("operators/Plus.jl")
+include("operators/LBFGS.jl")
 
 function Base.show{Op <: AffineOp }(io::IO, f::Op)
   println(io, "description : ", fun_name(f))
@@ -57,5 +49,3 @@ fun_dom{D1<:Complex, D2<:Real   }(A::LinearOp{D1,D2}) = "ℂ^$(size(A,1)) →  �
 fun_dom{D1<:Complex, D2<:Complex}(A::LinearOp{D1,D2}) = "ℂ^$(size(A,1)) →  ℂ^$(size(A,2))"
 fun_dom{D1<:Real,    D2<:Complex}(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℂ^$(size(A,2))"
 fun_dom{D1<:Real,    D2<:Real   }(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℝ^$(size(A,2))"
-
-

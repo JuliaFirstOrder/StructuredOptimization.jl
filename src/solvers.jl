@@ -1,9 +1,10 @@
 abstract Solver
 abstract ForwardBackwardSolver <: Solver
 
-export PG,
-       FPG,
-       ZeroFPR
+export
+  PG,
+  FPG,
+  ZeroFPR
 
 include("solvers/pg.jl")
 include("solvers/zerofpr.jl")
