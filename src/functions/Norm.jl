@@ -5,15 +5,11 @@ type NormL1{T <: AffineOp} <: NonSmoothTerm
 	lambda::Number
 end
 
-function norm(x::OptVar, p::Int64)
-	if p == 1
-		return NormL1(eye(x),1)
-	end
-end
+norm(x::OptVar, args...) = norm(eye(x), args...)
 
 function norm{T <: AffineOp}(A::T, p::Int64)
 	if p == 1
-		return NormL1(A,1)
+		return NormL1(A, 1)
 	end
 end
 
