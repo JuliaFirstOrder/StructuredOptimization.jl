@@ -1,4 +1,5 @@
-abstract LinearOp{D1<: Union{Real,Complex},D2<: Union{Real,Complex}}
+abstract AffineOp
+abstract LinearOp{D1,D2} <: AffineOp
 #abstract DiagGramOp <: LinearOp
 #abstract DiagonalOp <: DiagGramOp
 
@@ -30,6 +31,7 @@ end
 
 
 include("linOp/utils.jl")
+include("linOp/Affine.jl")
 include("linOp/FullOp.jl")
 include("linOp/Reshape.jl")
 include("linOp/NestedLinearOp.jl")
@@ -43,7 +45,7 @@ include("linOp/Plus.jl")
 include("linOp/LBFGS.jl")
 
 
-function Base.show(io::IO, f::LinearOp)
+function Base.show{Op <: AffineOp }(io::IO, f::Op)
   println(io, "description : ", fun_name(f))
   println(io, "domain      : ", fun_dom(f))
 end

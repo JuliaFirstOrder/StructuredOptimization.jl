@@ -179,4 +179,64 @@ test1,test2 = RegLS.test_FwAdj(A, x, y)
 test3 = RegLS.test_Op(A, x, y)
 @test test3 < 1e-8
 
+#test Affine
+
+x1 = randn(3)
+X1 = OptVar(x1)
+y = fft(randn(3))
+x = x1
+b = fft(randn(3))
+
+A = fft(X1)-b
+
+show(A)
+
+res = A*x
+fx = norm(res)^2
+res0 = fft(x1)./sqrt(3)-b
+fx0 = norm(res0)^2
+
+@test norm(fx-fx0)<1e-8
+
+gradx0 = ifft(res0)*sqrt(3)
+gradx  = A'*res0
+
+@test norm(gradx-gradx0)<1e-8
+
+x1,x2 = randn(3,3), randn(3,3)
+X1,X2 = OptVar(x1), OptVar(x2)
+y = randn(3,3)
+b = randn(3,3)
+x = [x1,x2]
+
+A = 3.4*X1-2.0*dct(X2)+b
+
+show(A)
+
+resx = A*x
+fx = vecnorm(resx)^2
+resx0 = 3.4*x1-2.0*dct(x2)+b
+fx0 = vecnorm(resx0)^2
+
+@test norm(fx-fx0)<1e-8
+
+gradx  = A'*resx
+gradx0 = [3.4*resx0, -2.0*idct(resx0)]
+
+@test norm(gradx-gradx0)<1e-8
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
