@@ -67,13 +67,14 @@ FPG(; tol::Float64 = 1e-8,
       gamma::Float64 = Inf) =
 	PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
-function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::ProximableFunction, x::AbstractArray, slv::PG)
+function solve!{T<:AffineOp}(A::T, g::ProximableFunction, slv::PG)
 
 	tic()
 
 	At = A'
+	x = optArray(A)
 	# compute least squares residual and f(x)
-	resx = A*x - b
+	resx = A*x
 	gradx = At*resx
 	slv.cnt_matvec += 2
 	fx = 0.5*deepvecnorm(resx)^2
@@ -83,7 +84,7 @@ function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::Proximabl
 	normfpr0 = Inf
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps  = A*(x+sqrt(eps())) - b
+		resx_eps  = A*(x+sqrt(eps()))
 		gradx_eps = At*resx_eps
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
@@ -113,7 +114,6 @@ function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::Proximabl
 			fpr = y-x
 			slv.normfpr = deepvecnorm(fpr)
 			A_mul_B!(resx, A, x)
-			resx .-= b
 			slv.cnt_matvec += 1
 			fz = 0.5*deepvecnorm(resx)^2
 			if slv.linesearch == false break end

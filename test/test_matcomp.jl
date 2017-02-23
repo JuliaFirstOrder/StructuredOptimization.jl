@@ -9,7 +9,7 @@ B = M.*B_orig
 L = Ladj = X -> M.*X
 g = IndBallRank(r)
 x0 = randn(m, n)
-A = diagop(OptVar(x0),M)
+A = diagop(OptVar(x0),M)-B
 verb = 0
 maxit = 10000
 tol = 1e-6
@@ -18,8 +18,10 @@ tol = 1e-6
 
 @printf("Solving matrix completion (m = %d, n = %d)\n", m, n)
 
-@time x_ista, slv = solve(A, B, g, x0, PG(verbose = verb, tol = tol))
+@time x_ista, slv = solve(A, g, PG(verbose = verb, tol = tol))
 @test slv.it < slv.maxit
+show(slv)
 
-@time x_zerofpr, slv = solve(A, B, g, x0, ZeroFPR(verbose = verb, tol = tol))
+@time x_zerofpr, slv = solve(A, g, ZeroFPR(verbose = verb, tol = tol))
 @test slv.it < slv.maxit
+show(slv)

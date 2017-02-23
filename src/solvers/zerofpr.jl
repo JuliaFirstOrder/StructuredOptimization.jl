@@ -67,22 +67,23 @@ ZeroFPR(tol,
 	gamma,
         0, Inf, Inf, NaN, linesearch, "ZeroFPR", 0, 0)
 
-function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::ProximableFunction, x::AbstractArray, slv::ZeroFPR)
+function solve!{T <: AffineOp}(A::T, g::ProximableFunction, slv::ZeroFPR)
 
 	tic()
 
+	x = optArray(A)
 	At = A'
 
 	LBFGS = lbfgs(x,slv.mem)
 	beta = 0.05
 
-	resx = A*x - b
+	resx = A*x
 	fx = 0.5*deepvecnorm(resx)^2
 	gradx = At*resx
 	slv.cnt_matvec += 2
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps  = A*(x+sqrt(eps())) - b
+		resx_eps  = A*(x+sqrt(eps()))
 		gradx_eps = At*(resx_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
@@ -120,7 +121,6 @@ function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::Proximabl
 		FBEprev = FBEx
 
 		A_mul_B!(resxbar,A,xbar)
-		resxbar .-= b
 		slv.cnt_matvec += 1
 		fxbar = 0.5*deepvecnorm(resxbar)^2
 
@@ -137,7 +137,6 @@ function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::Proximabl
 				r .= (-).(x, xbar)
 				slv.normfpr = deepvecnorm(r)
 				A_mul_B!(resxbar,A,xbar)
-				resxbar .-= b
 				slv.cnt_matvec += 1
 				fxbar = 0.5*deepvecnorm(resxbar)^2
 				uppbnd = fx - real(deepvecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
@@ -166,7 +165,7 @@ function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::Proximabl
 		if slv.it == 1
 			deepcopy!(d,-rbar)
 		else
-	    update!(LBFGS, xbar, xbar_prev, rbar, rbar_prev)
+			update!(LBFGS, xbar, xbar_prev, rbar, rbar_prev)
 			A_mul_B!(d,LBFGS, rbar)
 		end
 
@@ -177,7 +176,7 @@ function solve!(A::Union{AbstractArray,LinearOp}, b::AbstractArray, g::Proximabl
 		# line search on tau
 		level = FBEx - sigma*slv.normfpr^2
 		tau = 1.0
-		A_mul_B!(Ad,   A,  d)
+		typeof(A) <: LinearOp ? A_mul_B!(Ad, A,  d) : A_mul_B!(Ad, A.A,  d)
 		A_mul_B!(ATAd,At, Ad)
 		slv.cnt_matvec += 2
 		for j = 1:32
