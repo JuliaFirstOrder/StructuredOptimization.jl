@@ -34,6 +34,8 @@ include("operators/Eye.jl")
 include("operators/DiagOp.jl")
 include("operators/GetIndex.jl")
 include("operators/Zeros.jl")
+include("operators/HCAT.jl")
+include("operators/VCAT.jl")
 include("operators/Plus.jl")
 include("operators/LBFGS.jl")
 
