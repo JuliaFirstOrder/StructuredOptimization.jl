@@ -52,8 +52,25 @@ fun_dom{D1<:Complex, D2<:Complex}(A::LinearOp{D1,D2}) = "ℂ^$(size(A,1)) →  �
 fun_dom{D1<:Real,    D2<:Complex}(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℂ^$(size(A,2))"
 fun_dom{D1<:Real,    D2<:Real   }(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℝ^$(size(A,2))"
 
-optArray{T<:AffineOp}(A::T) = typeof(A.x) <: OptVar ? copy(A.x.x) : [copy(A.x[i].x) for i = 1:length(A.x)] 
-optArray!{T<:AffineOp,B <:AbstractArray}(A::T,x::B) = copy!(A.x.x, x)  
+function optArray{T<:AffineOp}(A::T) 
+	if typeof(A.x) <: OptVar 
+		return copy(A.x.x) 
+	else
+		if length(A.x) == 1 
+			return copy(A.x[1].x)
+		else
+			return [copy(A.x[i].x) for i = 1:length(A.x)]
+		end
+	end
+end
+function optArray!{T<:AffineOp,B <:AbstractArray}(A::T,x::B)  
+	if typeof(A.x) <: OptVar 
+		copy!(A.x.x, x)  
+	else
+		length(A.x) != 1 ? error("something went wrong!") : 
+		copy!(A.x[1].x, x)  
+	end
+end
 function optArray!{T<:AffineOp,B <:AbstractArray}(A::T,x::Array{B,1}) 
 	for i in eachindex(A.x)
 		copy!(A.x[i].x, x[i])  

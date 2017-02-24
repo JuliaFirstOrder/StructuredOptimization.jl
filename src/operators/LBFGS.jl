@@ -2,15 +2,15 @@ export lbfgs, update!
 
 immutable LBFGS{D1,D2} <:LinearOp{D1,D2}
 	x::OptVar
-  mem::Int64
+	mem::Int64
 	currmem::Array{Int64,1}
 	curridx::Array{Int64,1}
-  s::AbstractArray
-  y::AbstractArray
-  s_m::Array
-  y_m::Array
-  ys_m::Array{Float64,1}
-  alphas::Array{Float64,1}
+	s::AbstractArray
+	y::AbstractArray
+	s_m::Array
+	y_m::Array
+	ys_m::Array{Float64,1}
+	alphas::Array{Float64,1}
 	H::Array{Float64,1}
 end
 size(A::LBFGS) = (size(A.x),size(A.x))

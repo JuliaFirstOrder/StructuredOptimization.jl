@@ -1,5 +1,6 @@
 println("Testing a problem with multiple variable blocks")
 verb = 0
+#test with HCAT Op
 srand(123)
 n,m = 10,100
 X = zeros(n,m)
@@ -49,7 +50,22 @@ prox_col = [NormL1(10.), IndBox(y_m-2.,y_m+2.)]
 g = SeparableSum(prox_col)
 
 x0 = [zeros(x_star),zeros(y_star)]
-x_z, slv = solve(Op, g, ZeroFPR(tol = 1e-9,verbose = verb))
-@time x_z, slv = solve(Op, g, ZeroFPR(tol = 1e-9,verbose = verb))
 x_fpg, slv = solve(Op, g, FPG(tol = 1e-9,verbose = verb))
 @time x_z, slv = solve(Op, g, FPG(tol = 1e-9,verbose = verb))
+x_z, slv = solve(Op, g, ZeroFPR(tol = 1e-9,verbose = verb))
+@time x_z, slv = solve(Op, g, ZeroFPR(tol = 1e-9,verbose = verb))
+
+n,m = 100,50
+srand(123)
+# test with VCAT Op
+X = OptVar(randn(n,m))
+
+A = dct(X)+X[1:100]-[randn(n,m),randn(100)]
+y = A*randn(n,m)
+
+g = NormL1(0.5)
+
+x_fpg, slv = solve(A, g, FPG(tol = 1e-9,verbose = verb))
+@time x_fpg, slv = solve(A, g, FPG(tol = 1e-9,verbose = verb))
+x_z, slv = solve(A, g, ZeroFPR(tol = 1e-9,verbose = verb))
+@time x_z, slv = solve(A, g, ZeroFPR(tol = 1e-9,verbose = verb))
