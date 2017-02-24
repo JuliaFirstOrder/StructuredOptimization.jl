@@ -1,7 +1,7 @@
 import Base: vcat
 
 type VCAT{D3} <: LinearOp{D3}
-	x::OptVar
+	x::Array{OptVar}
 	A::AbstractArray{LinearOp}
 	mid::AbstractArray
 	sign::Array{Bool,1}
@@ -16,10 +16,12 @@ fun_name(S::VCAT) = "Vertically Concatenated Operators"
 function vcat{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}, sign::Array{Bool} )
 	if size(A,1) != size(B,1) DimensionMismatch("operators must share codomain!") end
 	mid = Array{D3}(size(B,1))
-	VCAT{D3}(A.x, [A,B], mid, sign)
+	VCAT{D3}([A.x], [A,B], mid, sign)
 end
 
 vcat{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3} ) = vcat(A,B,[true; true])
+
+transpose{D3}(A::VCAT{D3}) = HCAT{D3}(A.x, A.A.', A.mid, A.sign)
 
 function *{D2}(A::VCAT{D2},b::AbstractArray) 
 	y = Array{AbstractArray,1}(length(A.A))
@@ -39,13 +41,13 @@ end
 #printing stuff
 function fun_dom{D3<:Real}(A::VCAT{D3}) 
 	str = " ℝ^$(size(A,1)) → "
-	for a in A.A str *= fun_D1(a) end
+	for a in A.A str *= fun_D1(a,2) end
 	return str
 end
 
 function fun_dom{D3<:Complex}(A::VCAT{D3}) 
 	str = " ℂ^$(size(A,1)) → "
-	for a in A.A str *= fun_D1(a) end
+	for a in A.A str *= fun_D1(a,2) end
 	return str
 end
 

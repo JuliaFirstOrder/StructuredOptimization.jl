@@ -9,8 +9,21 @@ immutable SumSameVar{D1,D2} <: LinearOp{D1,D2}
 end
 size(A::SumSameVar) = size(A.A)
 
+function SumSameVar{D1,D2}(x::OptVar,A::LinearOp{D1,D2},B::LinearOp{D1,D2}, sign::Bool) 
+	mid = Array{D2}(size(A,2))
+	return SumSameVar{D1,D2}(A.x,A,B,mid,sign)
+end
+
 fun_name(S::SumSameVar) = ((typeof(S.A) <: SumSameVar) == false ) ? 
 fun_name(S.A)*(S.sign ? " + " : " - ")*fun_name(S.B) : "Sum of Linear Operators"
+
+transpose{D1,D2}(S::SumSameVar{D1,D2}) = SumSameVar(S.x,S.A',S.B',S.sign)
+
+function A_mul_B!(y::AbstractArray,S::SumSameVar,b::AbstractArray) 
+	A_mul_B!(S.mid,S.A,b)
+	A_mul_B!(y    ,S.B,b)
+	S.sign ? y .= (+).(S.mid,y) : y .= (-).(S.mid,y)
+end
 
 +(A::LinearOp, x::OptVar  ) = A+eye(x)
 +(x::OptVar,   A::LinearOp) = eye(x)+A
@@ -22,66 +35,66 @@ fun_name(S.A)*(S.sign ? " + " : " - ")*fun_name(S.B) : "Sum of Linear Operators"
 -(x::OptVar,   y::OptVar  ) = eye(x)-eye(y)
 -{D1,D2}(A::LinearOp{D1,D2}) = Empty{D1,D2}(A.x)-A #trick to accept -A
 
-function +{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}) 
+
+function unsigned_sum{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}, sign::Bool) 
 	if A.x == B.x
-		if size(A) != size(B) DimensionMismatch() end
-		mid = Array{D3}(size(B,2))
-		return SumSameVar{D1,D3}(A.x,A,B,mid,true)
+		if size(A) == size(B) 
+			return SumSameVar(A.x,A,B,sign)
+		else
+			return vcat(A,B,[true; sign])
+		end
 	else
-		hcat(A,B, [true; true])
+		return hcat(A,B, [true; sign])
 	end
 end
 
-function -{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}) 
-	if A.x == B.x
-		if size(A) != size(B) DimensionMismatch() end
-		mid = Array{D3}(size(B,2))
-		return SumSameVar{D1,D3}(A.x,A,B,mid,false)
-	else
-		hcat(A,B, [true; false])
-	end
-end
++{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}) = unsigned_sum(A,B,true ) 
+-{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}) = unsigned_sum(A,B,false)
 
-function +{D1,D3}(A::HCAT{D3},B::LinearOp{D1,D3})
-	if A.isTranspose error("cannot sum to transpose") end
+function unsigned_sum{D1,D3}(A::HCAT{D3},B::LinearOp{D1,D3}, sign::Bool)
+	if size(A,2) != size(B,2) DimensionMismatch("Operators must share codomain") end
 	if any(A.x .== B.x)
 		for i = 1:length(A.A)
 			if A.x[i] == B.x
-				A.A[i] = A.A[i] + B 
+				sign ? A.A[i] = A.A[i] + B : A.A[i] = A.A[i] - B
+				break
 			end
 		end
 	else
 		push!(A.x,B.x)
 		push!(A.A,B)
-		push!(A.sign,true)
+		push!(A.sign,sign)
 	end
 	return A
 end
 
-function -{D1,D3}(A::HCAT{D3},B::LinearOp{D1,D3})
-	if A.isTranspose error("cannot sum to transpose") end
-	if any(A.x .== B.x)
++{D1,D3}(A::HCAT{D3},B::LinearOp{D1,D3}) = unsigned_sum(A,B,true )
+-{D1,D3}(A::HCAT{D3},B::LinearOp{D1,D3}) = unsigned_sum(A,B,false)
+
+
+function unsigned_sum{D1,D3}(A::VCAT{D3},B::LinearOp{D1,D3}, sign::Bool)
+	if size(A,1) != size(B,1) DimensionMismatch("Operators must share domain") end
+	if A.x[1]    != B.x DimensionMismatch("Operators must share variable") end
+	if any([size(Ai,2) == size(B,2) for Ai in A.A ])
 		for i = 1:length(A.A)
-			if A.x[i] == B.x
-				A.A[i] = A.A[i] - B 
+			if size(A.A[i],2) == size(B,2)
+				if A.sign[i] 
+					sign ? A.A[i] = A.A[i] + B : A.A[i] = A.A[i] - B
+				else
+					sign ? A.A[i] = A.A[i] - B : A.A[i] = A.A[i] + B
+				end
+				break
 			end
 		end
 	else
-		push!(A.x,B.x)
 		push!(A.A,B)
-		push!(A.sign,false)
+		push!(A.sign,sign)
 	end
 	return A
 end
 
-transpose{D1,D2}(S::SumSameVar{D1,D2}) = S.sign ? S.A'+ S.B' : S.A'- S.B'
-
-function A_mul_B!(y::AbstractArray,S::SumSameVar,b::AbstractArray) 
-	A_mul_B!(S.mid,S.A,b)
-	A_mul_B!(y    ,S.B,b)
-	S.sign ? y .= (+).(S.mid,y) : y .= (-).(S.mid,y)
-end
-
++{D1,D3}(A::VCAT{D3},B::LinearOp{D1,D3}) = unsigned_sum(A,B,true )
+-{D1,D3}(A::VCAT{D3},B::LinearOp{D1,D3}) = unsigned_sum(A,B,false)
 
 
 

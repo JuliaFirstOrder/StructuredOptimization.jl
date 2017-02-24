@@ -4,13 +4,11 @@ type HCAT{D3} <: LinearOp{D3}
 	x::Array{OptVar}
 	A::AbstractArray{LinearOp}
 	mid::AbstractArray
-	isTranspose::Bool
 	sign::Array{Bool,1}
 end
 
 function size(A::HCAT)
 	dim1, dim2 = tuple(size.(A.A)[2]...), size(A.A[1],2)   
-	A.isTranspose ? (dim2,dim1) : (dim1,dim2)
 end
 
 fun_name(S::HCAT) = "Horizontally Concatenated Operators"
@@ -18,12 +16,12 @@ fun_name(S::HCAT) = "Horizontally Concatenated Operators"
 function hcat{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}, sign::Array{Bool} )
 	if size(A,2) != size(B,2) DimensionMismatch("operators must go to same space!") end
 	mid = Array{D3}(size(B,2))
-	HCAT{D3}([A.x,B.x], [A,B], mid, false, sign)
+	HCAT{D3}([A.x,B.x], [A,B], mid, sign)
 end
 
 hcat{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3} ) = hcat(A,B,[true; true])
 
-transpose{D3}(A::HCAT{D3}) = HCAT{D3}(A.x, A.A.', A.mid, A.isTranspose == false, A.sign)
+transpose{D3}(A::HCAT{D3}) = VCAT{D3}(A.x, A.A.', A.mid, A.sign)
 
 function *{D3,T1<:AbstractArray}(A::HCAT{D3},b::Array{T1,1}) 
 	y = Array{D3}(size(A,2))
@@ -61,15 +59,15 @@ end
 #printing stuff
 function fun_dom{D3<:Real}(A::HCAT{D3}) 
 	str = ""
-	for a in A.A str *= fun_D1(a) end
+	for a in A.A str *= fun_D1(a,1) end
 	str *= "→  ℝ^$(size(A,2))"
 end
 
 function fun_dom{D3<:Complex}(A::HCAT{D3}) 
 	str = ""
-	for a in A.A str *= fun_D1(a) end
+	for a in A.A str *= fun_D1(a,1) end
 	str *= "→  ℂ^$(size(A,2))"
 end
 
-fun_D1{D1<:Real, D2}(A::LinearOp{D1,D2})    =  " ℝ^$(size(A,1)) "
-fun_D1{D1<:Complex, D2}(A::LinearOp{D1,D2}) =  " ℂ^$(size(A,1)) "
+fun_D1{D1<:Real, D2}(A::LinearOp{D1,D2},dim::Int64)    =  " ℝ^$(size(A,dim)) "
+fun_D1{D1<:Complex, D2}(A::LinearOp{D1,D2},dim::Int64) =  " ℂ^$(size(A,dim)) "

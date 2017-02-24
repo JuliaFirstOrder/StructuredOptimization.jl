@@ -8,6 +8,11 @@ immutable GetIndex{D1,D2} <: LinearOp{D1,D2}
 end
 size(A::GetIndex) = A.dim
 
+function getindex{D1}(x::OptVar{D1}, args...) 
+	A = GetIndex{D1,D1}(x, args, false, get_size(size(x),args...)) 
+	return NestedLinearOp(A,eye(x))
+end
+
 function getindex{D1,D2}(B::LinearOp{D1,D2}, args...) 
 	A = GetIndex{D2,D2}(B.x, args, false, get_size(size(B,2),args...)) 
 	return NestedLinearOp(A,B)
@@ -26,11 +31,15 @@ function A_mul_B!(y::AbstractArray,A::GetIndex,b::AbstractArray)
 end
 
 function get_size(dim,args...) 
-	dim2 = [dim...] 
-	for i = 1:length(args)
-		if args[i] != Colon() dim2[i] = length(args[i]) end 
+	if length(args) != 1
+		dim2 = [dim...] 
+		for i = 1:length(args)
+			if args[i] != Colon() dim2[i] = length(args[i]) end 
+		end
+		return (dim,tuple(dim2...))
+	else
+		return (dim, tuple(length(args[1])))
 	end
-	return (dim,tuple(dim2...))
 end
 
 
