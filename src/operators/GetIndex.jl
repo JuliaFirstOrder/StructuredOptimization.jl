@@ -8,11 +8,7 @@ immutable GetIndex{D1,D2} <: LinearOp{D1,D2}
 end
 size(A::GetIndex) = A.dim
 
-function getindex{D1}(x::OptVar{D1}, args...) 
-	A = GetIndex{D1,D1}(x, args, false, get_size(size(x),args...)) 
-	return NestedLinearOp(A,eye(x))
-end
-
+getindex{D1}(x::OptVar{D1}, args...) =  GetIndex{D1,D1}(x, args, false, get_size(size(x),args...)) 
 function getindex{D1,D2}(B::LinearOp{D1,D2}, args...) 
 	A = GetIndex{D2,D2}(B.x, args, false, get_size(size(B,2),args...)) 
 	return NestedLinearOp(A,B)
