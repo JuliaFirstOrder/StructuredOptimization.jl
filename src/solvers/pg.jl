@@ -67,7 +67,7 @@ FPG(; tol::Float64 = 1e-8,
       gamma::Float64 = Inf) =
 	PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
-function solve!{T<:AffineOp}(A::T, g::ProximableFunction, slv::PG)
+function solve!{T<:AffineOperator}(A::T, g::ProximableFunction, slv::PG)
 
 	tic()
 

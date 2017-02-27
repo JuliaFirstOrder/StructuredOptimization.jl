@@ -67,7 +67,7 @@ ZeroFPR(tol,
 	gamma,
         0, Inf, Inf, NaN, linesearch, "ZeroFPR", 0, 0)
 
-function solve!{T <: AffineOp}(A::T, g::ProximableFunction, slv::ZeroFPR)
+function solve!{T <: AffineOperator}(A::T, g::ProximableFunction, slv::ZeroFPR)
 
 	tic()
 

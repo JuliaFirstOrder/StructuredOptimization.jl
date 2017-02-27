@@ -30,7 +30,7 @@ end
 ## then matrix/linear operator arguments is passed after g in the arguments list
 ## in this case the dual problem is solved, then the primal solution is recovered
 #
-function solve{T <: AffineOp}(A::T, args...)
+function solve{T <: AffineOperator}(A::T, args...)
 	x0 = optArray(A)
 	x, slv = solve!(A, args...)
 	optArray!(A,x0)
@@ -42,7 +42,7 @@ function solve(b::AbstractArray, g::ProximableFunction, A::AbstractArray, args..
 	return -A'*y+b, slv, y
 end
 
-function solve!(g::ProximableFunction, A::AffineOp, args...)
+function solve!(g::ProximableFunction, A::AffineOperator, args...)
 	At = A' + A.b
 	y, slv = solve!(At, Conjugate(g), args...)
 	return -At'*y, slv, y

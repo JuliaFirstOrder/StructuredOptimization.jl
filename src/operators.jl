@@ -1,6 +1,7 @@
-abstract AffineOp
-abstract LinearOp{D1,D2} <: AffineOp
-#abstract DiagGramOp <: LinearOp
+abstract AffineOperator
+abstract LinearOp{D1,D2} <: AffineOperator
+abstract DiagonalOperator{D1,D2} <: LinearOp{D1,D2}
+abstract IdentityOperator{D1,D2} <: DiagonalOperator{D1,D2}
 #abstract DiagonalOp <: DiagGramOp
 
 import Base:
@@ -30,8 +31,8 @@ include("operators/Reshape.jl")
 include("operators/NestedLinearOp.jl")
 include("operators/DFT.jl")
 include("operators/DCT.jl")
-include("operators/Eye.jl")
 include("operators/DiagOp.jl")
+include("operators/Eye.jl")
 include("operators/GetIndex.jl")
 include("operators/Zeros.jl")
 include("operators/HCAT.jl")
@@ -39,7 +40,7 @@ include("operators/VCAT.jl")
 include("operators/Plus.jl")
 include("operators/LBFGS.jl")
 
-function Base.show{Op <: AffineOp }(io::IO, f::Op)
+function Base.show{Op <: AffineOperator }(io::IO, f::Op)
   println(io, "description : ", fun_name(f))
   println(io, "domain      : ", fun_dom(f))
 end
@@ -52,27 +53,3 @@ fun_dom{D1<:Complex, D2<:Complex}(A::LinearOp{D1,D2}) = "ℂ^$(size(A,1)) →  �
 fun_dom{D1<:Real,    D2<:Complex}(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℂ^$(size(A,2))"
 fun_dom{D1<:Real,    D2<:Real   }(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℝ^$(size(A,2))"
 
-function optArray{T<:AffineOp}(A::T) 
-	if typeof(A.x) <: OptVar 
-		return copy(A.x.x) 
-	else
-		if length(A.x) == 1 
-			return copy(A.x[1].x)
-		else
-			return [copy(A.x[i].x) for i = 1:length(A.x)]
-		end
-	end
-end
-function optArray!{T<:AffineOp,B <:AbstractArray}(A::T,x::B)  
-	if typeof(A.x) <: OptVar 
-		copy!(A.x.x, x)  
-	else
-		length(A.x) != 1 ? error("something went wrong!") : 
-		copy!(A.x[1].x, x)  
-	end
-end
-function optArray!{T<:AffineOp,B <:AbstractArray}(A::T,x::Array{B,1}) 
-	for i in eachindex(A.x)
-		copy!(A.x[i].x, x[i])  
-	end
-end

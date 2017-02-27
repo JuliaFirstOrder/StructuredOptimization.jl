@@ -1,5 +1,5 @@
 
-immutable DiagOp{D1,D2} <: LinearOp{D1,D2}
+immutable DiagOp{D1,D2} <: DiagonalOperator{D1,D2}
 	x::OptVar
 	d::Union{AbstractArray{D1}, Number}
 end

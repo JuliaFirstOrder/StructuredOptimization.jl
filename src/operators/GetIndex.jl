@@ -19,7 +19,7 @@ transpose{D1}(A::GetIndex{D1,D1}) = GetIndex{D1,D1}(A.x, A.idx,true,(A.dim[2],A.
 
 function A_mul_B!(y::AbstractArray,A::GetIndex,b::AbstractArray) 
 	if A.isTranspose
-		y.*= 0
+		y .= 0.
 		setindex!(y,b,A.idx...) 
 	else
 		copy!(y,view(b,A.idx...))  
