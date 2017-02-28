@@ -55,3 +55,7 @@ fun_dom{D1<:Real,    D2<:Real   }(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  �
 
 isEye(A::AffineOperator) = typeof(A.A) <: IdentityOperator 
 isEye(A::LinearOp) = typeof(A) <: IdentityOperator 
+
+isMergeable(A::AffineOperator) = typeof(A.A) <: DiagonalOperator 
+isMergeable(A::LinearOp) = typeof(A) <: DiagonalOperator 
+#this will be changed with typeof(A) <: GramDiagonal 

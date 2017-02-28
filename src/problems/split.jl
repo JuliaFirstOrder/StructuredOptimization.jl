@@ -2,16 +2,21 @@
 
 function split(cf::CostFunction)
 
+	fj = Array{OptTerm, 1}(0)
 	smooth = Array{OptTerm, 1}(0)
 	nonsmooth = Array{OptTerm, 1}(0)
 	#collect smooth terms (currently must be a ls)
-	for i in eachindex(cf.Terms)
-		if typeof(cf.Terms[i]) <: RegLS.SmoothTerm
-			push!(smooth,cf.Terms[i])
-		elseif typeof(cf.Terms[i]) <: RegLS.NonSmoothTerm
-			push!(nonsmooth,cf.Terms[i])
+	for t in cf.Terms
+		if isMergeable(t.A)
+			if     typeof(t) <: LeastSquares && isEye(t.A)
+				push!(smooth,t)
+			elseif typeof(t) <: NonSmoothTerm
+				push!(nonsmooth,t)
+			end
+		else
+			push!(fj,t) 
 		end
 	end
-	return smooth, nonsmooth
+	return fj, smooth, nonsmooth
 
 end

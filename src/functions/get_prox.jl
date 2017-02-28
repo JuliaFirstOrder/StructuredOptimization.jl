@@ -12,7 +12,7 @@ function get_prox(x::OptVar, nonsmooth::Array{OptTerm,1}, reg::Array{OptTerm,1} 
 			g = IndFree()
 		else
 			if x == nonsmooth[1].A.x
-				if ismergable(nonsmooth[1].A)
+				if isMergeable(nonsmooth[1].A)
 					g = get_prox(nonsmooth[1].A, get_prox(nonsmooth[1]) )
 				else
 				error("cannot merge linear operator $(typeof(nonsmooth[1].A)) with proximal operator, try dual?")
@@ -27,7 +27,7 @@ function get_prox(x::OptVar, nonsmooth::Array{OptTerm,1}, reg::Array{OptTerm,1} 
 	if isempty(reg)
 		return g
 	else
-		length(reg) == 1 ? Regularize(g, reg[1].lambda, 0.) : error("")
+		length(reg) == 1 ? regularize(g, reg[1].lambda, reg[1].A) : error("too many ls terms!")
 	end
 end
 
@@ -51,9 +51,11 @@ function get_prox(x::Array{OptVar}, nonsmooth::Array{OptTerm,1}, reg::Array{OptT
 		regxi = Array{OptTerm,1}()
 	end
 	return SeparableSum(g)
-
 end
 
-ismergable(A::Affine) = ismergable(A.A)
-ismergable(A::LinearOp) = typeof(A) <: DiagonalOperator
+regularize{T<:AffineOperator}(g::ProximableFunction, lambda, A::T) =
+Regularize(g, lambda, -A.b)
+
+regularize{T<:LinearOp}(g::ProximableFunction, lambda, A::T) =
+Regularize(g, lambda, 0.)
 
