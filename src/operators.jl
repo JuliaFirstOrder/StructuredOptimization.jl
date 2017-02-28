@@ -53,3 +53,5 @@ fun_dom{D1<:Complex, D2<:Complex}(A::LinearOp{D1,D2}) = "ℂ^$(size(A,1)) →  �
 fun_dom{D1<:Real,    D2<:Complex}(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℂ^$(size(A,2))"
 fun_dom{D1<:Real,    D2<:Real   }(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℝ^$(size(A,2))"
 
+isEye(A::AffineOperator) = typeof(A.A) <: IdentityOperator 
+isEye(A::LinearOp) = typeof(A) <: IdentityOperator 

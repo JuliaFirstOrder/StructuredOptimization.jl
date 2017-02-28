@@ -1,5 +1,5 @@
 
-import Base: <= 
+import Base: <=, in 
 
 type IndBox{K <: AffineOperator, 
 	    S1 <: Union{Real, AbstractArray}, 
@@ -14,6 +14,13 @@ end
 
 <={K <: AffineOperator, S1 <: Union{Real, AbstractArray}}(A::K,  ub::S1) = IndBox(A,-Inf, ub) 
 <={K <: AffineOperator, S1 <: Union{Real, AbstractArray}}(lb::S1,  A::K) = IndBox(A,  lb,Inf) 
-#<={S1 <: Union{Real, AbstractArray}}(lb::S1,A::IndBox) = IndBox(A.A,lb, A.ub) 
-<={S1 <: Union{Real, AbstractArray}}(A::IndBox,ub::S1) = IndBox(A.A,A.lb,ub) 
 
+in(x::OptVar, args...) = in(eye(x), args...)
+function in{K <: AffineOperator, S1 <: Union{Real, AbstractArray}}(A::K, bnd::AbstractArray{S1,1}) 
+	if length(bnd) != 2 error("should provide 2 bounds!") end
+	IndBox(A,bnd[1],bnd[2])
+end
+
+function get_prox(T::IndBox)
+	return ProximalOperators.IndBox(T.lb,T.ub)
+end

@@ -18,3 +18,16 @@ function +(cf::CostFunction, g::OptTerm)
 	return cf
 end
 
+#returns the number of blocks of variables
+function blkLength(h::OptTerm)
+	blkLength(h.A.x)
+end
+
+operator(h::OptTerm) = h.A
+variable(h::OptTerm) = h.A.x
+
+
+
+
+
+

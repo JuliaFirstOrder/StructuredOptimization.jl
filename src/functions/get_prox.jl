@@ -6,7 +6,7 @@ get_prox{L <:DiagonalOperator}(A::L, g::ProximableFunction, b) = Precompose(g, A
 
 get_prox(A::Affine, g::ProximableFunction) = get_prox(A.A,g,A.b)
 
-function get_prox(x::OptVar, nonsmooth::Array{OptTerm,1})
+function get_prox(x::OptVar, nonsmooth::Array{OptTerm,1}, reg::Array{OptTerm,1} )
 	if length(nonsmooth) <= 1  
 		if isempty(nonsmooth)
 			g = IndFree()
@@ -24,19 +24,31 @@ function get_prox(x::OptVar, nonsmooth::Array{OptTerm,1})
 	else
 		error("sliced separable sum not implemented yet")
 	end
+	if isempty(reg)
+		return g
+	else
+		length(reg) == 1 ? Regularize(g, reg[1].lambda, 0.) : error("")
+	end
 end
 
-function get_prox(x::Array{OptVar}, nonsmooth::Array{OptTerm,1})
+function get_prox(x::Array{OptVar}, nonsmooth::Array{OptTerm,1}, reg::Array{OptTerm,1})
 	g = Array{ProximableFunction,1}(length(x))
-	gxi = Array{OptTerm,1}()
+	gxi   = Array{OptTerm,1}()
+	regxi = Array{OptTerm,1}()
 	for i in eachindex(x)
 		for ns in nonsmooth
 			if ns.A.x == x[i]
 				push!(gxi, ns) 
 			end
 		end
-		g[i] = get_prox(x[i],gxi)
+		for r in reg
+			if r.A.x == x[i]
+				push!(regxi, r) 
+			end
+		end
+		g[i] = get_prox(x[i],gxi,regxi)
 		gxi = Array{OptTerm,1}()
+		regxi = Array{OptTerm,1}()
 	end
 	return SeparableSum(g)
 
