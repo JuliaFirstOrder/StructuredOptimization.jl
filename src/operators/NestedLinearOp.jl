@@ -12,7 +12,9 @@ function NestedLinearOp{D1,Dm}(f::Function,B::LinearOp{D1,Dm}, args...)
 	(f == *) ? A = f(args[1], OptVar(mid)) : A = f(OptVar(mid), args...)
 	return NestedLinearOp(A, B, mid)
 end
-#TODO: alternatevely construct using A*B*C...?
+
+*(A::LinearOp, B::LinearOp) = NestedLinearOp(A,B) 
+*{E<:IdentityOperator}(A::E, B::LinearOp) = B
 
 NestedLinearOp{D1,Dm,D2}(A::LinearOp{Dm,D2}, B::LinearOp{D1,Dm}, mid::AbstractArray{Dm}) = 
 NestedLinearOp{D1,D2}(B.x, A, B, mid, (size(B,1),size(A,2)))

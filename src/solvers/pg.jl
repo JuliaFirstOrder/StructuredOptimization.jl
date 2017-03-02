@@ -67,12 +67,13 @@ FPG(; tol::Float64 = 1e-8,
       gamma::Float64 = Inf) =
 	PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
-function solve!{T<:AffineOperator}(A::T, g::ProximableFunction, slv::PG)
+function solve!{T<:AffineOperator,
+		R<:AbstractArray
+		}(x::R, A::T, g::ProximableFunction, slv::PG)
 
 	tic()
 
 	At = A'
-	x = optArray(A)
 	# compute least squares residual and f(x)
 	resx = A*x
 	gradx = At*resx

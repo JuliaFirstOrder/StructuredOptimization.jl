@@ -18,6 +18,8 @@ function A_mul_B!{D1<:Complex{Float64},D2<:Float64}(y::AbstractArray,A::DiagOp{D
 end
 
 transpose{D1,D2}(A::DiagOp{D1,D2}) = DiagOp{D2,D1}(A.x,conj(A.d))
+inv{D1,D2}(A::DiagOp{D1,D2})       = DiagOp{D2,D1}(A.x,(A.d).^(-1))
+
 fun_name(A::DiagOp)  = "Diagonal Operator"
 
 diagop(B::LinearOp, args...) = NestedLinearOp(diagop,B, args...)

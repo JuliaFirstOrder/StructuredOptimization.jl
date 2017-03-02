@@ -11,7 +11,8 @@ function A_mul_B!{T}(y::AbstractArray{T},A::Eye,b::AbstractArray{T})
 	y .= b
 end
 
-transpose{D1}(A::Eye{D1,D1} ) = Eye{D1,D1}(A.x)
+transpose{D1}(A::Eye{D1,D1} ) = A
+inv{D1}(A::Eye{D1,D1} )       = A
 
 fun_name(A::Eye)  = "Identity Operator"
 

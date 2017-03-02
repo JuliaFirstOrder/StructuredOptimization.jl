@@ -22,12 +22,12 @@ stuff = [
 	      "args"   => ( randn(4), randn(4) )
 	      ),
 	 Dict("Operator" => (*,),
-              "params" => ((randn(4,4)+im*randn(4,4)),),
-	      "args"   => ( randn(4)+im*randn(4), randn(4)+im*randn(4) )
+              "params" => ((randn(6,2)+im*randn(6,2)),),
+	      "args"   => ( randn(2)+im*randn(2), randn(6)+im*randn(6) )
 	      ),
 	 Dict("Operator" => (*,),
-              "params" => ((randn(4,6)+im*randn(4,6)),),
-	      "args"   => ( randn(6)+im*randn(6), randn(4)+im*randn(4) )
+              "params" => ((randn(2,6)+im*randn(2,6)),),
+	      "args"   => ( randn(6)+im*randn(6), randn(2)+im*randn(2) )
 	      ),
 	 Dict("Operator" => (getindex,),
               "params" => (([1:3]),),

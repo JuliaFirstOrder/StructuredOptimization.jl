@@ -1,11 +1,11 @@
 function optArray{T<:AffineOperator}(A::T) 
 	if typeof(A.x) <: OptVar 
-		return copy(A.x.x) 
+		return A.x.x 
 	else
 		if length(A.x) == 1 
-			return copy(A.x[1].x)
+			return A.x[1].x
 		else
-			return [copy(A.x[i].x) for i = 1:length(A.x)]
+			return [A.x[i].x for i = 1:length(A.x)]
 		end
 	end
 end

@@ -30,25 +30,17 @@ end
 ## then matrix/linear operator arguments is passed after g in the arguments list
 ## in this case the dual problem is solved, then the primal solution is recovered
 #
+function solve(b::AbstractArray, g::ProximableFunction, A::AbstractArray, args...)
+	y, slv = solve(A', b, Conjugate(g), args...)
+	return -A'*y+b, slv, y
+end
+#new solvers
 function solve{T <: AffineOperator}(A::T, args...)
-	x0 = optArray(A)
+	x0 = copy(optArray(A))
 	x, slv = solve!(A, args...)
 	optArray!(A,x0)
 	return x, slv
 end
 
-function solve(b::AbstractArray, g::ProximableFunction, A::AbstractArray, args...)
-	y, slv = solve(A', b, Conjugate(g), args...)
-	return -A'*y+b, slv, y
-end
+solve!{T <: AffineOperator}(A::T, args...) = solve!(optArray(A), A, args...)
 
-function solve!(g::ProximableFunction, A::AffineOperator, args...)
-	At = A' + A.b
-	y, slv = solve!(At, Conjugate(g), args...)
-	return -At'*y, slv, y
-end
-
-function solve!(g::ProximableFunction, A::LinearOp, args...)
-	y, slv = solve!(A', Conjugate(g), args...)
-	return -A'*y, slv, y
-end

@@ -67,11 +67,12 @@ ZeroFPR(tol,
 	gamma,
         0, Inf, Inf, NaN, linesearch, "ZeroFPR", 0, 0)
 
-function solve!{T <: AffineOperator}(A::T, g::ProximableFunction, slv::ZeroFPR)
+function solve!{T <: AffineOperator,
+		R<:AbstractArray
+		}(x::R, A::T, g::ProximableFunction, slv::ZeroFPR)
 
 	tic()
 
-	x = optArray(A)
 	At = A'
 
 	LBFGS = lbfgs(x,slv.mem)

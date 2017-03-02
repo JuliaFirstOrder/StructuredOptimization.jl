@@ -8,7 +8,7 @@ function split(cf::CostFunction)
 	#collect smooth terms (currently must be a ls)
 	for t in cf.Terms
 		if isMergeable(t.A)
-			if     typeof(t) <: LeastSquares && isEye(t.A)
+			if     typeof(t) <: LeastSquares && isDiagonal(t.A)
 				push!(smooth,t)
 			elseif typeof(t) <: NonSmoothTerm
 				push!(nonsmooth,t)

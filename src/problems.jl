@@ -2,17 +2,20 @@ export minimize, minimize!
 
 include("problems/split.jl")
 include("problems/primal.jl")
+include("problems/dual.jl")
 
 #TODO implement also minimize!
+#TODO add solver options
 minimize(h::OptTerm, args...) = minimize(CostFunction([h]),args...)
 
 minimize{T<:OptTerm}(cf::CostFunction, cstr::Array{T}) = minimize(cf,cstr...)
 
 function minimize(cf::CostFunction, cstr::Vararg{OptTerm})
-	fi, smooth, nonsmooth = split(cf::CostFunction)
-	for i = 1:length(cstr)
-		push!(nonsmooth,cstr[i])
+	#add constraints to cost function
+	for c in cstr
+		cf += c
 	end
+	fi, smooth, nonsmooth = split(cf::CostFunction)
 	if length(fi) >  1 error("problem not supported") end
 	if isempty(fi) 
 		if isempty(smooth)
@@ -23,7 +26,7 @@ function minimize(cf::CostFunction, cstr::Vararg{OptTerm})
 		end
 	end 
 	P = problem(fi[1], smooth, nonsmooth) # if fi[1] <: SmoothTerm creates Primal else Dual
-	                                      # in Dual if  isempty(smooth) call problem(nonsmooth)
+	                                      # in Dual if errors call problem(nonsmooth)
 	solve(P,ZeroFPR())
 end
 
