@@ -72,30 +72,6 @@ end
 -{D1,D3}(A::HCAT{D3},B::LinearOp{D1,D3}) = unsigned_sum(A,B,false)
 
 
-function unsigned_sum{D1,D3}(A::VCAT{D3},B::LinearOp{D1,D3}, sign::Bool)
-	if size(A,1) != size(B,1) DimensionMismatch("Operators must share domain") end
-	if A.x[1]    != B.x DimensionMismatch("Operators must share variable") end
-	if any([size(Ai,2) == size(B,2) for Ai in A.A ])
-		for i = 1:length(A.A)
-			if size(A.A[i],2) == size(B,2)
-				if A.sign[i] 
-					sign ? A.A[i] = A.A[i] + B : A.A[i] = A.A[i] - B
-				else
-					sign ? A.A[i] = A.A[i] - B : A.A[i] = A.A[i] + B
-				end
-				break
-			end
-		end
-	else
-		push!(A.A,B)
-		push!(A.sign,sign)
-	end
-	return A
-end
-
-+{D1,D3}(A::VCAT{D3},B::LinearOp{D1,D3}) = unsigned_sum(A,B,true )
--{D1,D3}(A::VCAT{D3},B::LinearOp{D1,D3}) = unsigned_sum(A,B,false)
-
 
 
 

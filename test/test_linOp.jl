@@ -133,7 +133,7 @@ for i in eachindex(stuff)
 
 end
 
-#### test sum of linear operators
+##### test sum of linear operators
 
 #test SumSameVar
 
@@ -193,7 +193,10 @@ y = randn(3)
 x = [x1,x2,x3]
 
 A = dct(X1)-X1+5.3*dct(X2)+eye(X1)+X3
+A2 = [dct(X1)-X1+eye(X1) 5.3*dct(X2) X3]
+show(A2)
 @test norm((A*x)-(dct(x1)-x1+5.3*dct(x2)+x1+x3)) < 1e-8
+@test norm((A2*x)-(dct(x1)-x1+5.3*dct(x2)+x1+x3)) < 1e-8
 
 test1,test2 = RegLS.test_FwAdj(A, x, y)
 @test test1 < 1e-8
@@ -201,7 +204,7 @@ test1,test2 = RegLS.test_FwAdj(A, x, y)
 test3 = RegLS.test_Op(A, x, y)
 @test test3 < 1e-8
 
-#test Affine
+##test Affine
 
 x1 = randn(3)
 X1 = OptVar(x1)
@@ -255,13 +258,11 @@ y1,y2 = randn(3,3),randn(3)
 x = x1
 y = [y1,y2]
 
-A = 3.4*X1-2.0*dct(X1)[1:3]
-A2 = [3.4*X1; -2.0*dct(X1)[1:3]]
+A = [3.4*X1; -2.0*dct(X1)[1:3]]
 show(A)
 
 @test norm((A*x)[1]-3.4*x1) < 1e-8
 @test norm((A*x)[2]-(-2*dct(x1)[1:3])) < 1e-8
-@test norm(A*x-A2*x) < 1e-8
 
 test1,test2 = RegLS.test_FwAdj(A, x, y)
 @test test1 < 1e-8
@@ -277,7 +278,7 @@ y1,y2,y3 = randn(3,3),randn(3),randn(2,3)
 x = x1
 y = [y1,y2,y3]
 
-A = 3.4*X1-2.0*dct(X1)[1:3]+1.2*X1[1:3]+dct(X1)[1:2,:]
+A = [3.4*X1; -2.0*dct(X1)[1:3]+1.2*X1[1:3]; dct(X1)[1:2,:]]
 show(A)
 
 @test norm((A*x)[1]-3.4*x1) < 1e-8

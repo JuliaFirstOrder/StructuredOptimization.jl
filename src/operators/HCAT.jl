@@ -20,6 +20,18 @@ function hcat{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}, sign::Array{Bool
 end
 
 hcat{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3} ) = hcat(A,B,[true; true])
+hcat(A::LinearOp, B::OptVar  ) = vcat(A     , eye(B))
+hcat(A::OptVar  , B::LinearOp) = vcat(eye(A),     B )
+hcat(A::OptVar  , B::OptVar  ) = vcat(eye(A), eye(B))
+
+function hcat(A::Vararg{Union{LinearOp,OptVar}})
+	H = hcat(A[1],A[2])
+	for i = 3:length(A)
+		typeof(A[i]) <: OptVar ? push!(H.A,eye(A[i])) : push!(H.A,A[i])
+		push!(H.sign,true)
+	end
+	return H
+end
 
 transpose{D3}(A::HCAT{D3}) = VCAT{D3}(A.x, A.A.', A.mid, A.sign)
 
