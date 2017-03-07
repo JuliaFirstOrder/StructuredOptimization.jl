@@ -1,3 +1,4 @@
+
 type ZeroFPR <: ForwardBackwardSolver
 	tol::Float64
 	maxit::Int64
@@ -66,6 +67,7 @@ ZeroFPR(tol,
 	halt,
 	gamma,
         0, Inf, Inf, NaN, linesearch, "ZeroFPR", 0, 0)
+
 
 function solve!{T <: AffineOperator,
 		R<:AbstractArray
@@ -202,5 +204,21 @@ function solve!{T <: AffineOperator,
 
 	slv.time = toq()
 
-	return xbar, slv
+	return x, slv
 end
+
+import Base: copy
+copy(slv::ZeroFPR) = ZeroFPR(copy(slv.tol),
+			     copy(slv.maxit),
+			     copy(slv.verbose),
+			     copy(slv.mem),
+			     slv.halt,
+			     copy(slv.gamma),
+			     copy(slv.it),
+			     copy(slv.normfpr),
+			     copy(slv.cost),
+			     copy(slv.time),
+			     copy(slv.linesearch),
+			     slv.name,
+			     copy(slv.cnt_matvec),
+			     copy(slv.cnt_prox))

@@ -35,11 +35,12 @@ function solve(b::AbstractArray, g::ProximableFunction, A::AbstractArray, args..
 	return -A'*y+b, slv, y
 end
 #new solvers
-function solve{T <: AffineOperator}(A::T, args...)
+function solve{T <: AffineOperator, S<:Solver}(A::T, g::ProximableFunction, slv::S)
 	x0 = copy(optArray(A))
-	x, slv = solve!(A, args...)
+	slv2 = copy(slv) 
+	x, slv2 = solve!(A, g, slv2)
 	optArray!(A,x0)
-	return x, slv
+	return x, slv2
 end
 
 solve!{T <: AffineOperator}(A::T, args...) = solve!(optArray(A), A, args...)

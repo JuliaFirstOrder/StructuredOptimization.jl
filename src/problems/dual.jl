@@ -1,45 +1,43 @@
 
-immutable Dual{Op<:AffineOperator}
-	A::Op
+immutable Dual
+	At::LinearOp
+	Ainv::LinearOp
+	b::AbstractArray
 	g::ProximableFunction
 	y::AbstractArray #dual variables are stored here
 end
 
-function problem{T<:NonSmoothTerm}(fi::T, smooth::Array{OptTerm,1}, nonsmooth::Array{OptTerm,1})
+function problem{T<:NonSmoothTerm}(fi::T, smooth::Array{OptTerm,1})
 
 	x = fi.A.x #extract variables
-	bs = Array{AbstractArray,1}()
-	Ainv = Array{LinearOp,1}()
-	bi = []
-			
-	for s in smooth
-		if isDiagonal(s.A) == false error("linear operator must invertible") end
-		if typeof(s.A) <: Affine 
-			push!(bs,s.A.b) 
-			push!(Ainv,inv(s.A.A))
-		else
-			push!(Ainv,inv(s.A))
-		end
-	end
-	if typeof(fi.A) <: Affine bi = copy(fi.A.b) end
+	typeof(smooth[1].A) <: Affine ? Ainv = inv(smooth[1].A.A) : Ainv = inv(smooth[1].A)
+	At = Ainv*fi.A'
 
-	#create dual variables
-	y = fi.A*x.x
-	#create dual operator
-	At = Ainv[1]'*fi.A'
-	isempty(bs) ?  nothing : At = At-bs[1]
 
-	g = Precompose(Conjugate(get_prox(fi)),-1,0)
-	#is Precompose really needed?
-	isempty(bi) ? nothing : g = Tilt(g,bi,0)
+	y = fi.A*fi.A.x.x  #create dual variables
+	b = deepsimilar(y)
+
+	if typeof(fi.A) <: Affine        b -= fi.A.b end
+	if typeof(smooth[1].A) <: Affine b += At'*smooth[1].A.b end
+
+	g = Tilt(Precompose(Conjugate(get_prox(fi)),-1,0), b, 0.0)
 	 
-	Dual(At, g, y)
+	if typeof(smooth[1].A) <: Affine
+		Dual(At, Ainv, smooth[1].A.b, g, y)
+	else
+		Dual(At, Ainv, [], g, y)
+	end
 	
 end
 
-function solve(P::Dual, args...) 
-	y, slv = solve!(P.y, P.A, P.g, args...)
-	return P.A*y, slv
+function solve{S<:Solver}(P::Dual, slv::S) 
+	slv2 = copy(slv)
+	y, slv2 = solve!(P.y, P.At, P.g, slv2)
+	if isempty(P.b)
+		return -(P.Ainv*(P.At*y)), slv2
+	else
+		return -(P.Ainv*(P.At*y+P.b)), slv2
+	end
 end
 
 

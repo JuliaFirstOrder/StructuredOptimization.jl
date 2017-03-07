@@ -158,3 +158,19 @@ function solve!{T<:AffineOperator,
 	return x, slv
 
 end
+
+import Base: copy
+copy(slv::PG) = PG(copy(slv.tol),
+	           copy(slv.maxit),
+	           copy(slv.verbose),
+	           slv.halt,
+	           copy(slv.gamma),
+	           copy(slv.it),
+	           copy(slv.normfpr),
+	           copy(slv.cost),
+	           copy(slv.time),
+	           copy(slv.linesearch),
+	           copy(slv.fast),
+	           slv.name,
+	           copy(slv.cnt_matvec),
+	           copy(slv.cnt_prox))
