@@ -1,6 +1,6 @@
 import Base: zeros
 
-immutable Zeros{D1,D2} <: LinearOp{D1,D2}
+immutable Zeros{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
 end
 size(A::Zeros) = (size(A.x),size(A.x))
@@ -15,9 +15,9 @@ end
 
 fun_name(A::Zeros)  = "Zeros Operator"
 
-zeros(B::LinearOp, args...) = NestedLinearOp(zeros, B, args...)
+zeros(B::LinearOperator, args...) = NestedLinearOperator(zeros, B, args...)
 
-immutable Empty{D1,D2} <: LinearOp{D1,D2}
+immutable Empty{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
 end
 size(A::Empty) = (size(A.x),size(A.x))

@@ -3,9 +3,10 @@ abstract SmoothTerm    <: OptTerm
 abstract NonSmoothTerm <: OptTerm
 
 include("functions/get_prox.jl")
+include("functions/LeastSquares.jl")
+include("functions/HingeLoss.jl")
 include("functions/Norm.jl")
 include("functions/Box.jl")
-include("functions/LeastSquares.jl")
 
 type CostFunction
 	Terms::Array{OptTerm, 1}

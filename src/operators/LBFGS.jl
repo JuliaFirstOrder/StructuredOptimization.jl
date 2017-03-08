@@ -1,6 +1,6 @@
 export lbfgs, update!
 
-immutable LBFGS{D1,D2} <:LinearOp{D1,D2}
+immutable LBFGS{D1,D2} <:LinearOperator{D1,D2}
 	x::OptVar
 	mem::Int64
 	currmem::Array{Int64,1}

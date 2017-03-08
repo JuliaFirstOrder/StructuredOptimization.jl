@@ -1,6 +1,6 @@
 import Base: +, -
 
-immutable Affine{Op<:LinearOp, V <:Union{OptVar, Array{OptVar,1}} } <: AffineOperator
+immutable Affine{Op<:LinearOperator, V <:Union{OptVar, Array{OptVar,1}} } <: AffineOperator
 	x::V
 	A::Op
 	b::AbstractArray
@@ -9,8 +9,8 @@ end
 fun_name(A::Affine) = "Affine "*fun_name(A.A)
 fun_dom(A::Affine)  = fun_dom(A.A)
 
-+(A::LinearOp,b::AbstractArray) = Affine(A.x, A, b)
--(A::LinearOp,b::AbstractArray) = Affine(A.x, A,-b)
++(A::LinearOperator,b::AbstractArray) = Affine(A.x, A, b)
+-(A::LinearOperator,b::AbstractArray) = Affine(A.x, A,-b)
 
 +(x::OptVar,b::AbstractArray) = Affine(x,eye(x), b)
 -(x::OptVar,b::AbstractArray) = Affine(x,eye(x),-b)

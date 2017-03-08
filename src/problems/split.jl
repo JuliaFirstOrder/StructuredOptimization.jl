@@ -2,21 +2,21 @@
 
 function split(cf::CostFunction)
 
-	fj = Array{OptTerm, 1}(0)
-	smooth = Array{OptTerm, 1}(0)
+	g         = Array{OptTerm, 1}(0)
+	smooth    = Array{OptTerm, 1}(0)
 	nonsmooth = Array{OptTerm, 1}(0)
-	#collect smooth terms (currently must be a ls)
+
 	for t in cf.Terms
-		if isMergeable(t.A)
+		if isAbsorbable(t.A)
 			if     typeof(t) <: LeastSquares && isDiagonal(t.A)
 				push!(smooth,t)
 			elseif typeof(t) <: NonSmoothTerm
 				push!(nonsmooth,t)
 			end
 		else
-			push!(fj,t) 
+			push!(g,t) 
 		end
 	end
-	return fj, smooth, nonsmooth
+	return g, smooth, nonsmooth
 
 end

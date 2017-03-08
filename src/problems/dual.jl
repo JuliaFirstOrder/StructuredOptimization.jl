@@ -1,26 +1,27 @@
 
 immutable Dual
-	At::LinearOp
-	Ainv::LinearOp
+	At::LinearOperator
+	Ainv::LinearOperator
 	b::AbstractArray
 	g::ProximableFunction
 	y::AbstractArray #dual variables are stored here
 end
 
-function problem{T<:NonSmoothTerm}(fi::T, smooth::Array{OptTerm,1})
+function problem{T<:NonSmoothTerm}(g::T, smooth::Array{OptTerm,1})
 
-	x = fi.A.x #extract variables
+	x = g.A.x #extract variables
+	isInvertable(smooth[1].A) == true ? nothing : error("operator not easily invertable")
 	typeof(smooth[1].A) <: Affine ? Ainv = inv(smooth[1].A.A) : Ainv = inv(smooth[1].A)
-	At = Ainv*fi.A'
+	At = g.A'
+	At = Ainv'*At
 
+	y = g.A*g.A.x.x  #create dual variables
+	b = zeros(y)
 
-	y = fi.A*fi.A.x.x  #create dual variables
-	b = deepsimilar(y)
-
-	if typeof(fi.A) <: Affine        b -= fi.A.b end
+	if typeof(g.A) <: Affine         b -= g.A.b end
 	if typeof(smooth[1].A) <: Affine b += At'*smooth[1].A.b end
 
-	g = Tilt(Precompose(Conjugate(get_prox(fi)),-1,0), b, 0.0)
+	g = Tilt(Precompose(Conjugate(get_prox(g)),-1,0), b, 0.0)
 	 
 	if typeof(smooth[1].A) <: Affine
 		Dual(At, Ainv, smooth[1].A.b, g, y)

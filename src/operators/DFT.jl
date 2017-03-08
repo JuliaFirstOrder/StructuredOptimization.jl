@@ -1,6 +1,6 @@
 import Base: fft, ifft 
 
-immutable DFT{D1,D2} <: LinearOp{D1,D2}
+immutable DFT{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
 	A::Base.DFT.Plan
 	Ainv::Base.DFT.Plan
@@ -12,7 +12,7 @@ fft{D1<:Complex}(x::OptVar{D1}) = DFT{D1,D1}(x, plan_fft(x.x), plan_ifft(x.x),(s
 fft{D1<:Float64}(x::OptVar{D1}) = 
 DFT{D1,Complex{Float64}}(x, plan_fft(x.x), plan_ifft(complex(x.x)),(size(x),size(x))) 
 
-immutable IDFT{D1,D2} <: LinearOp{D1,D2}
+immutable IDFT{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
 	A::Base.DFT.Plan
 	Ainv::Base.DFT.Plan
@@ -68,8 +68,11 @@ transpose{D1,D2}(A::IDFT{D1,D2})  =  DFT{D2,D1}(A.x, A.Ainv, A.A, A.dim )
 fun_name(A::DFT) = "Discrete Fourier Transform"
 fun_name(A::IDFT) = "Inverse Discrete Fourier Transform"
 
+==(A::DFT,  B::DFT ) = A.x == B.x
+==(A::IDFT, B::IDFT) = A.x == B.x
+
 #nested Operations
-fft(B::LinearOp) = NestedLinearOp(fft,B)
-ifft(B::LinearOp) = NestedLinearOp(ifft,B)
+fft(B::LinearOperator) = NestedLinearOperator(fft,B)
+ifft(B::LinearOperator) = NestedLinearOperator(ifft,B)
 
 

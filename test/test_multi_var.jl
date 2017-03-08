@@ -59,8 +59,9 @@ n,m = 100,50
 srand(123)
 # test with VCAT Op
 X = OptVar(randn(n,m))
+b = [randn(n,m),randn(100)]
 
-A = dct(X)+X[1:100]-[randn(n,m),randn(100)]
+A = [dct(X);X[1:100]]-b
 y = A*randn(n,m)
 
 g = NormL1(0.5)

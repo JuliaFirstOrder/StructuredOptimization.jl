@@ -16,4 +16,6 @@ inv{D1}(A::Eye{D1,D1} )       = A
 
 fun_name(A::Eye)  = "Identity Operator"
 
-eye(B::LinearOp, args...) = NestedLinearOp(eye, B, args...)
+eye(B::LinearOperator, args...) = NestedLinearOperator(eye, B, args...)
+
+isInvertable(A::Eye) = true

@@ -1,8 +1,8 @@
 import Base: vcat
 
-type VCAT{D3} <: LinearOp{D3}
+type VCAT{D3} <: LinearOperator{D3}
 	x::Array{OptVar}
-	A::AbstractArray{LinearOp}
+	A::AbstractArray{LinearOperator}
 	mid::AbstractArray
 	sign::Array{Bool,1}
 end
@@ -13,18 +13,18 @@ end
 
 fun_name(S::VCAT) = "Vertically Concatenated Operators"
 
-function vcat{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}, sign::Array{Bool} )
+function vcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}, sign::Array{Bool} )
 	if size(A,1) != size(B,1) DimensionMismatch("operators must share codomain!") end
 	mid = Array{D3}(size(B,1))
 	VCAT{D3}([A.x], [A,B], mid, sign)
 end
 
-vcat{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3} ) = vcat(A,B,[true; true])
-vcat(A::LinearOp, B::OptVar  ) = vcat(A     , eye(B))
-vcat(A::OptVar  , B::LinearOp) = vcat(eye(A),     B )
+vcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3} ) = vcat(A,B,[true; true])
+vcat(A::LinearOperator, B::OptVar  ) = vcat(A     , eye(B))
+vcat(A::OptVar  , B::LinearOperator) = vcat(eye(A),     B )
 vcat(A::OptVar  , B::OptVar  ) = vcat(eye(A), eye(B))
 
-function vcat(A::Vararg{Union{LinearOp,OptVar}})
+function vcat(A::Vararg{Union{LinearOperator,OptVar}})
 	V = vcat(A[1],A[2])
 	for i = 3:length(A)
 		typeof(A[i]) <: OptVar ? push!(V.A,eye(A[i])) : push!(V.A,A[i])

@@ -1,8 +1,8 @@
 import Base: hcat
 
-type HCAT{D3} <: LinearOp{D3}
+type HCAT{D3} <: LinearOperator{D3}
 	x::Array{OptVar}
-	A::AbstractArray{LinearOp}
+	A::AbstractArray{LinearOperator}
 	mid::AbstractArray
 	sign::Array{Bool,1}
 end
@@ -13,18 +13,18 @@ end
 
 fun_name(S::HCAT) = "Horizontally Concatenated Operators"
 
-function hcat{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}, sign::Array{Bool} )
+function hcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}, sign::Array{Bool} )
 	if size(A,2) != size(B,2) DimensionMismatch("operators must go to same space!") end
 	mid = Array{D3}(size(B,2))
 	HCAT{D3}([A.x,B.x], [A,B], mid, sign)
 end
 
-hcat{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3} ) = hcat(A,B,[true; true])
-hcat(A::LinearOp, B::OptVar  ) = vcat(A     , eye(B))
-hcat(A::OptVar  , B::LinearOp) = vcat(eye(A),     B )
+hcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3} ) = hcat(A,B,[true; true])
+hcat(A::LinearOperator, B::OptVar  ) = vcat(A     , eye(B))
+hcat(A::OptVar  , B::LinearOperator) = vcat(eye(A),     B )
 hcat(A::OptVar  , B::OptVar  ) = vcat(eye(A), eye(B))
 
-function hcat(A::Vararg{Union{LinearOp,OptVar}})
+function hcat(A::Vararg{Union{LinearOperator,OptVar}})
 	H = hcat(A[1],A[2])
 	for i = 3:length(A)
 		typeof(A[i]) <: OptVar ? push!(H.A,eye(A[i])) : push!(H.A,A[i])
@@ -59,7 +59,7 @@ function A_mul_B!{T1<:AbstractArray}(y::AbstractArray,S::HCAT,b::Array{T1,1})
 	end
 end
 
-create_out{D1,D2}(A::LinearOp{D1,D2}) = Array{D2}(size(A,2))
+create_out{D1,D2}(A::LinearOperator{D1,D2}) = Array{D2}(size(A,2))
 
 #adjoint
 function A_mul_B!{T1<:AbstractArray}(y::Array{T1,1},S::HCAT,b::AbstractArray) 
@@ -81,5 +81,5 @@ function fun_dom{D3<:Complex}(A::HCAT{D3})
 	str *= "→  ℂ^$(size(A,2))"
 end
 
-fun_D1{D1<:Real, D2}(A::LinearOp{D1,D2},dim::Int64)    =  " ℝ^$(size(A,dim)) "
-fun_D1{D1<:Complex, D2}(A::LinearOp{D1,D2},dim::Int64) =  " ℂ^$(size(A,dim)) "
+fun_D1{D1<:Real, D2}(A::LinearOperator{D1,D2},dim::Int64)    =  " ℝ^$(size(A,dim)) "
+fun_D1{D1<:Complex, D2}(A::LinearOperator{D1,D2},dim::Int64) =  " ℂ^$(size(A,dim)) "

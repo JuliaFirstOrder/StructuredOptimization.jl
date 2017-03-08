@@ -22,9 +22,11 @@ inv{D1,D2}(A::DiagOp{D1,D2})       = DiagOp{D2,D1}(A.x,(A.d).^(-1))
 
 fun_name(A::DiagOp)  = "Diagonal Operator"
 
-diagop(B::LinearOp, args...) = NestedLinearOp(diagop,B, args...)
-*(d::Union{Float64,Complex{Float64}}, B::LinearOp) = NestedLinearOp(diagop, B, d)
+diagop(B::LinearOperator, args...) = NestedLinearOperator(diagop,B, args...)
+*(d::Union{Float64,Complex{Float64}}, B::LinearOperator) = NestedLinearOperator(diagop, B, d)
 *{D1,T<:Number}(d::T, x::OptVar{D1})  = DiagOp{D1,D1}(x,d)
 *{D1,T<:Complex}(d::T, x::OptVar{D1}) = DiagOp{D1,Complex{Float64}}(x,d)
+
+isInvertable(A::DiagOp) = true
 
 export diagop

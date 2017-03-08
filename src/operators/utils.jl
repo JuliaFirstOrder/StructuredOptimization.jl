@@ -24,7 +24,7 @@ function optArray!{T<:AffineOperator,B <:AbstractArray}(A::T,x::Array{B,1})
 end
 
 #testing utils
-function test_FwAdj(A::LinearOp, x, y)
+function test_FwAdj(A::LinearOperator, x, y)
 	println(); show(A); println()
 
 	println("forward")
@@ -53,6 +53,6 @@ function test_FwAdj(A::LinearOp, x, y)
 
 end
 
-function test_Op(A::LinearOp,x,y)
+function test_Op(A::LinearOperator,x,y)
 	return norm( RegLS.deepvecdot(A*x,y) - RegLS.deepvecdot(x,A'*y))   #verify operator and its ajoint
 end

@@ -1,6 +1,6 @@
 import Base: reshape
 
-immutable Reshape{D1,D2} <: LinearOp{D1,D2}
+immutable Reshape{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
 	dim::Tuple
 end
@@ -19,4 +19,4 @@ transpose{D1}(A::Reshape{D1,D1}) = Reshape{D1,D1}(A.x, (A.dim[2],A.dim[1]))
 fun_name(A::Reshape) = "Reshape Operator"
 
 #nested Operations
-reshape(B::LinearOp,args...) = NestedLinearOp(reshape,B, args...)
+reshape(B::LinearOperator,args...) = NestedLinearOperator(reshape,B, args...)

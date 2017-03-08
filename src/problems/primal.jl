@@ -1,16 +1,16 @@
 immutable Primal{A<:AffineOperator}
 	Op::A
-	g::ProximableFunction
+	p::ProximableFunction
 end
 
-function problem{T<:SmoothTerm}(fi::T, smooth::Array{OptTerm,1}, nonsmooth::Array{OptTerm,1})
+function problem{T<:SmoothTerm}(g::T, smooth::Array{OptTerm,1}, nonsmooth::Array{OptTerm,1})
 
-	x = fi.A.x #extract variables
-	g = get_prox(x, nonsmooth, smooth)
+	x = g.A.x #extract variables
+	p = get_prox(x, nonsmooth, smooth)
 	 
-	Primal(fi.A, g)
+	Primal(g.A, p)
 end
 
-solve(P::Primal, args...) = solve(P.Op,P.g, args...)
+solve(P::Primal, args...) = solve(P.Op,P.p, args...)
 
 

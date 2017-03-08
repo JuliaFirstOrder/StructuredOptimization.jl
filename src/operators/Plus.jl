@@ -1,15 +1,15 @@
 import Base: +, -
 
-immutable SumSameVar{D1,D2} <: LinearOp{D1,D2}
+immutable SumSameVar{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
-	A::LinearOp
-	B::LinearOp
+	A::LinearOperator
+	B::LinearOperator
 	mid::AbstractArray
 	sign::Bool
 end
 size(A::SumSameVar) = size(A.A)
 
-function SumSameVar{D1,D2}(x::OptVar,A::LinearOp{D1,D2},B::LinearOp{D1,D2}, sign::Bool) 
+function SumSameVar{D1,D2}(x::OptVar,A::LinearOperator{D1,D2},B::LinearOperator{D1,D2}, sign::Bool) 
 	mid = Array{D2}(size(A,2))
 	return SumSameVar{D1,D2}(A.x,A,B,mid,sign)
 end
@@ -25,33 +25,33 @@ function A_mul_B!(y::AbstractArray,S::SumSameVar,b::AbstractArray)
 	S.sign ? y .= (+).(S.mid,y) : y .= (-).(S.mid,y)
 end
 
-+(A::LinearOp, x::OptVar  ) = A+eye(x)
-+(x::OptVar,   A::LinearOp) = eye(x)+A
-+(x::OptVar,   y::OptVar  ) = eye(x)+eye(y)
-+(A::LinearOp) = A
++(A::LinearOperator, x::OptVar  ) = A+eye(x)
++(x::OptVar,   A::LinearOperator) = eye(x)+A
++(x::OptVar,   y::OptVar        ) = eye(x)+eye(y)
++(A::LinearOperator) = A
 
--(A::LinearOp, x::OptVar  ) = A-eye(x)
--(x::OptVar,   A::LinearOp) = eye(x)-A
+-(A::LinearOperator, x::OptVar  ) = A-eye(x)
+-(x::OptVar,   A::LinearOperator) = eye(x)-A
 -(x::OptVar,   y::OptVar  ) = eye(x)-eye(y)
--{D1,D2}(A::LinearOp{D1,D2}) = Empty{D1,D2}(A.x)-A #trick to accept -A
+-{D1,D2}(A::LinearOperator{D1,D2}) = Empty{D1,D2}(A.x)-A #trick to accept -A
 
 
-function unsigned_sum{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}, sign::Bool) 
+function unsigned_sum{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}, sign::Bool) 
 	if A.x == B.x
 		if size(A) == size(B) 
 			return SumSameVar(A.x,A,B,sign)
 		else
-			return vcat(A,B,[true; sign])
+			DimensionMismatch("cannot sum operator of size $(size(A)) with operator of size$(size(B))")
 		end
 	else
 		return hcat(A,B, [true; sign])
 	end
 end
 
-+{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}) = unsigned_sum(A,B,true ) 
--{D1,D2,D3}(A::LinearOp{D1,D3}, B::LinearOp{D2,D3}) = unsigned_sum(A,B,false)
++{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}) = unsigned_sum(A,B,true ) 
+-{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}) = unsigned_sum(A,B,false)
 
-function unsigned_sum{D1,D3}(A::HCAT{D3},B::LinearOp{D1,D3}, sign::Bool)
+function unsigned_sum{D1,D3}(A::HCAT{D3},B::LinearOperator{D1,D3}, sign::Bool)
 	if size(A,2) != size(B,2) DimensionMismatch("Operators must share codomain") end
 	if any(A.x .== B.x)
 		for i = 1:length(A.A)
@@ -68,8 +68,8 @@ function unsigned_sum{D1,D3}(A::HCAT{D3},B::LinearOp{D1,D3}, sign::Bool)
 	return A
 end
 
-+{D1,D3}(A::HCAT{D3},B::LinearOp{D1,D3}) = unsigned_sum(A,B,true )
--{D1,D3}(A::HCAT{D3},B::LinearOp{D1,D3}) = unsigned_sum(A,B,false)
++{D1,D3}(A::HCAT{D3},B::LinearOperator{D1,D3}) = unsigned_sum(A,B,true )
+-{D1,D3}(A::HCAT{D3},B::LinearOperator{D1,D3}) = unsigned_sum(A,B,false)
 
 
 

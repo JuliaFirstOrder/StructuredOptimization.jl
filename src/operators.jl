@@ -1,6 +1,6 @@
 abstract AffineOperator
-abstract LinearOp{D1,D2} <: AffineOperator
-abstract DiagonalOperator{D1,D2} <: LinearOp{D1,D2}
+abstract LinearOperator{D1,D2} <: AffineOperator
+abstract DiagonalOperator{D1,D2} <: LinearOperator{D1,D2}
 abstract IdentityOperator{D1,D2} <: DiagonalOperator{D1,D2}
 #abstract DiagonalOp <: DiagGramOp
 
@@ -11,15 +11,16 @@ import Base:
   transpose,
   inv,
   size,
-  ndims
+  ndims,
+  ==
 
-size(A::LinearOp, i::Int64) = size(A)[i]
-ndims(A::LinearOp) = (length(size(A,1)),length(size(A,2)))
-ndims(A::LinearOp, i::Int64) = length(size(A,i))
+size(A::LinearOperator, i::Int64) = size(A)[i]
+ndims(A::LinearOperator) = (length(size(A,1)),length(size(A,2)))
+ndims(A::LinearOperator, i::Int64) = length(size(A,i))
 
-Ac_mul_B!(y::AbstractArray,A::LinearOp,b::AbstractArray)  = A_mul_B!(y, A',b)
+Ac_mul_B!(y::AbstractArray,A::LinearOperator,b::AbstractArray)  = A_mul_B!(y, A',b)
 
-function *{D1,D2}(A::LinearOp{D1,D2},b::AbstractArray)
+function *{D1,D2}(A::LinearOperator{D1,D2},b::AbstractArray)
 	y = Array{D2}(size(A,2))
 	A_mul_B!(y,A,b)
 	return y
@@ -49,17 +50,31 @@ end
 fun_name(  f) = "n/a"
 fun_dom(   f) = "n/a"
 
-fun_dom{D1<:Complex, D2<:Real   }(A::LinearOp{D1,D2}) = "ℂ^$(size(A,1)) →  ℝ^$(size(A,2))"
-fun_dom{D1<:Complex, D2<:Complex}(A::LinearOp{D1,D2}) = "ℂ^$(size(A,1)) →  ℂ^$(size(A,2))"
-fun_dom{D1<:Real,    D2<:Complex}(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℂ^$(size(A,2))"
-fun_dom{D1<:Real,    D2<:Real   }(A::LinearOp{D1,D2}) = "ℝ^$(size(A,1)) →  ℝ^$(size(A,2))"
+fun_dom{D1<:Complex, D2<:Real   }(A::LinearOperator{D1,D2}) = "ℂ^$(size(A,1)) →  ℝ^$(size(A,2))"
+fun_dom{D1<:Complex, D2<:Complex}(A::LinearOperator{D1,D2}) = "ℂ^$(size(A,1)) →  ℂ^$(size(A,2))"
+fun_dom{D1<:Real,    D2<:Complex}(A::LinearOperator{D1,D2}) = "ℝ^$(size(A,1)) →  ℂ^$(size(A,2))"
+fun_dom{D1<:Real,    D2<:Real   }(A::LinearOperator{D1,D2}) = "ℝ^$(size(A,1)) →  ℝ^$(size(A,2))"
 
 isEye(A::AffineOperator) = typeof(A.A) <: IdentityOperator 
-isEye(A::LinearOp) = typeof(A) <: IdentityOperator 
+isEye(A::LinearOperator) = typeof(A) <: IdentityOperator 
 
 isDiagonal(A::AffineOperator) = typeof(A.A) <: DiagonalOperator 
-isDiagonal(A::LinearOp) = typeof(A) <: DiagonalOperator 
+isDiagonal(A::LinearOperator) = typeof(A) <: DiagonalOperator 
 
-isMergeable(A::AffineOperator) = typeof(A.A) <: DiagonalOperator 
-isMergeable(A::LinearOp) = typeof(A) <: DiagonalOperator 
+isAbsorbable(A::AffineOperator) = typeof(A.A) <: DiagonalOperator 
+isAbsorbable(A::LinearOperator) = typeof(A) <: DiagonalOperator 
 #this will be changed with typeof(A) <: GramDiagonal 
+
+isInvertable(A::AffineOperator) = isInvertable(A.A) 
+isInvertable(A::LinearOperator) = false
+
+==(A::Affine        , B::Affine        ) = A.A == B.A 
+==(A::Affine        , B::LinearOperator) = A.A ==   B 
+==(A::LinearOperator, B::Affine        ) = A   == B.A 
+
+
+
+
+
+
+

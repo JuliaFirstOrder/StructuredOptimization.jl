@@ -1,6 +1,6 @@
 import Base: dct, idct
 
-immutable DCT{D1,D2} <: LinearOp{D1,D2}
+immutable DCT{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
 	A::Base.DFT.Plan
 	Ainv::Base.DFT.Plan
@@ -10,7 +10,7 @@ size(A::DCT) = A.dim
 
 dct{D1}(x::OptVar{D1}) = DCT{D1,D1}(x,plan_dct(x.x),plan_idct(x.x),(size(x),size(x)))
 
-immutable IDCT{D1,D2} <: LinearOp{D1,D2}
+immutable IDCT{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
 	A::Base.DFT.Plan
 	Ainv::Base.DFT.Plan
@@ -38,9 +38,12 @@ transpose{D1}(A::IDCT{D1,D1}) =  DCT{D1,D1}(A.x, A.Ainv, A.A, A.dim)
 fun_name(A::DCT)  = "Discrete Cosine Transform"
 fun_name(A::IDCT) = "Inverse Discrete Cosine Transform"
 
+==(A::DCT,  B::DCT ) = A.x == B.x
+==(A::IDCT, B::IDCT) = A.x == B.x
+
 #nested Operations
-dct(B::LinearOp) = NestedLinearOp(dct,B)
-idct(B::LinearOp) = NestedLinearOp(idct,B)
+dct(B::LinearOperator) = NestedLinearOperator(dct,B)
+idct(B::LinearOperator) = NestedLinearOperator(idct,B)
 
 
 

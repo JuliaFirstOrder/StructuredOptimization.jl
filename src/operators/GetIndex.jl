@@ -1,6 +1,6 @@
 import Base: getindex
 
-immutable GetIndex{D1,D2} <: LinearOp{D1,D2}
+immutable GetIndex{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
 	idx::Tuple 
 	isTranspose::Bool
@@ -9,9 +9,9 @@ end
 size(A::GetIndex) = A.dim
 
 getindex{D1}(x::OptVar{D1}, args...) =  GetIndex{D1,D1}(x, args, false, get_size(size(x),args...)) 
-function getindex{D1,D2}(B::LinearOp{D1,D2}, args...) 
+function getindex{D1,D2}(B::LinearOperator{D1,D2}, args...) 
 	A = GetIndex{D2,D2}(B.x, args, false, get_size(size(B,2),args...)) 
-	return NestedLinearOp(A,B)
+	return NestedLinearOperator(A,B)
 end
 fun_name(A::GetIndex) = "Get Index"
 

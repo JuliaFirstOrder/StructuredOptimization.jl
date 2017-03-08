@@ -5,7 +5,7 @@ using Base.Profile
 using MathProgBase
 using Ipopt
 
-srand(0)
+srand(1)
 
 #include("test_linOp.jl")
 include("test_OptTerm.jl")

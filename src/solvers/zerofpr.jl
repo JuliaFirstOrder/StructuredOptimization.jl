@@ -179,7 +179,7 @@ function solve!{T <: AffineOperator,
 		# line search on tau
 		level = FBEx - sigma*slv.normfpr^2
 		tau = 1.0
-		typeof(A) <: LinearOp ? A_mul_B!(Ad, A,  d) : A_mul_B!(Ad, A.A,  d)
+		typeof(A) <: LinearOperator ? A_mul_B!(Ad, A,  d) : A_mul_B!(Ad, A.A,  d)
 		A_mul_B!(ATAd,At, Ad)
 		slv.cnt_matvec += 2
 		for j = 1:32

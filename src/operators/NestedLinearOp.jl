@@ -1,67 +1,67 @@
-immutable NestedLinearOp{D1,D2} <: LinearOp{D1,D2}
+immutable NestedLinearOperator{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
-	A::LinearOp
-	B::LinearOp
+	A::LinearOperator
+	B::LinearOperator
 	mid::AbstractArray       # memory in the middle of the 2 Op
 	dim::Tuple
 end
-size(A::NestedLinearOp) = A.dim
+size(A::NestedLinearOperator) = A.dim
 
-function NestedLinearOp{D1,Dm}(f::Function,B::LinearOp{D1,Dm}, args...) 
+function NestedLinearOperator{D1,Dm}(f::Function,B::LinearOperator{D1,Dm}, args...) 
 	mid = Array{Dm}(size(B,2))
 	(f == *) ? A = f(args[1], OptVar(mid)) : A = f(OptVar(mid), args...)
-	return NestedLinearOp(A, B, mid)
+	return NestedLinearOperator(A, B, mid)
 end
 
-*(A::LinearOp, B::LinearOp) = NestedLinearOp(A,B) 
-*{E<:IdentityOperator}(A::E, B::LinearOp) = B
+*(A::LinearOperator, B::LinearOperator) = NestedLinearOperator(A,B) 
+*{E<:IdentityOperator}(A::E, B::LinearOperator) = B
 
-NestedLinearOp{D1,Dm,D2}(A::LinearOp{Dm,D2}, B::LinearOp{D1,Dm}, mid::AbstractArray{Dm}) = 
-NestedLinearOp{D1,D2}(B.x, A, B, mid, (size(B,1),size(A,2)))
+NestedLinearOperator{D1,Dm,D2}(A::LinearOperator{Dm,D2}, B::LinearOperator{D1,Dm}, mid::AbstractArray{Dm}) = 
+NestedLinearOperator{D1,D2}(B.x, A, B, mid, (size(B,1),size(A,2)))
 
-function NestedLinearOp{D1,Dm,D2}(A::LinearOp{Dm,D2},B::LinearOp{D1,Dm})  
+function NestedLinearOperator{D1,Dm,D2}(A::LinearOperator{Dm,D2},B::LinearOperator{D1,Dm})  
 	mid = Array{Dm}(size(B,2))
-	return NestedLinearOp{D1,D2}(B.x, A, B, mid, (size(B,1),size(A,2)))	
+	return NestedLinearOperator{D1,D2}(B.x, A, B, mid, (size(B,1),size(A,2)))	
 end
 
 
 # constructor with array
-function NestedLinearOp(Ops::Array,mids::Array) 
-	N = NestedLinearOp(Ops[end-1],Ops[end],mids[end])
+function NestedLinearOperator(Ops::Array,mids::Array) 
+	N = NestedLinearOperator(Ops[end-1],Ops[end],mids[end])
 	for i in length(Ops)-2:-1:1
-		N = NestedLinearOp(Ops[i],N,mids[i])
+		N = NestedLinearOperator(Ops[i],N,mids[i])
 	end
 	return N
 end
 
-function transpose{D1,D2}(N::NestedLinearOp{D1,D2})  
-	if typeof(N.B) <: NestedLinearOp
+function transpose{D1,D2}(N::NestedLinearOperator{D1,D2})  
+	if typeof(N.B) <: NestedLinearOperator
 		Ops, mids = disassamble(N)
 		Ops = flipdim(Ops.'[:],1)
 		mids = flipdim(mids[:],1)
-		return NestedLinearOp(Ops,mids) 
+		return NestedLinearOperator(Ops,mids) 
 	else
-		return NestedLinearOp(N.B', N.A', N.mid)
+		return NestedLinearOperator(N.B', N.A', N.mid)
 	end
 end
 
 
 
-function A_mul_B!{D1,D2}(y::AbstractArray,N::NestedLinearOp{D1,D2},b::AbstractArray) 
+function A_mul_B!{D1,D2}(y::AbstractArray,N::NestedLinearOperator{D1,D2},b::AbstractArray) 
 		A_mul_B!(N.mid,   N.B, b    )
 		A_mul_B!(y,       N.A, N.mid)
 end
 
-fun_name(N::NestedLinearOp) = ((typeof(N.B) <: NestedLinearOp) == false ) ? 
+fun_name(N::NestedLinearOperator) = ((typeof(N.B) <: NestedLinearOperator) == false ) ? 
 fun_name(N.A)*" * "*fun_name(N.B) : "Nested Linear Operator"
 
 
 #count the number of operators
-function countOp(N::NestedLinearOp)
+function countOp(N::NestedLinearOperator)
 	counter = 0
-	if typeof(N.B) <: NestedLinearOp
+	if typeof(N.B) <: NestedLinearOperator
 		AA = N
-		while typeof(AA.B) <: NestedLinearOp
+		while typeof(AA.B) <: NestedLinearOperator
 			counter += 1
 			AA = AA.B
 		end
@@ -71,7 +71,7 @@ function countOp(N::NestedLinearOp)
 end
 #
 ##get a vector containing all operators
-function disassamble(N::NestedLinearOp)
+function disassamble(N::NestedLinearOperator)
 	NOp = countOp(N)
 	Ops   = Vector(NOp)
 	mids = Vector(NOp-1)

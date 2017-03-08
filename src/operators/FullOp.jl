@@ -1,4 +1,4 @@
-immutable FullOp{D1,D2} <: LinearOp{D1,D2}
+immutable FullOp{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
 	A::AbstractArray
 end
@@ -14,4 +14,4 @@ A_mul_B!(y::AbstractArray,A::FullOp,b::AbstractArray) = A_mul_B!(y,A.A,b)
 Ac_mul_B!(y::AbstractArray,A::FullOp,b::AbstractArray) = Ac_mul_B!(y,A.A,b)  
 
 #nested Operations
-*(A::AbstractMatrix,B::LinearOp) = NestedLinearOp(*, B, A)
+*(A::AbstractMatrix,B::LinearOperator) = NestedLinearOperator(*, B, A)
