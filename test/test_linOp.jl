@@ -185,6 +185,28 @@ test1,test2 = RegLS.test_FwAdj(A, x, y)
 test3 = RegLS.test_Op(A, x, y)
 @test test3 < 1e-8
 
+
+##test HCAT .*
+
+x1,x2 = randn(3,3), randn(3*3)
+X1,X2 = OptVar(x1), OptVar(x2)
+y = randn(3,3)
+x = [x1,x2]
+
+B = [eye(X1) -2.0*dct(X2)]
+A = [3.4*X1 reshape(X2,3,3) ]
+C = A.*B
+
+@test norm((C*x)-(3.4*x1-reshape(2*dct(x2),3,3))) < 1e-8
+
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
+
+A.*x
+
 #test HCAT merge
 
 x1,x2,x3 = randn(3),randn(3),randn(3)
@@ -290,3 +312,28 @@ test1,test2 = RegLS.test_FwAdj(A, x, y)
 @test test2 < 1e-8
 test3 = RegLS.test_Op(A, x, y)
 @test test3 < 1e-8
+
+#test VCAT .*
+
+x1 = randn(3,3)
+X1 = OptVar(x1)
+y1,y2 = randn(3,3),randn(6)
+x = x1
+y = [y1,y2]
+
+A = [5*X1;    reshape(diagop(X1[1:2,:],3),2*3) ]
+B = [dct(X1); dct(X1)[1:2,:]  ]
+C = A.*B
+
+@test norm((C*x)[1]-5.*dct(x1))<=1e-8
+@test norm((C*x)[2]-(3.*dct(x1)[1:2,:])[:] )<=1e-8
+
+test1,test2 = RegLS.test_FwAdj(C, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(C, x, y)
+@test test3 < 1e-8
+
+
+
+

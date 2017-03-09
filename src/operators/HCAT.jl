@@ -13,6 +13,8 @@ end
 
 fun_name(S::HCAT) = "Horizontally Concatenated Operators"
 
+hcat(A::LinearOperator) = A
+
 function hcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}, sign::Array{Bool} )
 	if size(A,2) != size(B,2) DimensionMismatch("operators must go to same space!") end
 	mid = Array{D3}(size(B,2))
@@ -41,14 +43,16 @@ function *{D3,T1<:AbstractArray}(A::HCAT{D3},b::Array{T1,1})
 	return y
 end
 
-function *{D2}(A::HCAT{D2},b::AbstractArray) 
+function .*{D2,T1<:AbstractArray}(A::HCAT{D2},b::Array{T1,1}) 
 	y = Array{AbstractArray,1}(length(A.A))
 	for i = 1:length(A.A)
 		y[i] = create_out(A.A[i]) 
+		A_mul_B!(y[i],A.A[i],b[i])
 	end
-	A_mul_B!(y,A,b)
 	return y
 end
+
+.*{D3}(A::HCAT{D3},B::HCAT{D3})  = HCAT{D3}(A.x, A.A.*B.A, A.mid, A.sign.*B.sign)
 
 #forward
 function A_mul_B!{T1<:AbstractArray}(y::AbstractArray,S::HCAT,b::Array{T1,1}) 

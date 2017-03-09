@@ -6,6 +6,7 @@ abstract IdentityOperator{D1,D2} <: DiagonalOperator{D1,D2}
 
 import Base:
   *,
+  .*,
   A_mul_B!,
   Ac_mul_B!,
   transpose,
@@ -25,6 +26,8 @@ function *{D1,D2}(A::LinearOperator{D1,D2},b::AbstractArray)
 	A_mul_B!(y,A,b)
 	return y
 end
+
+.*(A::LinearOperator,b) = A*b
 
 include("operators/utils.jl")
 include("operators/Affine.jl")
@@ -49,6 +52,7 @@ end
 
 fun_name(  f) = "n/a"
 fun_dom(   f) = "n/a"
+fun_par(   f) = "n/a"
 
 fun_dom{D1<:Complex, D2<:Real   }(A::LinearOperator{D1,D2}) = "ℂ^$(size(A,1)) →  ℝ^$(size(A,2))"
 fun_dom{D1<:Complex, D2<:Complex}(A::LinearOperator{D1,D2}) = "ℂ^$(size(A,1)) →  ℂ^$(size(A,2))"
@@ -67,6 +71,8 @@ isAbsorbable(A::LinearOperator) = typeof(A) <: DiagonalOperator
 
 isInvertable(A::AffineOperator) = isInvertable(A.A) 
 isInvertable(A::LinearOperator) = false
+
+inv(A::Affine) = inv(A.A)
 
 ==(A::Affine        , B::Affine        ) = A.A == B.A 
 ==(A::Affine        , B::LinearOperator) = A.A ==   B 

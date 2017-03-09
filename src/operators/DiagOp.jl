@@ -6,7 +6,7 @@ end
 size(A::DiagOp) = (size(A.x),size(A.x))
 
 diagop{D1,D2}(x::OptVar{D1}, d::AbstractArray{D2}) = DiagOp{D1,D2}(x,d)
-diagop{D1,T<:Number}(x::OptVar{D1}, d::T) = DiagOp{D1,D1}(x,d)
+diagop{D1,T<:Real}(x::OptVar{D1}, d::T) = DiagOp{D1,D1}(x,d)
 diagop{D1,T<:Complex}(x::OptVar{D1}, d::T) = DiagOp{D1,Complex{Float64}}(x,d)
 
 function A_mul_B!(y::AbstractArray,A::DiagOp,b::AbstractArray)
@@ -24,8 +24,10 @@ fun_name(A::DiagOp)  = "Diagonal Operator"
 
 diagop(B::LinearOperator, args...) = NestedLinearOperator(diagop,B, args...)
 *(d::Union{Float64,Complex{Float64}}, B::LinearOperator) = NestedLinearOperator(diagop, B, d)
-*{D1,T<:Number}(d::T, x::OptVar{D1})  = DiagOp{D1,D1}(x,d)
+*{D1,T<:Real}(d::T, x::OptVar{D1})  = DiagOp{D1,D1}(x,d)
 *{D1,T<:Complex}(d::T, x::OptVar{D1}) = DiagOp{D1,Complex{Float64}}(x,d)
+.*{D1,T<:Complex}(d::Array{T}, x::OptVar{D1}) = DiagOp{D1,Complex{Float64}}(x,d)
+.*{D1,T<:Real}(d::Array{T}, x::OptVar{D1}) = DiagOp{D1,D1}(x,d)
 
 isInvertable(A::DiagOp) = true
 

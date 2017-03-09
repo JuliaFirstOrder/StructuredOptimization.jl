@@ -13,6 +13,8 @@ end
 
 fun_name(S::VCAT) = "Vertically Concatenated Operators"
 
+vcat(A::LinearOperator) = A
+
 function vcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}, sign::Array{Bool} )
 	if size(A,1) != size(B,1) DimensionMismatch("operators must share codomain!") end
 	mid = Array{D3}(size(B,1))
@@ -43,6 +45,8 @@ function *{D2}(A::VCAT{D2},b::AbstractArray)
 	A_mul_B!(y,A,b)
 	return y
 end
+
+.*{D3}(A::VCAT{D3},B::VCAT{D3})  = VCAT{D3}(A.x, A.A.*B.A, A.mid, A.sign.*B.sign)
 
 function A_mul_B!{T1<:AbstractArray}(y::Array{T1,1}, S::VCAT, b::AbstractArray) 
 	for i = 1:length(S.A)

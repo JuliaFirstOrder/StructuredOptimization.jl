@@ -16,6 +16,9 @@ end
 *(A::LinearOperator, B::LinearOperator) = NestedLinearOperator(A,B) 
 *{E<:IdentityOperator}(A::E, B::LinearOperator) = B
 
+.*(A::LinearOperator, B::LinearOperator) = NestedLinearOperator(A,B) 
+.*{E<:IdentityOperator}(A::E, B::LinearOperator) = B
+
 NestedLinearOperator{D1,Dm,D2}(A::LinearOperator{Dm,D2}, B::LinearOperator{D1,Dm}, mid::AbstractArray{Dm}) = 
 NestedLinearOperator{D1,D2}(B.x, A, B, mid, (size(B,1),size(A,2)))
 

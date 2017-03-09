@@ -19,14 +19,14 @@ function +(cf::CostFunction, g::OptTerm)
 	return cf
 end
 
-#returns the number of blocks of variables
-function blkLength(h::OptTerm)
-	blkLength(h.A.x)
-end
-
 operator(h::OptTerm) = h.A
 variable(h::OptTerm) = h.A.x
 
+function Base.show(io::IO, f::OptTerm)
+  println(io, "description : ", fun_name(f))
+  println(io, "operator    : ", fun_name(f.A))
+  println(io, "parameters  : ", fun_par(f))
+end
 
 
 

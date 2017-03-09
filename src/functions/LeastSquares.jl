@@ -1,3 +1,5 @@
+export ls
+
 type LeastSquares{T <: AffineOperator} <: SmoothTerm
 	A::T
 	lambda::Number
@@ -12,4 +14,6 @@ end
 
 *(lambda::Number, T::LeastSquares) = LeastSquares(T.A,lambda)
 
-export ls
+fun_name(T::LeastSquares) = " λ/2 ‖⋅‖² "
+fun_par(T::LeastSquares) = " λ = $(round(T.lambda,3)) "
+
