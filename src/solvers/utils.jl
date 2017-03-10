@@ -74,15 +74,3 @@ deepvecnorm(x::AbstractArray) = sqrt(deepvecdot(x, x))
 
 deepvecnorm{T <: Number}(x::AbstractArray{T}) = vecnorm(x)
 
-# To print out solver objects
-
-function Base.show(io::IO, slv::ForwardBackwardSolver)
-  println(io, slv.name)
-  println(io, "iterations : $(slv.it) / $(slv.maxit)")
-  println(io, "fpr        : $(slv.normfpr)")
-  println(io, "cost       : $(slv.cost)")
-  println(io, "γ          : $(slv.gamma)")
-  println(io, "time       : $(slv.time)")
-  println(io, "prox   eval: $(slv.cnt_prox)")
-  println(io, "matvec eval: $(slv.cnt_matvec)")
-end

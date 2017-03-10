@@ -11,6 +11,19 @@ include("solvers/zerofpr.jl")
 
 include("solvers/utils.jl")
 
+# To print out solver objects
+
+function Base.show(io::IO, slv::ForwardBackwardSolver)
+	println(io, fun_name(slv) )
+	println(io, "iterations : $(slv.it) / $(slv.maxit)")
+	println(io, "fpr        : $(slv.normfpr)")
+	println(io, "cost       : $(slv.cost)")
+	println(io, "γ          : $(slv.gamma)")
+	println(io, "time       : $(slv.time)")
+	println(io, "prox   eval: $(slv.cnt_prox)")
+	println(io, "matvec eval: $(slv.cnt_matvec)")
+end
+
 export solve, solve!
 
 solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction) =
@@ -22,7 +35,7 @@ solve(A, b, g, x0, ZeroFPR() )
 function solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction, x0::AbstractArray, args...) 
 	x = OptVar(deepcopy(x0))
 	L = A*x+b
-	solve!(L, g, args...)
+	solve(L, g, args...)
 end
 
 #
@@ -39,8 +52,9 @@ function solve{T <: AffineOperator, S<:Solver}(A::T, g::ProximableFunction, slv:
 	x0 = copy(optArray(A))
 	slv2 = copy(slv) 
 	x, slv2 = solve!(A, g, slv2)
+	x_out = copy(x)
 	optArray!(A,x0)
-	return x, slv2
+	return x_out, slv2
 end
 
 solve!{T <: AffineOperator}(A::T, args...) = solve!(optArray(A), A, args...)

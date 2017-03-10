@@ -2,7 +2,7 @@ abstract OptTerm
 abstract SmoothTerm    <: OptTerm
 abstract NonSmoothTerm <: OptTerm
 
-include("functions/get_prox.jl")
+include("functions/absorb_merge.jl")
 include("functions/LeastSquares.jl")
 include("functions/HingeLoss.jl")
 include("functions/Norm.jl")

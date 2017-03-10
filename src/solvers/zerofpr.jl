@@ -11,10 +11,11 @@ type ZeroFPR <: ForwardBackwardSolver
 	cost::Float64
 	time::Float64
 	linesearch::Bool
-	name::AbstractString
 	cnt_matvec::Int
 	cnt_prox::Int
 end
+
+fun_name(S::ZeroFPR) = "ZeroFPR" 
 
 """
 # Zero Fixed Point Residual Solver
@@ -66,7 +67,7 @@ ZeroFPR(tol,
 	mem,
 	halt,
 	gamma,
-        0, Inf, Inf, NaN, linesearch, "ZeroFPR", 0, 0)
+        0, Inf, Inf, NaN, linesearch, 0, 0)
 
 
 function solve!{T <: AffineOperator,
@@ -219,6 +220,5 @@ copy(slv::ZeroFPR) = ZeroFPR(copy(slv.tol),
 			     copy(slv.cost),
 			     copy(slv.time),
 			     copy(slv.linesearch),
-			     slv.name,
 			     copy(slv.cnt_matvec),
 			     copy(slv.cnt_prox))

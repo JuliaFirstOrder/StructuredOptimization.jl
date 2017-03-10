@@ -1,4 +1,4 @@
-export minimize, minimize!
+export minimize #, minimize!
 
 include("problems/split.jl")
 include("problems/primal.jl")
@@ -14,24 +14,23 @@ function minimize{T<:OptTerm}(cf::CostFunction, cstr::Array{T,1}, slv::Solver = 
 	for c in cstr
 		cf += c
 	end
-	g, smooth, nonsmooth = split(cf::CostFunction)
+	g, smooth, nonsmooth = split(cf)
 	if length(g) >  1 
 		error("problem not supported") 
-	end
-	if isempty(g) 
+	elseif isempty(g) 
 		if isempty(smooth)
 			error("only non smooth terms are present we should smooth a term")   
 			# here we should have the call problem(nonsmooth)
 		else
 			push!(g,pop!(smooth))
+			# choose one of the smooth functions as g
 		end
 	end 
 	if isempty(nonsmooth)
 		P = problem(g[1], smooth) 
 	else
-		P = problem(g[1], smooth, nonsmooth) # if fi[1] <: SmoothTerm creates Primal else Dual
+		P = problem(g[1], smooth, nonsmooth)
 	end
-	                                      # in Dual if errors call problem(nonsmooth)
 	solve(P,slv)
 end
 

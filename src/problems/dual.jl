@@ -8,7 +8,7 @@ end
 
 function problem{T<:NonSmoothTerm}(g::T, smooth::Array{OptTerm,1})
 
-	x = g.A.x        #extract variables
+	x = variable(g)        #extract variables
 	# TODO check that length(smooth) == number of blocks of variables
 	y = g.A*optArray(g.A)     #create dual variables
 
@@ -62,6 +62,7 @@ function get_Ainv!(Ainv::Array{LinearOperator,1}, x::Array{OptVar,1}, s::LeastSq
 end
 
 function get_cjprox{T<:NonSmoothTerm}(g::T, b2::AbstractArray)
+	#is precompose really needed?
 	Tilt(Precompose(Conjugate(get_prox(g)),-1,0), b2, 0.0)
 end
 

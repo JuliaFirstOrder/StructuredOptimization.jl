@@ -15,7 +15,7 @@ x = OptVar(zeros(n))
 minimize(ls(x-randn(n))+1e-2*norm(x,1), slv)
 
 x = OptVar(zeros(n))
-X, = minimize(ls(A*x-randn(m)), [norm(x,1) <= 1/1e-2], slv)
+X, = minimize(ls(A*x-randn(m)), [norm(5.0*x,1) <= 1/1e-2], slv)
 @test norm(X,1) <= 1/1e-2
 
 x = OptVar(zeros(n))
@@ -53,7 +53,7 @@ X, = minimize(ls(A*x+y)+1e-3*ls(x), [norm(x,2)<=1e2, (y-b) in [-1e-2,1e-2]], slv
 @test any(-1e-2-1e-8 .<= (X[2]-b) .<= 1e-2+1e-8)
 @test norm(X[1],2)<= 1e2
 
-X, = minimize(ls(A*x+y)+1e-3*ls(5*x-randn(n)), [norm(5*x,2)<=1e2, (y-b) in [-1e-2,1e-2]], slv)
+X, = minimize(ls(A*x+y)+1e-3*ls(5.0*x-randn(n)), [norm(5.0*x,2)<=1e2, (y-b) in [-1e-2,1e-2]], slv)
 
 @test any(-1e-2-1e-8 .<= (X[2]-b) .<= 1e-2+1e-8)
 @test norm(5*X[1],2)<= 1e2

@@ -10,10 +10,11 @@ type PG <: ForwardBackwardSolver
 	time::Float64
 	linesearch::Bool
 	fast::Bool
-	name::AbstractString
 	cnt_matvec::Int
 	cnt_prox::Int
 end
+
+fun_name(S::PG) = S.fast ? "Fast Proximal Gradient" : "Proximal Gradient"
 
 """
 # Proximal Gradient Solver
@@ -48,7 +49,6 @@ end
 * `linesearch::Bool=true`: activates linesearch on stepsize γ
 * `fast::Bool=true`: switches between proximal gradient and fast proximal gradient
 """
-
 PG(; tol::Float64 = 1e-8,
       maxit::Int64 = 10000,
       verbose::Int64 = 1,
@@ -56,7 +56,7 @@ PG(; tol::Float64 = 1e-8,
       linesearch::Bool = true,
 			fast::Bool = false,
       gamma::Float64 = Inf) =
-	PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, fast, fast ? "Fast Proximal Gradient" : "Proximal Gradient", 0, 0)
+	PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, fast, 0, 0)
 
 # alias for fast = true
 FPG(; tol::Float64 = 1e-8,
@@ -171,6 +171,5 @@ copy(slv::PG) = PG(copy(slv.tol),
 	           copy(slv.time),
 	           copy(slv.linesearch),
 	           copy(slv.fast),
-	           slv.name,
 	           copy(slv.cnt_matvec),
 	           copy(slv.cnt_prox))
