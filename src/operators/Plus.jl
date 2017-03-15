@@ -1,23 +1,23 @@
 import Base: +, -
 
 immutable SumSameVar{D1,D2} <: LinearOperator{D1,D2}
-	x::OptVar
 	A::LinearOperator
 	B::LinearOperator
 	mid::AbstractArray
 	sign::Bool
 end
 size(A::SumSameVar) = size(A.A)
+variable(A::SumSameVar) = variable(A.A)
 
-function SumSameVar{D1,D2}(x::OptVar,A::LinearOperator{D1,D2},B::LinearOperator{D1,D2}, sign::Bool) 
+function SumSameVar{D1,D2}(A::LinearOperator{D1,D2},B::LinearOperator{D1,D2}, sign::Bool) 
 	mid = Array{D2}(size(A,2))
-	return SumSameVar{D1,D2}(A.x,A,B,mid,sign)
+	return SumSameVar{D1,D2}(A,B,mid,sign)
 end
 
 fun_name(S::SumSameVar) = ((typeof(S.A) <: SumSameVar) == false ) ? 
 fun_name(S.A)*(S.sign ? " + " : " - ")*fun_name(S.B) : "Sum of Linear Operators"
 
-transpose{D1,D2}(S::SumSameVar{D1,D2}) = SumSameVar(S.x,S.A',S.B',S.sign)
+transpose{D1,D2}(S::SumSameVar{D1,D2}) = SumSameVar(S.A',S.B',S.sign)
 
 function A_mul_B!(y::AbstractArray,S::SumSameVar,b::AbstractArray) 
 	A_mul_B!(S.mid,S.A,b)
@@ -33,14 +33,15 @@ end
 -(A::LinearOperator, x::OptVar  ) = A-eye(x)
 -(x::OptVar,   A::LinearOperator) = eye(x)-A
 -(x::OptVar,   y::OptVar  ) = eye(x)-eye(y)
--{D1,D2}(A::LinearOperator{D1,D2}) = Empty{D1,D2}(A.x)-A #trick to accept -A
+-{D1,D2}(A::LinearOperator{D1,D2}) = emptyop(A)-A #trick to accept -A
 
 
 function unsigned_sum{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}, sign::Bool) 
-	if A.x == B.x
+	if variable(A) == variable(B)
 		if size(A) == size(B) 
-			return SumSameVar(A.x,A,B,sign)
+			return SumSameVar(A,B,sign)
 		else
+			println("ciaooooooo")
 			DimensionMismatch("cannot sum operator of size $(size(A)) with operator of size$(size(B))")
 		end
 	else
@@ -53,15 +54,14 @@ end
 
 function unsigned_sum{D1,D3}(A::HCAT{D3},B::LinearOperator{D1,D3}, sign::Bool)
 	if size(A,2) != size(B,2) DimensionMismatch("Operators must share codomain") end
-	if any(A.x .== B.x)
+	if any(variable(A) .== variable(B))
 		for i = 1:length(A.A)
-			if A.x[i] == B.x
+			if variable(A)[i] == variable(B)
 				sign ? A.A[i] = A.A[i] + B : A.A[i] = A.A[i] - B
 				break
 			end
 		end
 	else
-		push!(A.x,B.x)
 		push!(A.A,B)
 		push!(A.sign,sign)
 	end

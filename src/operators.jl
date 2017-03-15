@@ -19,6 +19,10 @@ size(A::LinearOperator, i::Int64) = size(A)[i]
 ndims(A::LinearOperator) = (length(size(A,1)),length(size(A,2)))
 ndims(A::LinearOperator, i::Int64) = length(size(A,i))
 
+export variable
+
+variable(A::LinearOperator) = A.x
+
 Ac_mul_B!(y::AbstractArray,A::LinearOperator,b::AbstractArray)  = A_mul_B!(y, A',b)
 
 function *{D1,D2}(A::LinearOperator{D1,D2},b::AbstractArray)

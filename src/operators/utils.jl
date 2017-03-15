@@ -1,25 +1,25 @@
 function optArray{T<:AffineOperator}(A::T) 
-	if typeof(A.x) <: OptVar 
-		return A.x.x 
+	if typeof(variable(A)) <: OptVar 
+		return variable(A).x 
 	else
-		if length(A.x) == 1 
-			return A.x[1].x
+		if length(variable(A)) == 1 
+			return variable(A)[1].x
 		else
-			return [A.x[i].x for i = 1:length(A.x)]
+			return [variable(A)[i].x for i = 1:length(variable(A))]
 		end
 	end
 end
 function optArray!{T<:AffineOperator,B <:AbstractArray}(A::T,x::B)  
-	if typeof(A.x) <: OptVar 
-		copy!(A.x.x, x)  
+	if typeof(variable(A)) <: OptVar 
+		copy!(variable(A).x, x)  
 	else
-		length(A.x) != 1 ? error("something went wrong!") : 
-		copy!(A.x[1].x, x)  
+		length(variable(A)) != 1 ? error("something went wrong!") : 
+		copy!(variable(A)[1].x, x)  
 	end
 end
 function optArray!{T<:AffineOperator,B <:AbstractArray}(A::T,x::Array{B,1}) 
-	for i in eachindex(A.x)
-		copy!(A.x[i].x, x[i])  
+	for i in eachindex(variable(A))
+		copy!(variable(A)[i].x, x[i])  
 	end
 end
 

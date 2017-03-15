@@ -1,11 +1,11 @@
 immutable NestedLinearOperator{D1,D2} <: LinearOperator{D1,D2}
-	x::OptVar
 	A::LinearOperator
 	B::LinearOperator
 	mid::AbstractArray       # memory in the middle of the 2 Op
 	dim::Tuple
 end
 size(A::NestedLinearOperator) = A.dim
+variable(A::NestedLinearOperator) = variable(A.B)
 
 function NestedLinearOperator{D1,Dm}(f::Function,B::LinearOperator{D1,Dm}, args...) 
 	mid = Array{Dm}(size(B,2))
@@ -20,11 +20,11 @@ end
 .*{E<:IdentityOperator}(A::E, B::LinearOperator) = B
 
 NestedLinearOperator{D1,Dm,D2}(A::LinearOperator{Dm,D2}, B::LinearOperator{D1,Dm}, mid::AbstractArray{Dm}) = 
-NestedLinearOperator{D1,D2}(B.x, A, B, mid, (size(B,1),size(A,2)))
+NestedLinearOperator{D1,D2}(A, B, mid, (size(B,1),size(A,2)))
 
 function NestedLinearOperator{D1,Dm,D2}(A::LinearOperator{Dm,D2},B::LinearOperator{D1,Dm})  
 	mid = Array{Dm}(size(B,2))
-	return NestedLinearOperator{D1,D2}(B.x, A, B, mid, (size(B,1),size(A,2)))	
+	return NestedLinearOperator{D1,D2}(A, B, mid, (size(B,1),size(A,2)))	
 end
 
 

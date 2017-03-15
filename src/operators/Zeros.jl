@@ -19,10 +19,13 @@ zeros(B::LinearOperator, args...) = NestedLinearOperator(zeros, B, args...)
 
 immutable Empty{D1,D2} <: LinearOperator{D1,D2}
 	x::OptVar
+	dim::Tuple
 end
-size(A::Empty) = (size(A.x),size(A.x))
+size(A::Empty) = A.dim
 
-transpose{D1,D2}(A::Empty{D1,D2}) = Empty{D2,D1}(A.x)
+emptyop{D1,D2}(A::LinearOperator{D1,D2}) = Empty{D1,D2}(variable(A), size(A))
+
+transpose{D1,D2}(A::Empty{D1,D2}) = Empty{D2,D1}(A.x,(A.dim[2],A.dim[1]))
 
 function A_mul_B!(y::AbstractArray,A::Empty,b::AbstractArray)
 end

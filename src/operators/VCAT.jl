@@ -1,11 +1,12 @@
 import Base: vcat
 
 type VCAT{D3} <: LinearOperator{D3}
-	x::Array{OptVar}
 	A::AbstractArray{LinearOperator}
 	mid::AbstractArray
 	sign::Array{Bool,1}
 end
+
+variable(A::VCAT) = A.A[1].x
 
 function size(A::VCAT)
 	dim1, dim2 = size(A.A[1],2), tuple(size.(A.A)[2]...)  
@@ -18,7 +19,7 @@ vcat(A::LinearOperator) = A
 function vcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}, sign::Array{Bool} )
 	if size(A,1) != size(B,1) DimensionMismatch("operators must share codomain!") end
 	mid = Array{D3}(size(B,1))
-	VCAT{D3}([A.x], [A,B], mid, sign)
+	VCAT{D3}([A,B], mid, sign)
 end
 
 vcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3} ) = vcat(A,B,[true; true])
@@ -35,7 +36,7 @@ function vcat(A::Vararg{Union{LinearOperator,OptVar}})
 	return V
 end
 
-transpose{D3}(A::VCAT{D3}) = HCAT{D3}(A.x, A.A.', A.mid, A.sign)
+transpose{D3}(A::VCAT{D3}) = HCAT{D3}(A.A.', A.mid, A.sign)
 
 function *{D2}(A::VCAT{D2},b::AbstractArray) 
 	y = Array{AbstractArray,1}(length(A.A))
@@ -46,7 +47,7 @@ function *{D2}(A::VCAT{D2},b::AbstractArray)
 	return y
 end
 
-.*{D3}(A::VCAT{D3},B::VCAT{D3})  = VCAT{D3}(A.x, A.A.*B.A, A.mid, A.sign.*B.sign)
+.*{D3}(A::VCAT{D3},B::VCAT{D3})  = VCAT{D3}(A.A.*B.A, A.mid, A.sign.*B.sign)
 
 function A_mul_B!{T1<:AbstractArray}(y::Array{T1,1}, S::VCAT, b::AbstractArray) 
 	for i = 1:length(S.A)

@@ -1,11 +1,12 @@
 import Base: hcat
 
 type HCAT{D3} <: LinearOperator{D3}
-	x::Array{OptVar}
 	A::AbstractArray{LinearOperator}
 	mid::AbstractArray
 	sign::Array{Bool,1}
 end
+
+variable(A::HCAT) = variable.(A.A)
 
 function size(A::HCAT)
 	dim1, dim2 = tuple(size.(A.A)[2]...), size(A.A[1],2)   
@@ -18,7 +19,7 @@ hcat(A::LinearOperator) = A
 function hcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}, sign::Array{Bool} )
 	if size(A,2) != size(B,2) DimensionMismatch("operators must go to same space!") end
 	mid = Array{D3}(size(B,2))
-	HCAT{D3}([A.x,B.x], [A,B], mid, sign)
+	HCAT{D3}([A,B], mid, sign)
 end
 
 hcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3} ) = hcat(A,B,[true; true])
@@ -35,7 +36,7 @@ function hcat(A::Vararg{Union{LinearOperator,OptVar}})
 	return H
 end
 
-transpose{D3}(A::HCAT{D3}) = VCAT{D3}(A.x, A.A.', A.mid, A.sign)
+transpose{D3}(A::HCAT{D3}) = VCAT{D3}(A.A.', A.mid, A.sign)
 
 function *{D3,T1<:AbstractArray}(A::HCAT{D3},b::Array{T1,1}) 
 	y = Array{D3}(size(A,2))
@@ -52,7 +53,7 @@ function .*{D2,T1<:AbstractArray}(A::HCAT{D2},b::Array{T1,1})
 	return y
 end
 
-.*{D3}(A::HCAT{D3},B::HCAT{D3})  = HCAT{D3}(A.x, A.A.*B.A, A.mid, A.sign.*B.sign)
+.*{D3}(A::HCAT{D3},B::HCAT{D3})  = HCAT{D3}(A.A.*B.A, A.mid, A.sign.*B.sign)
 
 #forward
 function A_mul_B!{T1<:AbstractArray}(y::AbstractArray,S::HCAT,b::Array{T1,1}) 
@@ -87,3 +88,32 @@ end
 
 fun_D1{D1<:Real, D2}(A::LinearOperator{D1,D2},dim::Int64)    =  " ℝ^$(size(A,dim)) "
 fun_D1{D1<:Complex, D2}(A::LinearOperator{D1,D2},dim::Int64) =  " ℂ^$(size(A,dim)) "
+
+import Base: copy, sortperm, sort!, sort, issorted
+#TODO deal with Affine operators
+
+copy{D3}(A::HCAT{D3}) = HCAT{D3}(copy(A.A),A.mid,copy(A.sign))
+
+sortperm(A::HCAT) = sortperm(variable(A), by = object_id)
+sortperm(A::AffineOperator) = false
+
+function sort!(A::HCAT)
+	p = sortperm(A) 
+	A.A .= A.A[p]
+	A.sign .= A.sign[p]
+end
+
+function sort(A::HCAT)
+	A2 = copy(A)
+	sort!(A2)
+	return A2
+end
+
+issorted(A::HCAT) = issorted(sortperm(A))
+
+sort!(A::AffineOperator) = A
+sort(A::AffineOperator)  = A
+issorted(A::AffineOperator) = true
+
+
+
