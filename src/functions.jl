@@ -1,6 +1,7 @@
 abstract OptTerm
-abstract SmoothTerm    <: OptTerm
-abstract NonSmoothTerm <: OptTerm
+abstract SmoothTerm              <: OptTerm
+abstract QuadraticTerm           <: SmoothTerm
+abstract NonSmoothTerm           <: OptTerm
 
 include("functions/absorb_merge.jl")
 include("functions/LeastSquares.jl")

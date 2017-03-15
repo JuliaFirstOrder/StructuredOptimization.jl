@@ -37,11 +37,11 @@ function problem{T<:NonSmoothTerm}(g::T, smooth::Array{OptTerm,1})
 	
 end
 
-function get_b1!(b1::AbstractArray, x::OptVar, s::LeastSquares)
+function get_b1!(b1::AbstractArray, x::OptVar, s::LinearLeastSquares)
 	b1 .= s.A.b
 end
 
-function get_b1!{T<:AbstractArray}(b1::Array{T,1}, x::Array{OptVar,1}, s::LeastSquares)
+function get_b1!{T<:AbstractArray}(b1::Array{T,1}, x::Array{OptVar,1}, s::LinearLeastSquares)
 	for i in eachindex(x)
 		if s.A.x == x[i]
 			b1[i] .= s.A.b
@@ -49,11 +49,11 @@ function get_b1!{T<:AbstractArray}(b1::Array{T,1}, x::Array{OptVar,1}, s::LeastS
 	end
 end
 
-function get_Ainv!(Ainv::Array{LinearOperator,1}, x::OptVar, s::LeastSquares)
+function get_Ainv!(Ainv::Array{LinearOperator,1}, x::OptVar, s::LinearLeastSquares)
 	Ainv[1] = inv(s.A)
 end
 
-function get_Ainv!(Ainv::Array{LinearOperator,1}, x::Array{OptVar,1}, s::LeastSquares)
+function get_Ainv!(Ainv::Array{LinearOperator,1}, x::Array{OptVar,1}, s::LinearLeastSquares)
 	for i in eachindex(x)
 		if s.A.x == x[i]
 			Ainv[i] = inv(s.A)

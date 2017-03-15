@@ -1,19 +1,19 @@
 export ls
 
-type LeastSquares{T <: AffineOperator} <: SmoothTerm
+type LinearLeastSquares{T <: AffineOperator} <: QuadraticTerm
 	A::T
 	lambda::Number
 end
 
-ls{T <: AffineOperator}(A::T) = LeastSquares(A,1)
-ls(x::OptVar) = LeastSquares(eye(x),1)
+ls{T <: AffineOperator}(A::T) = LinearLeastSquares(A,1)
+ls(x::OptVar) = LinearLeastSquares(eye(x),1)
 
-function get_prox(T::LeastSquares)
+function get_prox(T::LinearLeastSquares)
 	return ProximalOperators.SqrNormL2(T.lambda)
 end
 
-*(lambda::Number, T::LeastSquares) = LeastSquares(T.A,lambda)
+*(lambda::Number, T::LinearLeastSquares) = LinearLeastSquares(T.A,lambda)
 
-fun_name(T::LeastSquares) = " λ/2 ‖⋅‖² "
-fun_par(T::LeastSquares) = " λ = $(round(T.lambda,3)) "
+fun_name(T::LinearLeastSquares) = " λ/2 ‖⋅‖² "
+fun_par(T::LinearLeastSquares)  = " λ = $(round(T.lambda,3)) "
 
