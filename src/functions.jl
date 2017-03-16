@@ -10,7 +10,7 @@ include("functions/HingeLoss.jl")
 include("functions/Norm.jl")
 include("functions/Box.jl")
 
-operator(h::OptTerm) = h.A
+operator(h::OptTerm) = typeof(h.A) <: Affine ? h.A.A : h.A
 variable(h::OptTerm) = variable(h.A)
 variable(cf::CostFunction) = cf.x
 

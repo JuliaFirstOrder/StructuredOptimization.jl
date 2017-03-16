@@ -90,12 +90,13 @@ fun_D1{D1<:Real, D2}(A::LinearOperator{D1,D2},dim::Int64)    =  " ℝ^$(size(A,d
 fun_D1{D1<:Complex, D2}(A::LinearOperator{D1,D2},dim::Int64) =  " ℂ^$(size(A,dim)) "
 
 import Base: copy, sortperm, sort!, sort, issorted
-#TODO deal with Affine operators
 
 copy{D3}(A::HCAT{D3}) = HCAT{D3}(copy(A.A),A.mid,copy(A.sign))
 
 sortperm(A::HCAT) = sortperm(variable(A), by = object_id)
-sortperm(A::AffineOperator) = false
+sortperm(A::LinearOperator) = false
+
+sortperm(A::Affine) = sortperm(A.A) 
 
 function sort!(A::HCAT)
 	p = sortperm(A) 
@@ -109,11 +110,23 @@ function sort(A::HCAT)
 	return A2
 end
 
+function sort(A::Affine)
+	p = sortperm(A)
+	if p == false 
+		return A
+	else #it's HCAT
+		A2 = sort(A.A)
+		return A2+A.b
+	end
+end
+
 issorted(A::HCAT) = issorted(sortperm(A))
 
-sort!(A::AffineOperator) = A
-sort(A::AffineOperator)  = A
-issorted(A::AffineOperator) = true
+sort!(A::LinearOperator) = nothing
+sort!(A::Affine) = sort!(A.A)
+sort(A::LinearOperator)  = A
+issorted(A::LinearOperator) = true
+issorted(A::Affine) = issorted(A.A)
 
 
 

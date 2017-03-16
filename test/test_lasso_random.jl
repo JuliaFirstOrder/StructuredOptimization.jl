@@ -15,11 +15,14 @@ x_star, ~ = solve(A, b, g, x0, ZeroFPR(verbose = 0))
 @time x_ista,  slv =  solve(A, b, g, x0, PG(verbose = verb, tol = tol, maxit = 100000))
 @test slv.it < slv.maxit
 @test norm(x_ista-x_star, Inf)/norm(x_star, Inf) <= tol_test
+show(slv)
 
 @time x_fista, slv = solve(A, b, g, x0, FPG(verbose = verb, tol = tol))
 @test slv.it < slv.maxit
 @test norm(x_fista-x_star, Inf)/norm(x_star, Inf) <= tol_test
+show(slv)
 
 @time x_zerofpr, slv = solve(A, b, g, x0, ZeroFPR(verbose = verb, tol = tol))
 @test slv.it < slv.maxit
 @test norm(x_zerofpr-x_star, Inf)/norm(x_star, Inf) <= tol_test
+show(slv)

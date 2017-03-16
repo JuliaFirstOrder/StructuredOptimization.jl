@@ -70,25 +70,22 @@ ZeroFPR(tol,
         0, Inf, Inf, NaN, linesearch, 0, 0)
 
 
-function solve!{T <: AffineOperator,
+function solve!{T <: SmoothTerm,
 		R<:AbstractArray
 		}(x::R, A::T, g::ProximableFunction, slv::ZeroFPR)
 
 	tic()
 
-	At = A'
-
 	LBFGS = lbfgs(x,slv.mem)
 	beta = 0.05
 
-	resx = A*x
-	fx = 0.5*deepvecnorm(resx)^2
-	gradx = At*resx
+	resx, fx = evaluate(A,x)
+	gradx    = gradient(A,resx)
 	slv.cnt_matvec += 2
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps  = A*(x+sqrt(eps()))
-		gradx_eps = At*(resx_eps)
+		resx_eps, = evaluate(A,x+sqrt(eps()))
+		gradx_eps = gradient(A,resx_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = (1-beta)/Lf
@@ -124,9 +121,8 @@ function solve!{T <: AffineOperator,
 		if slv.halt(slv, normfpr0, FBEx, FBEprev) break end
 		FBEprev = FBEx
 
-		A_mul_B!(resxbar,A,xbar)
+		fxbar = evaluate!(resxbar,A,xbar)
 		slv.cnt_matvec += 1
-		fxbar = 0.5*deepvecnorm(resxbar)^2
 
 		# line search on gamma
 		if slv.linesearch == true
@@ -140,9 +136,8 @@ function solve!{T <: AffineOperator,
 				slv.cnt_prox += 1
 				r .= (-).(x, xbar)
 				slv.normfpr = deepvecnorm(r)
-				A_mul_B!(resxbar,A,xbar)
+				fxbar = evaluate!(resxbar,A,xbar)
 				slv.cnt_matvec += 1
-				fxbar = 0.5*deepvecnorm(resxbar)^2
 				uppbnd = fx - real(deepvecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 			end
 		end
@@ -157,7 +152,7 @@ function solve!{T <: AffineOperator,
 		print_status(slv)
 
 		# compute rbar
-		A_mul_B!(gradxbar, At, resxbar)
+		gradient!(gradxbar, A, resxbar)
 		slv.cnt_matvec += 1
 		gradstep .= (*).(-slv.gamma, gradxbar)
 		gradstep .+= xbar
@@ -180,13 +175,13 @@ function solve!{T <: AffineOperator,
 		# line search on tau
 		level = FBEx - sigma*slv.normfpr^2
 		tau = 1.0
-		typeof(A) <: LinearOperator ? A_mul_B!(Ad, A,  d) : A_mul_B!(Ad, A.A,  d)
-		A_mul_B!(ATAd,At, Ad)
+		A_mul_B!(Ad, operator(A),  d)
+		gradient!(ATAd, A, Ad)
 		slv.cnt_matvec += 2
 		for j = 1:32
 			x .= (+).(xbar_prev, (*).(tau,d))
 			resx .= (+).(resxbar, (*).(tau,Ad))
-			fx = 0.5*deepvecnorm(resx)^2
+			fx = A(resx)
 			gradx .= (+).(gradxbar, (*).(tau,ATAd))
 			gradstep .= (*).(-slv.gamma, gradx)
 			gradstep .+= x

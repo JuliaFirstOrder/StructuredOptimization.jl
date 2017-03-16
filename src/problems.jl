@@ -1,6 +1,7 @@
 export minimize #, minimize!
 
 include("problems/split.jl")
+include("problems/mergeProx.jl")
 include("problems/primal.jl")
 include("problems/dual.jl")
 
@@ -16,16 +17,17 @@ function minimize{T<:OptTerm}(cf::CostFunction, cstr::Array{T,1}, slv::Solver = 
 	end
 	nonsmooth, smooth, quadratic, nonsmoothprox = split(cf)
 	# here these are all arrays which should be merged into a single term
+	prm = sortperm(variable(cf),by = object_id)
 	x_sorted = sort(variable(cf),by = object_id)
 	# for example for the nonsmoothprox these are merge in such a way:
-	prox = get_prox(x_sorted,nonsmoothprox) #where prox is a ProximableFunction
+	prox = mergeProx(x_sorted,nonsmoothprox) #where prox is a ProximableFunction
 
 	#merging quadratic is still not done
-	A = sort(quadratic[1].A) #sorted linear operator
-	prm = sortperm(quadratic[1].A) 
+	quad = mergeQuadratic(x_sorted, quadratic)
 
-	x, slv = solve(A, prox, slv) #this should change with the new call to solve
-	if prm == false
+	x, slv = solve(quad, prox, slv) #this should change with the new call to solve
+
+	if prm == [1]
 		return x, slv
 	else
 		x .=x[prm]

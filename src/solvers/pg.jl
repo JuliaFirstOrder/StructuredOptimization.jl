@@ -67,26 +67,23 @@ FPG(; tol::Float64 = 1e-8,
       gamma::Float64 = Inf) =
 	PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
-function solve!{T<:AffineOperator,
+function solve!{T<:SmoothTerm,
 		R<:AbstractArray
 		}(x::R, A::T, g::ProximableFunction, slv::PG)
 
 	tic()
 
-	At = A'
-	# compute least squares residual and f(x)
-	resx = A*x
-	gradx = At*resx
+	resx, fx = evaluate(A,x)
+	gradx    = gradient(A,resx)
 	slv.cnt_matvec += 2
-	fx = 0.5*deepvecnorm(resx)^2
 	fz = fx
 	gz = Inf
 	costprev = Inf
 	normfpr0 = Inf
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps  = A*(x+sqrt(eps()))
-		gradx_eps = At*resx_eps
+		resx_eps, = evaluate(A,x+sqrt(eps()))
+		gradx_eps = gradient(A,resx_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = 1/Lf
@@ -114,9 +111,8 @@ function solve!{T<:AffineOperator,
 			slv.cnt_prox += 1
 			fpr = y-x
 			slv.normfpr = deepvecnorm(fpr)
-			A_mul_B!(resx, A, x)
+			fz = evaluate!(resx, A, x)
 			slv.cnt_matvec += 1
-			fz = 0.5*deepvecnorm(resx)^2
 			if slv.linesearch == false break end
 			uppbnd = fy - real(deepvecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
 			if fz <= uppbnd break end
@@ -141,7 +137,7 @@ function solve!{T<:AffineOperator,
 
 		# compute gradient and f(y)
 		fy = 0.5*deepvecnorm(resy)^2
-		A_mul_B!(grady, At, resy)
+		gradient!(grady,A,resy)
 		slv.cnt_matvec += 1
 
 		# update iterates

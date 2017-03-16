@@ -34,8 +34,7 @@ solve(A, b, g, x0, ZeroFPR() )
 
 function solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction, x0::AbstractArray, args...) 
 	x = OptVar(deepcopy(x0))
-	L = A*x+b
-	solve(L, g, args...)
+	solve(ls(A*x+b), g, args...)
 end
 
 #
@@ -48,14 +47,14 @@ function solve(b::AbstractArray, g::ProximableFunction, A::AbstractArray, args..
 	return -A'*y+b, slv, y
 end
 #new solvers
-function solve{T <: AffineOperator, S<:Solver}(A::T, g::ProximableFunction, slv::S)
-	x0 = copy(optArray(A))
+function solve{T <: QuadraticTerm, S<:Solver}(A::T, g::ProximableFunction, slv::S)
+	x0 = copy(optArray(A.A))
 	slv2 = copy(slv) 
 	x, slv2 = solve!(A, g, slv2)
 	x_out = copy(x)
-	optArray!(A,x0)
+	optArray!(A.A,x0)
 	return x_out, slv2
 end
 
-solve!{T <: AffineOperator}(A::T, args...) = solve!(optArray(A), A, args...)
+solve!{T <: QuadraticTerm}(A::T, args...) = solve!(optArray(A.A), A, args...)
 

@@ -13,16 +13,19 @@ cf = ls(x)+ls(y)+ls(z)
 @test length(variable(cf)) == 3
 cf = ls(x)+ls(x+y)+ls(z)
 @test length(variable(cf)) == 3
-cf = ls(x+y)+ls(z+u)+norm(x,1)+norm(y,2)+norm(z,1)+norm(u)
+cf = ls(x+y)+ls(z+u)+norm(randn(4).*x,1)+norm(y,2)+norm(z,1)+norm(u)
 @test length(variable(cf)) == 4
-cf = ls(randn(4,4)*x+y-randn(4))+norm(x,1)
+	
+nonsmooth, smooth, quadratic, nonsmoothprox = RegLS.split(cf)
+x_sorted = sort(variable(cf),by = object_id)
+	
 
 
 #####test single block of variable
-#println("testing single variable primal")
-#x = OptVar(zeros(5))
-#minimize(ls(fft(x)-fft(randn(5)))+1e-2*norm(x,1), slv)
-#
+println("testing single variable primal")
+x = OptVar(zeros(5))
+minimize(ls(fft(x)-fft(randn(5)))+1e-2*norm(x,1), slv)
+
 n,m = 5,3
 A = randn(m,n)
 x = OptVar(zeros(n))
@@ -31,9 +34,9 @@ minimize(ls(A*x-randn(m))+1e-2*norm(x,1), slv)
 
 x = OptVar(zeros(n))
 minimize(ls(x-b2)+1e-2*norm(x,1), slv)
-
-X, = minimize(ls(A*x-b1), [norm(5.0*x,1) <= 1/1e-2], slv)
-@test norm(X,1) <= 1/1e-2
+#
+#X, = minimize(ls(A*x-b1), [norm(5.0*x,1) <= 1/1e-2], slv)
+#@test norm(X,1) <= 1/1e-2
 #
 #b = [b1,(A\b1)[1:2]]
 #X, = minimize(ls([A*x; x[1:2]]-b), [norm(x,1) <= 1/1e-8], slv)
@@ -47,12 +50,13 @@ X, = minimize(ls(A*x-b1), [norm(5.0*x,1) <= 1/1e-2], slv)
 #
 #println("testing block variables primal")
 #x, y = OptVar(n), OptVar(Complex{Float64},n)
-#X, = minimize(ls(fft(x)+y-fft(randn(n)))+1e-2*norm(x,1), slv)
-
-x, y = OptVar(n), OptVar(m)
-X, = minimize(ls(A*x+y)+1e-2*norm(x,1), norm(y-b1,1) <= 1e-2, slv)
-
-@test (norm(X[2]-b1,1)-1e-2)<1e-8
+#X, = minimize(ls(fft(x)+y-fft(b2))+1e-7*norm(x,1), slv)
+#@test norm(fft(X[1])+X[2]-fft(b2))<1e-7
+#
+#x, y = OptVar(n), OptVar(m)
+#X, = minimize(ls(A*x+y)+1e-2*norm(x,1), norm(y-b1,1) <= 1e-2, slv)
+#
+#@test (norm(X[2]-b1,1)-1e-2)<1e-8
 #
 #X, = minimize(ls(A*x+y), [norm(x,2)<=1e2, norm(2*y-b1,1) <= 1e-2], slv)
 #
