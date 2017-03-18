@@ -2,6 +2,7 @@ export minimize #, minimize!
 
 include("problems/split.jl")
 include("problems/mergeProx.jl")
+include("problems/mergeSmooth.jl")
 include("problems/primal.jl")
 include("problems/dual.jl")
 
@@ -23,7 +24,7 @@ function minimize{T<:OptTerm}(cf::CostFunction, cstr::Array{T,1}, slv::Solver = 
 	prox = mergeProx(x_sorted,nonsmoothprox) #where prox is a ProximableFunction
 
 	#merging quadratic is still not done
-	quad = mergeQuadratic(x_sorted, quadratic)
+	quad = mergeSmooth(x_sorted, quadratic)
 
 	x, slv = solve(quad, prox, slv) #this should change with the new call to solve
 

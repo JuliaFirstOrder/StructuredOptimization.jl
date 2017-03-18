@@ -22,12 +22,6 @@ end
 fun_name(T::LinearLeastSquares) = " λ/2 ‖⋅‖² "
 fun_par(T::LinearLeastSquares)  = " λ = $(round(T.lambda,3)) "
 
-function mergeQuadratic{T<:QuadraticTerm}(x::Array{OptVar,1}, quadratic::Array{T,1})
-	if length(quadratic) == 1
-		sort!(quadratic[1].A)
-		return quadratic[1]
-	end
-end
 
 function gradient!(grad::AbstractArray, t::LinearLeastSquares, x::AbstractArray)
 	A_mul_B!(grad,t.At,x)

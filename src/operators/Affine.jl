@@ -1,33 +1,37 @@
 import Base: +, -
 
-immutable Affine{Op<:LinearOperator } <: AffineOperator
-	A::Op
-	b::AbstractArray
+immutable Affine{D2} <: AffineOperator
+	x::Vector{OptVar}
+	A::LinearOperator
+	b::Vector{Nullable{AbstractArray}}
 end
 variable(A::Affine) = variable(A.A)
 
 fun_name(A::Affine) = "Affine "*fun_name(A.A)
 fun_dom(A::Affine)  = fun_dom(A.A)
 
-+(A::LinearOperator,b::AbstractArray) = Affine(A, b)
--(A::LinearOperator,b::AbstractArray) = Affine(A,-b)
-+(b::AbstractArray, A::LinearOperator) = Affine(A, b)
--(b::AbstractArray, A::LinearOperator) = Affine(-A, b)
++(A::Affine,b::AbstractArray)  =  
+(isnull(A.b[1]) ? A.b .= [Nullable( b)] : A.b .= [Nullable(get(A.b)+b)]; return A)
+-(A::Affine,b::AbstractArray)  = 
+(isnull(A.b[1]) ? A.b .= [Nullable(-b)] : A.b .= [Nullable(get(A.b)-b)]; return A)
 
-+(x::OptVar,b::AbstractArray) = Affine(eye(x), b)
--(x::OptVar,b::AbstractArray) = Affine(eye(x),-b)
-+(b::AbstractArray,x::OptVar) = Affine(eye(x), b)
--(b::AbstractArray,x::OptVar) = Affine(-eye(x), b)
++(x::OptVar,b::AbstractArray) = Affine([x],eye(x),[ b])
+-(x::OptVar,b::AbstractArray) = Affine([x],eye(x),[-b])
++(b::AbstractArray,x::OptVar) = Affine([x],eye(x),[ b])
+-(b::AbstractArray,x::OptVar) = Affine([x],-eye(x),[ b])
 
-function A_mul_B!(y::AbstractArray, A::Affine, x::AbstractArray) 
+function evaluate!(y::AbstractArray, A::Affine, x::AbstractArray) 
 	A_mul_B!(y,A.A,x)
-	y .+= A.b 
+	isnull(A.b[1]) ? nothing : y .+= get(A.b[1])
 end
 
-function *(A::Affine,x::AbstractArray) 
-	y1  = A.A*x
-	y1 .+= A.b 
+function (A::Affine{D2}){D2}(x::AbstractArray) 
+	y = Array{D2}(size(A.A,2))
+	evaluate!(y,A,x)
+	return y
 end
 
-transpose(A::Affine) = A.A'
-
+function Base.show{Op <: AffineOperator }(io::IO, f::Op)
+  println(io, "description : ", fun_name(f))
+  println(io, "domain      : ", fun_dom(f))
+end

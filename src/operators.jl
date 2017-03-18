@@ -1,5 +1,5 @@
 abstract AffineOperator
-abstract LinearOperator{D1,D2} <: AffineOperator
+abstract LinearOperator{D1,D2} 
 abstract DiagonalOperator{D1,D2} <: LinearOperator{D1,D2}
 abstract IdentityOperator{D1,D2} <: DiagonalOperator{D1,D2}
 #abstract DiagonalOp <: DiagGramOp
@@ -50,7 +50,7 @@ include("operators/VCAT.jl")
 include("operators/Plus.jl")
 include("operators/LBFGS.jl")
 
-function Base.show{Op <: AffineOperator }(io::IO, f::Op)
+function Base.show{Op <: LinearOperator }(io::IO, f::Op)
   println(io, "description : ", fun_name(f))
   println(io, "domain      : ", fun_dom(f))
 end
