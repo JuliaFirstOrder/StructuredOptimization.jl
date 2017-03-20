@@ -12,12 +12,12 @@ N = 15 # number of steps
 mem = 5;
 
 x = zeros(n)
-A = lbfgs(x,mem)
+A = LBFGS(x,mem)
 show(A)
 nh = round(Int64,n/2)
 x2 = [zeros(nh),zeros(nh)]
 
-A2 = lbfgs(x2,mem)
+A2 = LBFGS(x2,mem)
 #show(A2)
 
 x_old = 0;

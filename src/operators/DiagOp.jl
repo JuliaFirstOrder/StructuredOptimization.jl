@@ -1,13 +1,22 @@
+export diagop, DiagOp
 
 immutable DiagOp{D1,D2} <: DiagonalOperator{D1,D2}
-	x::OptVar
 	d::Union{AbstractArray{D1}, Number}
+	dim::Tuple
 end
-size(A::DiagOp) = (size(A.x),size(A.x))
+size(A::DiagOp) = (A.dim,A.dim)
 
-diagop{D1,D2}(x::OptVar{D1}, d::AbstractArray{D2}) = DiagOp{D1,D2}(x,d)
-diagop{D1,T<:Real}(x::OptVar{D1}, d::T) = DiagOp{D1,D1}(x,d)
-diagop{D1,T<:Complex}(x::OptVar{D1}, d::T) = DiagOp{D1,Complex{Float64}}(x,d)
+DiagOp{D2}(T::Type, d::AbstractArray{D2}, dim...) = DiagOp{T,D2}(d, dim)
+
+DiagOp(T::Type, d::Real , dim...) = DiagOp{T,Float64}(d, dim)
+DiagOp(T::Type, d::Complex, dim...) = DiagOp{T,Complex{Float64}}(d, dim)
+DiagOp(d, dim...) = DiagOp(Float64, d, dim)
+
+function diagop{D1}(x::OptVar{D1}, d) 
+	A = DiagOp(D1,d, size(x)...)
+	At = A'
+	Affine([x], A, A', Nullable{Vector{AbstractArray}}() )
+end
 
 function A_mul_B!(y::AbstractArray,A::DiagOp,b::AbstractArray)
 	y .= (*).(A.d,b)
@@ -17,18 +26,18 @@ function A_mul_B!{D1<:Complex{Float64},D2<:Float64}(y::AbstractArray,A::DiagOp{D
 	y .= real.((*).(A.d,b))
 end
 
-transpose{D1,D2}(A::DiagOp{D1,D2}) = DiagOp{D2,D1}(A.x,conj(A.d))
-inv{D1,D2}(A::DiagOp{D1,D2})       = DiagOp{D2,D1}(A.x,(A.d).^(-1))
+transpose{D1,D2}(A::DiagOp{D1,D2}) = DiagOp{D2,D1}(conj(A.d),   A.dim)
+inv{D1,D2}(A::DiagOp{D1,D2})       = DiagOp{D2,D1}((A.d).^(-1), A.dim)
 
 fun_name(A::DiagOp)  = "Diagonal Operator"
 
-diagop(B::LinearOperator, args...) = NestedLinearOperator(diagop,B, args...)
-*(d::Union{Float64,Complex{Float64}}, B::LinearOperator) = NestedLinearOperator(diagop, B, d)
-*{D1,T<:Real}(d::T, x::OptVar{D1})  = DiagOp{D1,D1}(x,d)
-*{D1,T<:Complex}(d::T, x::OptVar{D1}) = DiagOp{D1,Complex{Float64}}(x,d)
-.*{D1,T<:Complex}(d::Array{T}, x::OptVar{D1}) = DiagOp{D1,Complex{Float64}}(x,d)
-.*{D1,T<:Real}(d::Array{T}, x::OptVar{D1}) = DiagOp{D1,D1}(x,d)
+diagop(B::AffineOperator, args...) = NestedLinearOperator(diagop,B, args...)
+
+#other constructors with * and .*
+
+*(d::Number, B::AffineOperator) = NestedLinearOperator(diagop, B, d)
+*(d::Number, x::OptVar)  = diagop(x,d)
+.*(d::AbstractArray, x::OptVar) = diagop(x,d)
 
 isInvertable(A::DiagOp) = true
 
-export diagop

@@ -1,164 +1,199 @@
 ##test linear operators
 #
-#stuff = [
-#	 Dict("Operator" => (eye,),
-#              "params" => ((),),
-#	      "args"   => ( randn(400), randn(400) )
-#	     ),
-#	 Dict("Operator" => (diagop,),
-#              "params" => ((randn(2,2)+im*randn(2,2),),),
-#	      "args"   => ( randn(2,2)+im*randn(2,2), randn(2,2)+im*randn(2,2) )
-#	      ),
-#	 Dict("Operator" => (diagop,),
-#              "params" => ((2,),),
-#	      "args"   => ( randn(2,2), randn(2,2) )
-#	      ),
-#	 Dict("Operator" => (diagop,),
-#              "params" => ((2+im*3,),),
-#	      "args"   => ( randn(2,2), (2+im*3)*randn(2,2) )
-#	      ),
-#	 Dict("Operator" => (*,),
-#              "params" => ((randn(4,4)),),
-#	      "args"   => ( randn(4), randn(4) )
-#	      ),
-#	 Dict("Operator" => (conv,),
-#              "params" => (([randn(100)]),),
-#	      "args"   => ( randn(400), randn(400+100-1) )
-#	     ),
-#	 Dict("Operator" => (xcorr,),
-#              "params" => (([ones(100)]),),
-#	      "args"   => ( ones(30), ones(2*100-1) )
-#	     ),
-#	 Dict("Operator" => (*,),
-#              "params" => ((randn(6,2)+im*randn(6,2)),),
-#	      "args"   => ( randn(2)+im*randn(2), randn(6)+im*randn(6) )
-#	      ),
-#	 Dict("Operator" => (*,),
-#              "params" => ((randn(2,6)+im*randn(2,6)),),
-#	      "args"   => ( randn(6)+im*randn(6), randn(2)+im*randn(2) )
-#	      ),
-#	 Dict("Operator" => (getindex,),
-#              "params" => (([1:3]),),
-#	      "args"   => ( randn(6)+im*randn(6), randn(3)+im*randn(3) )
-#	      ),
-#	 Dict("Operator" => (getindex,),
-#              "params" => (([1:3,:]),),
-#	      "args"   => ( randn(4,2)+im*randn(4,2), randn(3,2)+im*randn(3,2) )
-#	      ),
-#	 Dict("Operator" => (getindex,),
-#              "params" => (([1:3]),),
-#	      "args"   => ( randn(4,2)+im*randn(4,2), randn(3)+im*randn(3) )
-#	      ),
-#	 Dict("Operator" => (fft,),
-#              "params" => ((), ),
-#	      "args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
-#	      ),
-#	
-#	 Dict("Operator" => (fft,),
-#              "params" => ((),),
-#	      "args"   => ( randn(64,64), fft(randn(64,64)) )
-#	      ),
-#	
-#	 Dict("Operator" => (ifft,),
-#              "params" => ((), ),
-#	      "args"   => ( randn(64,64), fft(randn(64,64)) )
-#	      ),
-#	
-#	 Dict("Operator" => (ifft,),
-#              "params" => ((), ),
-#	      "args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
-#	      ),
-#	 Dict("Operator" => (dct,),
-#	      "params" => ((), ),
-#	      "args"   => ( randn(64,64), randn(64,64) )
-#	      ),
-#	 Dict("Operator" => (idct,),
-#              "params" => ((), ),
-#	      "args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
-#	      ),
-#	
-#	 Dict("Operator" => (reshape,),
-#              "params" => ((10,10), ),
-#	      "args"   => ( randn(100), randn(10,10) )
-#	      ),
-#	 Dict("Operator" => (*, dct),
-#              "params" => ((randn(32,64)) ,() ),
-#	      "args"   => ( randn(64), randn(32) )
-#	      ),
-#	 Dict("Operator" => (ifft, reshape, dct),
-#              "params" => ((),(10,10),() ),
-#	      "args"   => ( randn(100), dct(reshape(ifft(randn(100)),10,10)) )
-#	      ),
-#	 Dict("Operator" => (dct, getindex, reshape, dct),
-#              "params" => ((),([1:100]),(10,10),() ),
-#	      "args"   => ( randn(120), randn(10,10) )
-#	      ),
-#	 Dict("Operator" => (ifft, getindex),
-#              "params" => ((),([1:20]) ),
-#	      "args"   => ( randn(200)+im*randn(200), randn(20)+im*randn(20) )
-#	      ),
-#	 Dict("Operator" => (ifft, getindex),
-#              "params" => ((),([1:20]) ),
-#	      "args"   => ( randn(10,10)+im*randn(10,10), randn(20)+im*randn(20) )
-#	      ),
-#	 Dict("Operator" => (fft, getindex),
-#              "params" => ((),([1:5]) ),
-#	      "args"   => ( randn(12)+im*randn(12), randn(5)+im*randn(5) )
-#	      ),
-#	 Dict("Operator" => (dct, getindex),
-#              "params" => ((),([1:2,:,2:5]) ),
-#	      "args"   => ( randn(5,5,5)+im*randn(5,5,5), randn(2,5,4)+im*randn(2,5,4) )
-#	      ),
-#	 ]
-#
-#
-#for i in eachindex(stuff)
-#
-#	x,y = deepcopy(stuff[i]["args"])
-#	X,Y = OptVar(x), OptVar(y)
-#
-#	params = stuff[i]["params"][1]
-#	Op     = stuff[i]["Operator"][1]
-#	if Op == * 
-#		A = Op(params,X)
-#	else
-#		A = Op(X, params...)
-#	end
-#	for j = 2:length(stuff[i]["params"])
-#		params = stuff[i]["params"][j]
-#		Op     = stuff[i]["Operator"][j]
-#		if Op == * 
-#			A = Op(params,A)
-#		else
-#			A = Op(A, params...)
-#		end
-#	end
-#	test1,test2 = RegLS.test_FwAdj(A, x, y)
-#	@test test1 < 1e-8
-#	@test test2 < 1e-8
-#	test3 = RegLS.test_Op(A, x, y)
-#	@test test3 < 1e-8
-#
-#end
+stuff = [
+	 Dict("Operator" => (emptyop,),
+              "params" => ((),),
+	      "args"   => ( randn(4), randn(4) )
+	     ),
+	 Dict("Operator" => (zeros,),
+              "params" => ((),),
+	      "args"   => ( randn(4), randn(4) )
+	     ),
+	 Dict("Operator" => (zeros,),
+              "params" => ((2,),),
+	      "args"   => ( randn(4), randn(2) )
+	     ),
+	 Dict("Operator" => (eye,),
+              "params" => ((),),
+	      "args"   => ( randn(4), randn(4) )
+	     ),
+	 Dict("Operator" => (eye,),
+              "params" => ((),),
+	      "args"   => ( randn(2,2,2), randn(2,2,2) )
+	     ),
+	 Dict("Operator" => (diagop,),
+              "params" => ((randn(2,2)+im*randn(2,2),),),
+	      "args"   => ( randn(2,2)+im*randn(2,2), randn(2,2)+im*randn(2,2) )
+	      ),
+	 Dict("Operator" => (diagop,),
+              "params" => ((2,),),
+	      "args"   => ( randn(2,2), randn(2,2) )
+	      ),
+	 Dict("Operator" => (diagop,),
+              "params" => ((2+im*3,),),
+	      "args"   => ( randn(2,2), (2+im*3)*randn(2,2) )
+	      ),
+	 Dict("Operator" => (*,),
+              "params" => ((2+im*3),),
+	      "args"   => ( randn(2,2), (2+im*3)*randn(2,2) )
+	      ),
+	 Dict("Operator" => (.*,),
+              "params" => ((randn(2,2)),),
+	      "args"   => ( randn(2,2), randn(2,2) )
+	      ),
+	 Dict("Operator" => (*,),
+              "params" => ((randn(4,4)),),
+	      "args"   => ( randn(4), randn(4) )
+	      ),
+	 Dict("Operator" => (*,),
+              "params" => ((randn(6,2)+im*randn(6,2)),),
+	      "args"   => ( randn(2)+im*randn(2), randn(6)+im*randn(6) )
+	      ),
+	 Dict("Operator" => (*,),
+              "params" => ((randn(2,6)+im*randn(2,6)),),
+	      "args"   => ( randn(6)+im*randn(6), randn(2)+im*randn(2) )
+	      ),
+	 Dict("Operator" => (getindex,),
+              "params" => (([1:3]),),
+	      "args"   => ( randn(6)+im*randn(6), randn(3)+im*randn(3) )
+	      ),
+	 Dict("Operator" => (getindex,),
+              "params" => (([1:3,:]),),
+	      "args"   => ( randn(4,2)+im*randn(4,2), randn(3,2)+im*randn(3,2) )
+	      ),
+	 Dict("Operator" => (getindex,),
+              "params" => (([1:3]),),
+	      "args"   => ( randn(4,2)+im*randn(4,2), randn(3)+im*randn(3) )
+	      ),
+	 Dict("Operator" => (fft,),
+              "params" => ((), ),
+	      "args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
+	      ),
+	 Dict("Operator" => (fft,),
+              "params" => ((),),
+	      "args"   => ( randn(64,64), fft(randn(64,64)) )
+	      ),
+	 Dict("Operator" => (ifft,),
+              "params" => ((), ),
+	      "args"   => ( randn(64,64), fft(randn(64,64)) )
+	      ),
+	
+	 Dict("Operator" => (ifft,),
+              "params" => ((), ),
+	      "args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
+	      ),
+	 Dict("Operator" => (dct,),
+	      "params" => ((), ),
+	      "args"   => ( randn(64,64), randn(64,64) )
+	      ),
+	 Dict("Operator" => (idct,),
+              "params" => ((), ),
+	      "args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
+	      ),
+	
+	 Dict("Operator" => (reshape,),
+              "params" => ((10,10), ),
+	      "args"   => ( randn(100), randn(10,10) )
+	      ),
+	 Dict("Operator" => (conv,),
+              "params" => (([randn(100)]),),
+	      "args"   => ( randn(400), randn(400+100-1) )
+	     ),
+	 Dict("Operator" => (xcorr,),
+              "params" => (([ones(100)]),),
+	      "args"   => ( ones(30), ones(2*100-1) )
+	     ),
+	 Dict("Operator" => (*, dct),
+              "params" => ((randn(32,64)) ,() ),
+	      "args"   => ( randn(64), randn(32) )
+	      ),
+	 Dict("Operator" => (ifft, reshape, dct),
+              "params" => ((),(10,10),() ),
+	      "args"   => ( randn(100), dct(reshape(ifft(randn(100)),10,10)) )
+	      ),
+	 Dict("Operator" => (dct, getindex, reshape, dct),
+              "params" => ((),([1:100]),(10,10),() ),
+	      "args"   => ( randn(120), randn(10,10) )
+	      ),
+	 Dict("Operator" => (ifft, getindex),
+              "params" => ((),([1:20]) ),
+	      "args"   => ( randn(200)+im*randn(200), randn(20)+im*randn(20) )
+	      ),
+	 Dict("Operator" => (ifft, getindex),
+              "params" => ((),([1:20]) ),
+	      "args"   => ( randn(10,10)+im*randn(10,10), randn(20)+im*randn(20) )
+	      ),
+	 Dict("Operator" => (fft, getindex),
+              "params" => ((),([1:5]) ),
+	      "args"   => ( randn(12)+im*randn(12), randn(5)+im*randn(5) )
+	      ),
+	 Dict("Operator" => (dct, getindex),
+              "params" => ((),([1:2,:,2:5]) ),
+	      "args"   => ( randn(5,5,5)+im*randn(5,5,5), randn(2,5,4)+im*randn(2,5,4) )
+	      ),
+	 ]
+
+
+for i in eachindex(stuff)
+
+	x,y = deepcopy(stuff[i]["args"])
+	X,Y = OptVar(x), OptVar(y)
+
+	params = stuff[i]["params"][1]
+	Op     = stuff[i]["Operator"][1]
+	if (Op == *) || (Op == .*) 
+		A = Op(params,X)
+	else
+		A = Op(X, params...)
+	end
+	for j = 2:length(stuff[i]["params"])
+		params = stuff[i]["params"][j]
+		Op     = stuff[i]["Operator"][j]
+		if Op == * 
+			A = Op(params,A)
+		else
+			A = Op(A, params...)
+		end
+	end
+	test1,test2,test3 = RegLS.test_FwAdj(A, x, y)
+	@test test1 < 1e-8
+	@test test2 < 1e-8
+	@test test3 < 1e-8
+	test4 = RegLS.test_Op(A, x, y)
+	@test test4 < 1e-8
+
+end
 #
 ###### test sum of linear operators
 #
 ##test SumSameVar
-#
-#x1 = ones(3)
-#X1 = OptVar(x1)
-#y = fft(randn(3))
-#x = x1
-#
-#A = -fft(X1)
-#
-#@test norm((A*x)+fft(x)./sqrt(3)) < 1e-8
-#
-#test1,test2 = RegLS.test_FwAdj(A, x, y)
-#@test test1 < 1e-8
-#@test test2 < 1e-8
-#test3 = RegLS.test_Op(A, x, y)
-#@test test3 < 1e-8
+
+x1 = randn(3)
+y1 = randn(3)
+b1 = randn(3)
+M = randn(3,3)
+X1 = OptVar(x1)
+x = x1
+y = y1
+
+A = -M*X1
+@test norm(A(x1)-(-M*x1)) <= 1e-8
+A = b1-M*X1
+@test norm(A(x1)-(b1-M*x1)) <= 1e-8
+A = X1+b1
+@test norm(A(x1)-(b1+x1)) <= 1e-8
+A = X1-b1
+@test norm(A(x1)-(-b1+x1)) <= 1e-8
+A = -X1+b1
+@test norm(A(x1)-(b1-x1)) <= 1e-8
+
+A = -M*X1
+
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
 #
 #x1 = randn(3)
 #X1 = OptVar(x1)
@@ -384,10 +419,5 @@
 #
 #end
 
-x = OptVar(3)
-A = eye(x)+ones(3)
-show(A)
-A = Eye(3)
-show(A)
 
 

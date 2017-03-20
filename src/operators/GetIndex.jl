@@ -1,21 +1,28 @@
 import Base: getindex
 
 immutable GetIndex{D1,D2} <: LinearOperator{D1,D2}
-	x::OptVar
 	idx::Tuple 
 	isTranspose::Bool
 	dim::Tuple
 end
 size(A::GetIndex) = A.dim
 
-getindex{D1}(x::OptVar{D1}, args...) =  GetIndex{D1,D1}(x, args, false, get_size(size(x),args...)) 
-function getindex{D1,D2}(B::LinearOperator{D1,D2}, args...) 
-	A = GetIndex{D2,D2}(B.x, args, false, get_size(size(B,2),args...)) 
-	return NestedLinearOperator(A,B)
+function getindex{D1}(x::OptVar{D1}, args...)   
+	A = GetIndex{D1,D1}(args, false, get_size(size(x),args...))
+	Affine([x], A, A', Nullable{Vector{AbstractArray}}() )
+end
+
+function getindex(B::AffineOperator, args...) 
+	A = GetIndex{domainType(B),codomainType(B)}(args, false, 
+					     get_size(size(operator(B),2),args...)) 
+	N = NestedLinearOperator(A,operator(B))
+	b = Nullable{Vector{AbstractArray}}()
+	isnull(B.b) ? nothing : b = adjoint(A)*get(B.b[1]) 
+	Affine(variable(B),N,N',b)
 end
 fun_name(A::GetIndex) = "Get Index"
 
-transpose{D1}(A::GetIndex{D1,D1}) = GetIndex{D1,D1}(A.x, A.idx,true,(A.dim[2],A.dim[1])) 
+transpose{D1}(A::GetIndex{D1,D1}) = GetIndex{D1,D1}(A.idx,true,(A.dim[2],A.dim[1])) 
 
 function A_mul_B!(y::AbstractArray,A::GetIndex,b::AbstractArray) 
 	if A.isTranspose

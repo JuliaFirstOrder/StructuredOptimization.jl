@@ -39,9 +39,9 @@ mem = 3;
 # col = 0; # last column of Sk, Yk that was filled in
 # currmem = 0;
 # H0 = 1.0
-x = OptVar(zeros(10))
+x = zeros(10)
 
-A = lbfgs(x,mem)
+A = LBFGS(x,mem)
 show(A)
 x_old = 0;
 grad_old = 0;

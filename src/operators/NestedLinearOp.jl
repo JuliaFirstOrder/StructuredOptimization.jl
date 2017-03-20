@@ -4,13 +4,16 @@ immutable NestedLinearOperator{D1,D2} <: LinearOperator{D1,D2}
 	mid::AbstractArray       # memory in the middle of the 2 Op
 	dim::Tuple
 end
-size(A::NestedLinearOperator) = A.dim
-variable(A::NestedLinearOperator) = variable(A.B)
+size(A::NestedLinearOperator) = (A.dim[1], A.dim[2])
 
-function NestedLinearOperator{D1,Dm}(f::Function,B::LinearOperator{D1,Dm}, args...) 
-	mid = Array{Dm}(size(B,2))
+function NestedLinearOperator(f::Function,B::AffineOperator, args...) 
+	mid = Array{codomainType(operator(B))}(size(operator(B),2))
 	(f == *) ? A = f(args[1], OptVar(mid)) : A = f(OptVar(mid), args...)
-	return NestedLinearOperator(A, B, mid)
+	N = NestedLinearOperator(operator(A),operator(B),mid)
+	b = Nullable{Vector{AbstractArray}}()
+	isnull(B.b) ? nothing : b = adjoint(A)*get(B.b) 
+	Affine(variable(B),N,N',b)
+
 end
 
 *(A::LinearOperator, B::LinearOperator) = NestedLinearOperator(A,B) 

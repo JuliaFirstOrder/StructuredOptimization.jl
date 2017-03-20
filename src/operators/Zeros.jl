@@ -1,34 +1,30 @@
 import Base: zeros
+export Zeros
 
 immutable Zeros{D1,D2} <: LinearOperator{D1,D2}
-	x::OptVar
+	dim::Tuple
 end
-size(A::Zeros) = (size(A.x),size(A.x))
+size(A::Zeros) = (A.dim[1],A.dim[2])
 
-zeros{D1}(x::OptVar{D1}) = Zeros{D1,D1}(x) 
+Zeros(dim1::Tuple, dim2::Tuple) = Zeros{Float64,Float64}((dim1,dim2))
+Zeros(T::Type, dim1::Tuple, dim2::Tuple) = Zeros{T,T}((dim1,dim2))
 
-transpose{D1}(A::Zeros{D1,D1} ) = A
+zeros{D1}(x::OptVar{D1}) = Affine([x], Zeros{D1,D1}((size(x),size(x))), 
+				 Zeros{D1,D1}((size(x),size(x))),
+				 Nullable{Vector{AbstractArray}}() )
+
+zeros{D1}(x::OptVar{D1}, dim::Vararg{Int64}) = Affine([x], Zeros{D1,D1}((size(x),dim)), 
+						     Zeros{D1,D1}((dim,size(x))),
+						     Nullable{Vector{AbstractArray}}() )
+
+transpose{D1}(A::Zeros{D1,D1} ) = Zeros{D1,D1}((A.dim[2],A.dim[1]))
 
 function A_mul_B!(y::AbstractArray,A::Zeros,b::AbstractArray)
 	y .= 0
 end
 
-fun_name(A::Zeros)  = "Zeros Operator"
+fun_name(A::Zeros)  = "Zero Operator"
 
-zeros(B::LinearOperator, args...) = NestedLinearOperator(zeros, B, args...)
+zeros(B::AffineOperator, args...) = NestedLinearOperator(zeros, B, args...)
 
-immutable Empty{D1,D2} <: LinearOperator{D1,D2}
-	x::OptVar
-	dim::Tuple
-end
-size(A::Empty) = A.dim
-
-emptyop{D1,D2}(A::LinearOperator{D1,D2}) = Empty{D1,D2}(variable(A), size(A))
-
-transpose{D1,D2}(A::Empty{D1,D2}) = Empty{D2,D1}(A.x,(A.dim[2],A.dim[1]))
-
-function A_mul_B!(y::AbstractArray,A::Empty,b::AbstractArray)
-end
-
-fun_name(A::Empty)  = ""
 

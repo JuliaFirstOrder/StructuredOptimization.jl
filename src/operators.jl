@@ -19,9 +19,8 @@ size(A::LinearOperator, i::Int64) = size(A)[i]
 ndims(A::LinearOperator) = (length(size(A,1)),length(size(A,2)))
 ndims(A::LinearOperator, i::Int64) = length(size(A,i))
 
-export variable
-
-variable(A::LinearOperator) = A.x
+  domainType{D1,D2}(A::LinearOperator{D1,D2}) = D1
+codomainType{D1,D2}(A::LinearOperator{D1,D2}) = D2
 
 Ac_mul_B!(y::AbstractArray,A::LinearOperator,b::AbstractArray)  = A_mul_B!(y, A',b)
 
@@ -33,9 +32,8 @@ end
 
 .*(A::LinearOperator,b) = A*b
 
-include("operators/utils.jl")
 include("operators/Affine.jl")
-include("operators/FullOp.jl")
+include("operators/MatrixOp.jl")
 include("operators/Reshape.jl")
 include("operators/NestedLinearOp.jl")
 include("operators/DFT.jl")
@@ -45,10 +43,12 @@ include("operators/DiagOp.jl")
 include("operators/Eye.jl")
 include("operators/GetIndex.jl")
 include("operators/Zeros.jl")
+include("operators/Empty.jl")
 include("operators/HCAT.jl")
 include("operators/VCAT.jl")
 include("operators/Plus.jl")
 include("operators/LBFGS.jl")
+include("operators/utils.jl")
 
 function Base.show{Op <: LinearOperator }(io::IO, f::Op)
   println(io, "description : ", fun_name(f))
@@ -77,11 +77,6 @@ isAbsorbable(A::LinearOperator) = typeof(A) <: DiagonalOperator
 isInvertable(A::AffineOperator) = isInvertable(A.A) 
 isInvertable(A::LinearOperator) = false
 
-inv(A::Affine) = inv(A.A)
-
-==(A::Affine        , B::Affine        ) = A.A == B.A 
-==(A::Affine        , B::LinearOperator) = A.A ==   B 
-==(A::LinearOperator, B::Affine        ) = A   == B.A 
 
 
 

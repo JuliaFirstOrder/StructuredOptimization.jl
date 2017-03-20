@@ -1,24 +1,33 @@
 import Base: dct, idct
+export DCT, IDCT
 
 immutable DCT{D1,D2} <: LinearOperator{D1,D2}
-	x::OptVar
 	A::Base.DFT.Plan
-	Ainv::Base.DFT.Plan
 	dim::Tuple
 end
-size(A::DCT) = A.dim
+size(A::DCT) = (A.dim, A.dim)
 
-dct{D1}(x::OptVar{D1}) = DCT{D1,D1}(x,plan_dct(x.x),plan_idct(x.x),(size(x),size(x)))
+DCT{D1}(x::AbstractArray{D1}) = DCT{D1,D1}(plan_dct(x), size(x))
+transpose{D1}(A::DCT{D1,D1})  = IDCT{D1,D1}( plan_idct( zeros(D1,A.dim) ), A.dim )
+
+function dct(x::OptVar)  
+	A = DCT(x.x) 
+	Affine([x], A, A', Nullable{Vector{AbstractArray}}() )
+end
 
 immutable IDCT{D1,D2} <: LinearOperator{D1,D2}
-	x::OptVar
 	A::Base.DFT.Plan
-	Ainv::Base.DFT.Plan
 	dim::Tuple
 end
-size(A::IDCT) = A.dim
+size(A::IDCT) = (A.dim, A.dim)
 
-idct{D1}(x::OptVar{D1}) = IDCT{D1,D1}(x,plan_idct(x.x),plan_dct(x.x),(size(x),size(x)))
+IDCT{D1}(x::AbstractArray{D1}) = IDCT{D1,D1}(plan_idct(x), size(x))
+transpose{D1}(A::IDCT{D1,D1})  =  DCT{D1,D1}( plan_dct( zeros(D1,A.dim) ), A.dim )
+
+function idct(x::OptVar)  
+	A = IDCT(x.x) 
+	Affine([x], A, A', Nullable{Vector{AbstractArray}}() )
+end
 
 *(A::DCT, b::AbstractArray)  = A.A*b
 *(A::IDCT,b::AbstractArray)  = A.A*b
@@ -32,18 +41,12 @@ function A_mul_B!(y::AbstractArray,A::IDCT,b::AbstractArray)
 	y .= A.A*b 
 end
 
-transpose{D1}(A::DCT{D1,D1} ) = IDCT{D1,D1}(A.x, A.Ainv, A.A, A.dim)
-transpose{D1}(A::IDCT{D1,D1}) =  DCT{D1,D1}(A.x, A.Ainv, A.A, A.dim)
-
 fun_name(A::DCT)  = "Discrete Cosine Transform"
 fun_name(A::IDCT) = "Inverse Discrete Cosine Transform"
 
-==(A::DCT,  B::DCT ) = A.x == B.x
-==(A::IDCT, B::IDCT) = A.x == B.x
-
 #nested Operations
-dct(B::LinearOperator) = NestedLinearOperator(dct,B)
-idct(B::LinearOperator) = NestedLinearOperator(idct,B)
+dct(B::AffineOperator)  = NestedLinearOperator(dct,B)
+idct(B::AffineOperator) = NestedLinearOperator(idct,B)
 
 
 

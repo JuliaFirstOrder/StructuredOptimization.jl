@@ -1,7 +1,7 @@
-export lbfgs, update!
+export LBFGS, update!
 
 immutable LBFGS{D1,D2} <:LinearOperator{D1,D2}
-	x::OptVar
+	dim::Tuple
 	mem::Int64
 	currmem::Array{Int64,1}
 	curridx::Array{Int64,1}
@@ -13,12 +13,10 @@ immutable LBFGS{D1,D2} <:LinearOperator{D1,D2}
 	alphas::Array{Float64,1}
 	H::Array{Float64,1}
 end
-size(A::LBFGS) = (size(A.x),size(A.x))
+size(A::LBFGS) = (A.dim,A.dim)
 fun_name(A::LBFGS)  = "LBFGS Operator"
 
-lbfgs(x::AbstractArray, args...) = lbfgs(OptVar(x), args...)
-
-function lbfgs{D1}(x::OptVar{D1}, 
+function LBFGS{D1}(x::AbstractArray{D1}, 
 		   mem::Int64,
 		   currmem::Array{Int64,1},
 		   curridx::Array{Int64,1},
@@ -29,26 +27,26 @@ function lbfgs{D1}(x::OptVar{D1},
 	s_m = Array{Array{D1},1}(mem)
 	y_m = Array{Array{D1},1}(mem)
 	for i in eachindex(s_m)
-		s_m[i] = similar(x.x)
-		y_m[i] = similar(x.x)
+		s_m[i] = similar(x)
+		y_m[i] = similar(x)
 	end
-	s = similar(x.x)
-	y = similar(x.x)
-	return LBFGS{D1,D1}(x, mem, currmem, curridx, s, y, s_m, y_m, ys_m, alphas, H)
+	s = similar(x)
+	y = similar(x)
+	return LBFGS{D1,D1}(size(x), mem, currmem, curridx, s, y, s_m, y_m, ys_m, alphas, H)
 end
 
-function lbfgs{D1}(x::OptVar{D1}, mem::Int64)
+function LBFGS{D1}(x::AbstractArray{D1}, mem::Int64)
 	ys_m = zeros(Float64,mem)
 	alphas = zeros(Float64,mem)
-	lbfgs(x, mem, [0], [0], ys_m, alphas, [1.])
+	LBFGS(x, mem, [0], [0], ys_m, alphas, [1.])
 end
 
 #create an array of LBFGS Op. which all share some stuff
-function lbfgs{T<:AbstractArray}(x::Array{T,1},mem::Int64)
+function LBFGS{T<:AbstractArray}(x::Array{T,1},mem::Int64)
 	LBFGS_col = Array{LBFGS,1}(length(x))
-	LBFGS_col[1] = lbfgs(x[1],mem)
+	LBFGS_col[1] = LBFGS(x[1],mem)
 	for i = 2:length(x)
-		LBFGS_col[i] = lbfgs(x[i],mem,
+		LBFGS_col[i] = LBFGS(x[i],mem,
 		                     LBFGS_col[1].currmem,
 				     LBFGS_col[1].curridx,
 				     LBFGS_col[1].ys_m,

@@ -1,17 +1,22 @@
 import Base: conv, xcorr
+export Conv, Xcorr
 
 immutable Conv{D1,D2} <: LinearOperator{D1,D2}
-	x::OptVar
 	h::AbstractVector
 	dim::Tuple
 	isTranspose::Bool
 end
 size(A::Conv) = A.dim 
 
-conv{D1}(x::OptVar{D1},h::AbstractVector) = 
-Conv{D1,D1}(x, h, (size(x), ( length(x.x)+length(h)-1, )  ), false)
-conv{D1}(h::AbstractVector,x::OptVar{D1}) = 
-Conv{D1,D1}(x, h, (size(x), ( length(x.x)+length(h)-1, )  ), false)
+Conv{D1}(h::AbstractVector{D1}, x::AbstractVector{D1}) = 
+Conv{D1,D1}(h, (size(x), ( length(x)+length(h)-1, )  ), false)
+
+function conv(h::AbstractVector, x::OptVar) 
+	A = Conv(h,x.x) 
+	Affine([x], A, A', Nullable{Vector{AbstractArray}}() )
+end
+
+conv(x::OptVar,h::AbstractVector) = conv(h,x)
 
 function A_mul_B!{T}(y::AbstractVector{T},A::Conv,b::AbstractVector{T})
 	if A.isTranspose
@@ -23,23 +28,26 @@ function A_mul_B!{T}(y::AbstractVector{T},A::Conv,b::AbstractVector{T})
 	end
 end
 
-transpose{D1}( A::Conv{D1,D1} ) = Xcorr{D1,D1}(A.x, A.h, (A.dim[2],A.dim[1]), true) 
+transpose{D1}( A::Conv{D1,D1} ) = Xcorr{D1,D1}(A.h, (A.dim[2],A.dim[1]), true) 
 
 fun_name(A::Conv)  = "Convolution Operator"
 
-conv(B::LinearOperator, args...) = NestedLinearOperator(conv, B, args...)
-
+conv(B::AffineOperator, args...) = NestedLinearOperator(conv, B, args...)
 
 immutable Xcorr{D1,D2} <: LinearOperator{D1,D2}
-	x::OptVar
 	h::AbstractVector
 	dim::Tuple
 	isTranspose::Bool
 end
 size(A::Xcorr) = A.dim
 
-xcorr{D1}(x::OptVar{D1}, h::AbstractVector) = 
-Xcorr{D1,D1}(x,h,(size(x), ( 2*max(length(x.x),length(h))-1, )  ), false)
+Xcorr{D1}(x::AbstractVector{D1}, h::AbstractVector{D1}) = 
+Xcorr{D1,D1}(h,(size(x), ( 2*max(length(x),length(h))-1, )  ), false)
+
+function xcorr(x::OptVar, h::AbstractVector) 
+	A = Xcorr(x.x,h) 
+	Affine([x], A, A', Nullable{Vector{AbstractArray}}() )
+end
 
 function A_mul_B!{T}(y::AbstractVector{T},A::Xcorr,b::AbstractVector{T})
 	if A.isTranspose
@@ -49,11 +57,11 @@ function A_mul_B!{T}(y::AbstractVector{T},A::Xcorr,b::AbstractVector{T})
 	end
 end
 
-transpose{D1}(A::Xcorr{D1,D1} ) = Conv{D1,D1}(A.x,A.h,(A.dim[2],A.dim[1]), true) 
+transpose{D1}(A::Xcorr{D1,D1} ) = Conv{D1,D1}(A.h,(A.dim[2],A.dim[1]), true) 
 
 fun_name(A::Xcorr)  = "Cross Correlation Operator"
 
-xcorr(B::LinearOperator, args...) = NestedLinearOperator(xcorr, B, args...)
+xcorr(B::AffineOperator, args...) = NestedLinearOperator(xcorr, B, args...)
 
 
 

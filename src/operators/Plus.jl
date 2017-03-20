@@ -7,7 +7,6 @@ immutable SumSameVar{D1,D2} <: LinearOperator{D1,D2}
 	sign::Bool
 end
 size(A::SumSameVar) = size(A.A)
-variable(A::SumSameVar) = variable(A.A)
 
 function SumSameVar{D1,D2}(A::LinearOperator{D1,D2},B::LinearOperator{D1,D2}, sign::Bool) 
 	mid = Array{D2}(size(A,2))
@@ -25,27 +24,14 @@ function A_mul_B!(y::AbstractArray,S::SumSameVar,b::AbstractArray)
 	S.sign ? y .= (+).(S.mid,y) : y .= (-).(S.mid,y)
 end
 
-+(A::LinearOperator, x::OptVar  ) = A+eye(x)
-+(x::OptVar,   A::LinearOperator) = eye(x)+A
-+(x::OptVar,   y::OptVar        ) = eye(x)+eye(y)
-+(A::LinearOperator) = A
-
--(A::LinearOperator, x::OptVar  ) = A-eye(x)
--(x::OptVar,   A::LinearOperator) = eye(x)-A
--(x::OptVar,   y::OptVar  ) = eye(x)-eye(y)
--{D1,D2}(A::LinearOperator{D1,D2}) = emptyop(A)-A #trick to accept -A
-
 
 function unsigned_sum{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}, sign::Bool) 
-	if variable(A) == variable(B)
-		if size(A) == size(B) 
-			return SumSameVar(A,B,sign)
-		else
-			println("ciaooooooo")
-			DimensionMismatch("cannot sum operator of size $(size(A)) with operator of size$(size(B))")
-		end
+		
+	if size(A) == size(B) 
+		return SumSameVar(A,B,sign)
 	else
-		return hcat(A,B, [true; sign])
+		DimensionMismatch("cannot sum operator of size $(size(A)) with operator of size$(size(B))")
+	
 	end
 end
 
