@@ -1,7 +1,7 @@
 import Base: hcat
 
 immutable HCAT{D3} <: LinearOperator{D3}
-	A::AbstractArray{LinearOperator}
+	A::Vector{LinearOperator}
 	mid::AbstractArray
 	sign::Array{Bool,1}
 end
@@ -93,5 +93,6 @@ function sort{D3}(A::HCAT{D3},p::Array)
 end
 
 
+extract_operator(A::HCAT          , idx::Int64) = A.A[idx], A.sign[idx]
 
 

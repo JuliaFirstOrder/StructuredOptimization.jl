@@ -390,5 +390,54 @@ else
 
 end
 
+#test sort_and_expand
+
+
+x,y,z = OptVar(10), OptVar(2,5), OptVar(10)
+X = [randn(10), randn(2,5), randn(10)]
+Y = randn(10)
+A = reshape(y,10)
+
+B = RegLS.sort_and_expand([x,y,z],A)
+
+test1,test2 = RegLS.test_FwAdj(B, X, Y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(B, X, Y)
+@test test3 < 1e-8
+
+A = reshape(y,10)+2.5*x
+show(A)
+
+B = RegLS.sort_and_expand([x,y,z],A)
+
+test1,test2 = RegLS.test_FwAdj(B, X, Y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(B, X, Y)
+@test test3 < 1e-8
+
+A = randn(10,10)*z+reshape(y,10)+2.5*x
+show(A)
+
+B = RegLS.sort_and_expand([x,y,z],A)
+
+test1,test2 = RegLS.test_FwAdj(B, X, Y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(B, X, Y)
+@test test3 < 1e-8
+
+
+
+
+
+
+
+
+
+
+
+
 
 
