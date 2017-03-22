@@ -1,5 +1,5 @@
-##test linear operators
-#
+#test linear operators
+
 stuff = [
 	 Dict("Operator" => (emptyop,),
               "params" => ((),),
@@ -165,8 +165,8 @@ for i in eachindex(stuff)
 end
 #
 ###### test sum of linear operators
-#
-##test SumSameVar
+
+#test SumSameVar
 
 x1 = randn(3)
 y1 = randn(3)
@@ -194,230 +194,201 @@ test1,test2 = RegLS.test_FwAdj(A, x, y)
 @test test2 < 1e-8
 test3 = RegLS.test_Op(A, x, y)
 @test test3 < 1e-8
+
+x1 = randn(3)
+X1 = OptVar(x1)
+y = randn(3)
+x = x1
+b1 = randn(3)
+
+A = 3*X1-b1-dct(X1)+M*X1
+
+@test norm(A(x)-(3*x-b1-dct(x)+M*x)) < 1e-8
+
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
+
+#test HCAT
+
+x1,x2 = randn(3,3), randn(3,3)
+X1,X2 = OptVar(x1), OptVar(x2)
+y = randn(3,3)
+b = randn(3,3)
+x = [x1,x2]
+
+A = 3.4*X1-2.0*dct(X2)+b
+A2 = [DiagOp(3.4,3,3)*Eye(3,3) -2.0*DCT(X2.x)]
+@test norm(A(x)-(3.4*x1-2*dct(x2)+b)) < 1e-8
+@test norm(A(x)-(A2*x+b)) < 1e-8
+
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
+
+##test HCAT .*
+
+x1,x2 = randn(3,3), randn(3*3)
+X1,X2 = OptVar(x1), OptVar(x2)
+y = randn(3,3)
+x = [x1,x2]
+
+B = [Eye(3,3) Reshape(X2.x,3,3)*DCT(X2.x)]
+A = [DiagOp(3.4,3,3) DiagOp(-2.0,3,3) ]
+C = Affine([X1,X2],A.*B)
+
+@test norm(C(x)-(3.4*x1-2.0*reshape(dct(x2),3,3))) < 1e-8
+
+test1,test2 = RegLS.test_FwAdj(C, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(C, x, y)
+@test test3 < 1e-8
+
+A.*[x1,x1]
 #
-#x1 = randn(3)
-#X1 = OptVar(x1)
-#y = randn(3)
-#x = x1
-#
-#A = 3*X1-dct(X1)
-#
-#@test norm((A*x)-(3*x-dct(x))) < 1e-8
-#
-#test1,test2 = RegLS.test_FwAdj(A, x, y)
-#@test test1 < 1e-8
-#@test test2 < 1e-8
-#test3 = RegLS.test_Op(A, x, y)
-#@test test3 < 1e-8
-#
-##test HCAT
-#
-#x1,x2 = randn(3,3), randn(3,3)
-#X1,X2 = OptVar(x1), OptVar(x2)
-#y = randn(3,3)
-#x = [x1,x2]
-#
-#A = 3.4*X1-2.0*dct(X2)
-#A2 = [3.4*eye(X1) -2.0*dct(X2)]
-#@test norm((A*x)-(3.4*x1-2*dct(x2))) < 1e-8
-#@test norm((A*x)-(A2*x)) < 1e-8
-#
-#test1,test2 = RegLS.test_FwAdj(A, x, y)
-#@test test1 < 1e-8
-#@test test2 < 1e-8
-#test3 = RegLS.test_Op(A, x, y)
-#@test test3 < 1e-8
-#
-#
-###test HCAT .*
-#
-#x1,x2 = randn(3,3), randn(3*3)
-#X1,X2 = OptVar(x1), OptVar(x2)
-#y = randn(3,3)
-#x = [x1,x2]
-#
-#B = [eye(X1) -2.0*dct(X2)]
-#A = [3.4*X1 reshape(X2,3,3) ]
-#C = A.*B
-#
-#@test norm((C*x)-(3.4*x1-reshape(2*dct(x2),3,3))) < 1e-8
-#
-#test1,test2 = RegLS.test_FwAdj(A, x, y)
-#@test test1 < 1e-8
-#@test test2 < 1e-8
-#test3 = RegLS.test_Op(A, x, y)
-#@test test3 < 1e-8
-#
-#A.*x
-#
-##test HCAT merge
-#
-#x1,x2,x3 = randn(3),randn(3),randn(3)
-#X1,X2,X3 = OptVar(x1), OptVar(x2), OptVar(x3)
-#y = randn(3)
-#x = [x1,x2,x3]
-#
-#A = dct(X1)-X1+5.3*dct(X2)+eye(X1)+X3
-#A2 = [dct(X1)-X1+eye(X1) 5.3*dct(X2) X3]
-#show(A2)
-#@test norm((A*x)-(dct(x1)-x1+5.3*dct(x2)+x1+x3)) < 1e-8
-#@test norm((A2*x)-(dct(x1)-x1+5.3*dct(x2)+x1+x3)) < 1e-8
-#
-#test1,test2 = RegLS.test_FwAdj(A, x, y)
-#@test test1 < 1e-8
-#@test test2 < 1e-8
-#test3 = RegLS.test_Op(A, x, y)
-#@test test3 < 1e-8
-#
-###test Affine
-#
-#x1 = randn(3)
-#X1 = OptVar(x1)
-#y = fft(randn(3))
-#x = x1
-#b = fft(randn(3))
-#
-#A = fft(X1)-b
-#
-#show(A)
-#
-#res = A*x
-#fx = norm(res)^2
-#res0 = fft(x1)./sqrt(3)-b
-#fx0 = norm(res0)^2
-#
-#@test norm(fx-fx0)<1e-8
-#
-#gradx0 = ifft(res0)*sqrt(3)
-#gradx  = A'*res0
-#
-#@test norm(gradx-gradx0)<1e-8
-#
-#x1,x2 = randn(3,3), randn(3,3)
-#X1,X2 = OptVar(x1), OptVar(x2)
-#y = randn(3,3)
-#b = randn(3,3)
-#x = [x1,x2]
-#
-#A = 3.4*X1-2.0*dct(X2)+b
-#
-#show(A)
-#
-#resx = A*x
-#fx = vecnorm(resx)^2
-#resx0 = 3.4*x1-2.0*dct(x2)+b
-#fx0 = vecnorm(resx0)^2
-#
-#@test norm(fx-fx0)<1e-8
-#
-#gradx  = A'*resx
-#gradx0 = [3.4*resx0, -2.0*idct(resx0)]
-#
-#@test norm(gradx-gradx0)<1e-8
-#
-##test VCAT
-#
-#x1 = randn(3,3)
-#X1 = OptVar(x1)
-#y1,y2 = randn(3,3),randn(3)
-#x = x1
-#y = [y1,y2]
-#
-#A = [3.4*X1; -2.0*dct(X1)[1:3]]
-#show(A)
-#
-#@test norm((A*x)[1]-3.4*x1) < 1e-8
-#@test norm((A*x)[2]-(-2*dct(x1)[1:3])) < 1e-8
-#
-#test1,test2 = RegLS.test_FwAdj(A, x, y)
-#@test test1 < 1e-8
-#@test test2 < 1e-8
-#test3 = RegLS.test_Op(A, x, y)
-#@test test3 < 1e-8
-#
-## test VCAT merging
-#
-#x1 = randn(3,3)
-#X1 = OptVar(x1)
-#y1,y2,y3 = randn(3,3),randn(3),randn(2,3)
-#x = x1
-#y = [y1,y2,y3]
-#
-#A = [3.4*X1; -2.0*dct(X1)[1:3]+1.2*X1[1:3]; dct(X1)[1:2,:]]
-#show(A)
-#
-#@test norm((A*x)[1]-3.4*x1) < 1e-8
-#@test norm((A*x)[2]-(-2*dct(x1)[1:3]+1.2*x1[1:3])) < 1e-8
-#@test norm((A*x)[3]-(dct(x1)[1:2,:])) < 1e-8
-#
-#test1,test2 = RegLS.test_FwAdj(A, x, y)
-#@test test1 < 1e-8
-#@test test2 < 1e-8
-#test3 = RegLS.test_Op(A, x, y)
-#@test test3 < 1e-8
-#
-##test VCAT .*
-#
-#x1 = randn(3,3)
-#X1 = OptVar(x1)
-#y1,y2 = randn(3,3),randn(6)
-#x = x1
-#y = [y1,y2]
-#
-#A = [5*X1;    reshape(diagop(X1[1:2,:],3),2*3) ]
-#B = [dct(X1); dct(X1)[1:2,:]  ]
-#C = A.*B
-#
-#@test norm((C*x)[1]-5.*dct(x1))<=1e-8
-#@test norm((C*x)[2]-(3.*dct(x1)[1:2,:])[:] )<=1e-8
-#
-#test1,test2 = RegLS.test_FwAdj(C, x, y)
-#@test test1 < 1e-8
-#@test test2 < 1e-8
-#test3 = RegLS.test_Op(C, x, y)
-#@test test3 < 1e-8
-#
-##test sorting HCAT
-#
-#x,y = OptVar(10), OptVar(2,5)
-#X = [randn(10), randn(2,5)]
-#Y = randn(10)
-#A = dct(x)-reshape(y,10)
-#
-#if issorted(A) == false #this if is in case object_id are actually sorted already!
-#
-#	show(A.A)
-#	y1 = A*X 
-#	x1 = A'*Y 
-#	p = sortperm(A) 
-#	A2 = sort(A)
-#	X2 = X[p]
-#	y2 = A2*X2
-#	x2 = A2'*Y 
-#
-#	show(A2.A)
-#	@test issorted(A2) == true
-#	@test norm(y1-y2)<=1e-8
-#	@test norm(x1[p]-x2)<=1e-8
-#else
-#	A = -reshape(y,10)+dct(x)
-#	X = [randn(2,5), randn(10)]
-#
-#	show(A.A)
-#	y1 = A*X 
-#	x1 = A'*Y 
-#	p = sortperm(A) 
-#	A2 = sort(A)
-#	X2 = X[p]
-#	y2 = A2*X2
-#	x2 = A2'*Y 
-#
-#	show(A2.A)
-#	@test issorted(A2) == true
-#	@test norm(y1-y2)<=1e-8
-#	@test norm(x1[p]-x2)<=1e-8
-#
-#end
+#test HCAT merge
+
+x1,x2,x3 = randn(3),randn(3),randn(3)
+X1,X2,X3 = OptVar(x1), OptVar(x2), OptVar(x3)
+M = randn(3,3)
+y = randn(3)
+b = randn(3)
+x = [x1,x2,x3]
+
+A = M*X1-X1+5.3*(M*X2)-b+eye(X1)+X3
+A2 = [MatrixOp(M) 5.3*MatrixOp(M) Eye(3)]
+@test norm(A(x)-(M*x1-x1+5.3*M*x2+x1+x3-b)) < 1e-8
+@test norm((A2*x)-(M*x1-x1+5.3*M*x2+x1+x3)) < 1e-8
+
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
+
+A = M*X1-X2
+B = M*X3+4.4*X2
+A = A-B
+
+@test norm(A(x)-(M*x1-x2-(M*x3+4.4*x2))) < 1e-8
+
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
+
+#test VCAT
+
+x1 = randn(3,3)
+X1 = OptVar(x1)
+y1,y2 = randn(3,3),randn(3)
+x = x1
+y = [y1,y2]
+
+A = [3.4*X1; -2.0*dct(X1)[1:3]]
+
+@test norm((A(x))[1]-3.4*x1) < 1e-8
+@test norm((A(x))[2]-(-2*dct(x1)[1:3])) < 1e-8
+
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
+
+# test VCAT merging
+
+x1 = randn(3,3)
+X1 = OptVar(x1)
+y1,y2,y3 = randn(3,3),randn(3),randn(2,3)
+x = x1
+y = [y1,y2,y3]
+b = [randn(3,3),randn(3),randn(2,3)]
+
+#error in SameSum??
+A = [3.4*X1; 2.0*dct(X1)[1:3]+1.2*X1[1:3]; dct(X1)[1:2,:]]-b
+
+@test norm((A(x))[1]-(3.4*x1-b[1])) < 1e-8
+@test norm((A(x))[2]-(2*dct(x1)[1:3]+1.2*x1[1:3]-b[2])) < 1e-8
+@test norm((A(x))[3]-(dct(x1)[1:2,:]-b[3])) < 1e-8
+
+test1,test2 = RegLS.test_FwAdj(A, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(A, x, y)
+@test test3 < 1e-8
+
+#test VCAT .*
+
+x1 = randn(3,3)
+X1 = OptVar(x1)
+y1,y2 = randn(3,3),randn(6)
+x = x1
+y = [y1,y2]
+
+A = [5*X1;    reshape(diagop(X1[1:2,:],3),2*3) ]
+B = [dct(X1); dct(X1)[1:2,:]  ]
+C = operator(A).*operator(B)
+
+@test norm((C*x)[1]-5.*dct(x1))<=1e-8
+@test norm((C*x)[2]-(3.*dct(x1)[1:2,:])[:] )<=1e-8
+
+C = Affine(X1,C)
+
+test1,test2 = RegLS.test_FwAdj(C, x, y)
+@test test1 < 1e-8
+@test test2 < 1e-8
+test3 = RegLS.test_Op(C, x, y)
+@test test3 < 1e-8
+
+#test sorting Affine
+
+x,y = OptVar(10), OptVar(2,5)
+X = [randn(10), randn(2,5)]
+Y = randn(10)
+A = eye(x)-reshape(y,10)
+
+show(issorted(A))
+if issorted(A) == false #this if is in case object_id are actually sorted already!
+
+	show(operator(A).A)
+	y1 = operator(A)*X 
+	x1 = adjoint(A)*Y 
+	p = sortperm(A) 
+	A2 = sort(A)
+	X2 = X[p]
+	y2 = operator(A2)*X2
+	x2 = adjoint(A2)*Y 
+
+	show(operator(A2).A)
+	@test issorted(A2) == true
+	@test norm(y1-y2)<=1e-8
+	@test norm(x1[p]-x2)<=1e-8
+else
+	A = -reshape(y,10)+eye(x)
+	X = [X[2], X[1]]
+
+	show(operator(A).A)
+	y1 = operator(A)*X 
+	x1 = adjoint(A)*Y 
+	p = sortperm(A) 
+	A2 = sort(A)
+	X2 = X[p]
+	y2 = operator(A2)*X2
+	x2 = adjoint(A2)*Y 
+
+	show(operator(A2).A)
+	@test issorted(A2) == true
+	@test norm(y1-y2)<=1e-8
+	@test norm(x1[p]-x2)<=1e-8
+
+end
 
 
 

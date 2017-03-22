@@ -1,7 +1,8 @@
-import Base:
-  size
+import Base: size
 
-immutable OptVar{T <: Union{Real,Complex}}
+abstract AbstractOptVar 
+
+immutable OptVar{T <: Union{Real,Complex}} <: AbstractOptVar
 	x::AbstractArray{T}
 end
 

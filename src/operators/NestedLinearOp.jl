@@ -17,6 +17,7 @@ function NestedLinearOperator(f::Function,B::AffineOperator, args...)
 end
 
 *(A::LinearOperator, B::LinearOperator) = NestedLinearOperator(A,B) 
+*{T<:Number}(a::T, B::LinearOperator)   = NestedLinearOperator(DiagOp(a,size(B,2)...),B) 
 *{E<:IdentityOperator}(A::E, B::LinearOperator) = B
 
 .*(A::LinearOperator, B::LinearOperator) = NestedLinearOperator(A,B) 

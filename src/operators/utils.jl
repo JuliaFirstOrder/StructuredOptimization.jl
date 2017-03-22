@@ -51,6 +51,7 @@ function test_FwAdj(Af::Affine, x, y)
 
 	test2 = vecnorm(x-x2) #verify equivalence
 	test3 = vecnorm(x-x3) #verify equivalence
+	show(At)
 
 	return test1, test2, test3
 

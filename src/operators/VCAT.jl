@@ -6,7 +6,8 @@ type VCAT{D3} <: LinearOperator{D3}
 	sign::Array{Bool,1}
 end
 
-variable(A::VCAT) = A.A[1].x
+  domainType{D3}(A::VCAT{D3}) = D3
+codomainType(A::VCAT) = codomainType.(A.A)
 
 function size(A::VCAT)
 	dim1, dim2 = size(A.A[1],2), tuple(size.(A.A)[2]...)  
@@ -17,31 +18,44 @@ fun_name(S::VCAT) = "Vertically Concatenated Operators"
 vcat(A::LinearOperator) = A
 
 function vcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}, sign::Array{Bool} )
-	if size(A,1) != size(B,1) DimensionMismatch("operators must share codomain!") end
+	if size(A,1) != size(B,1) throw(DimensionMismatch("operators must share codomain!")) end
 	mid = Array{D3}(size(B,1))
 	VCAT{D3}([A,B], mid, sign)
 end
 
 vcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3} ) = vcat(A,B,[true; true])
-vcat(A::LinearOperator, B::OptVar  ) = vcat(A     , eye(B))
-vcat(A::OptVar  , B::LinearOperator) = vcat(eye(A),     B )
-vcat(A::OptVar  , B::OptVar  ) = vcat(eye(A), eye(B))
 
-function vcat(A::Vararg{Union{LinearOperator,OptVar}})
-	V = vcat(A[1],A[2])
-	for i = 3:length(A)
-		typeof(A[i]) <: OptVar ? push!(V.A,eye(A[i])) : push!(V.A,A[i])
-		push!(V.sign,true)
+function vcat(A::Vararg{LinearOperator})
+	H = Vector{LinearOperator}()
+	D3   = domainType(A[1])
+	dim1 = size(A[1],1)
+	mid = Array{D3}(dim1)
+	for a in A
+		if size(a,1) != dim1 || domainType(a) != D3
+			throw(DimensionMismatch("operators must share codomain!"))
+		end
+		push!(H,a)
 	end
-	return V
+	sign = ones(Bool,length(A))
+	VCAT{D3}(H,mid,sign)
 end
 
-transpose{D3}(A::VCAT{D3}) = HCAT{D3}(A.A.', A.mid, A.sign)
+#constructor from affine
+function vcat(A::Vararg{AffineOperator})
+	H = vcat(operator.(A)...)
+	x = variable.(A)
+	for i = 2:length(x)
+		if x[i]!=x[1] error("different variables appear in vcat!") end
+	end
+	Affine(x[1],H)
+end
+
+transpose{D3}(A::VCAT{D3}) = HCAT{D3}((A.A.')[:], A.mid, A.sign)
 
 function *{D2}(A::VCAT{D2},b::AbstractArray) 
 	y = Array{AbstractArray,1}(length(A.A))
 	for i = 1:length(A.A)
-		y[i] = create_out(A.A[i]) 
+		y[i] = Array{D2}(size(A.A[i],2)) 
 	end
 	A_mul_B!(y,A,b)
 	return y

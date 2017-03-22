@@ -1,5 +1,6 @@
 export MatrixOp
 
+#TODO add matrix *matrix 
 immutable MatrixOp{D1,D2} <: LinearOperator{D1,D2}
 	A::AbstractMatrix
 end

@@ -9,6 +9,8 @@ size(A::Zeros) = (A.dim[1],A.dim[2])
 Zeros(dim1::Tuple, dim2::Tuple) = Zeros{Float64,Float64}((dim1,dim2))
 Zeros(T::Type, dim1::Tuple, dim2::Tuple) = Zeros{T,T}((dim1,dim2))
 
+zeros{D1,D2}(A::LinearOperator{D1,D2}) = Zeros{D1,D2}(size(A))
+
 zeros{D1}(x::OptVar{D1}) = Affine([x], Zeros{D1,D1}((size(x),size(x))), 
 				 Zeros{D1,D1}((size(x),size(x))),
 				 Nullable{Vector{AbstractArray}}() )

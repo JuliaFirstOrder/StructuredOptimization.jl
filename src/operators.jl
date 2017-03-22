@@ -25,7 +25,7 @@ codomainType{D1,D2}(A::LinearOperator{D1,D2}) = D2
 Ac_mul_B!(y::AbstractArray,A::LinearOperator,b::AbstractArray)  = A_mul_B!(y, A',b)
 
 function *{D1,D2}(A::LinearOperator{D1,D2},b::AbstractArray)
-	y = Array{D2}(size(A,2))
+	y = zeros(D2,size(A,2))
 	A_mul_B!(y,A,b)
 	return y
 end
@@ -64,17 +64,13 @@ fun_dom{D1<:Complex, D2<:Complex}(A::LinearOperator{D1,D2}) = "ℂ^$(size(A,1)) 
 fun_dom{D1<:Real,    D2<:Complex}(A::LinearOperator{D1,D2}) = "ℝ^$(size(A,1)) →  ℂ^$(size(A,2))"
 fun_dom{D1<:Real,    D2<:Real   }(A::LinearOperator{D1,D2}) = "ℝ^$(size(A,1)) →  ℝ^$(size(A,2))"
 
-isEye(A::AffineOperator) = typeof(A.A) <: IdentityOperator 
 isEye(A::LinearOperator) = typeof(A) <: IdentityOperator 
 
-isDiagonal(A::AffineOperator) = typeof(A.A) <: DiagonalOperator 
 isDiagonal(A::LinearOperator) = typeof(A) <: DiagonalOperator 
 
-isAbsorbable(A::AffineOperator) = typeof(A.A) <: DiagonalOperator 
 isAbsorbable(A::LinearOperator) = typeof(A) <: DiagonalOperator 
 #this will be changed with typeof(A) <: GramDiagonal 
 
-isInvertable(A::AffineOperator) = isInvertable(A.A) 
 isInvertable(A::LinearOperator) = false
 
 

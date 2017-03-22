@@ -6,11 +6,12 @@ immutable DiagOp{D1,D2} <: DiagonalOperator{D1,D2}
 end
 size(A::DiagOp) = (A.dim,A.dim)
 
-DiagOp{D2}(T::Type, d::AbstractArray{D2}, dim...) = DiagOp{T,D2}(d, dim)
+DiagOp{D2}(T::Type, d::AbstractArray{D2}, dim::Vararg{Int64}) = DiagOp{T,D2}(d, dim)
 
-DiagOp(T::Type, d::Real , dim...) = DiagOp{T,Float64}(d, dim)
-DiagOp(T::Type, d::Complex, dim...) = DiagOp{T,Complex{Float64}}(d, dim)
-DiagOp(d, dim...) = DiagOp(Float64, d, dim)
+DiagOp(T::Type, d::Real , dim::Vararg{Int64}) = DiagOp{T,Float64}(d, dim)
+DiagOp(T::Type, d::Complex, dim::Vararg{Int64}) = DiagOp{T,Complex{Float64}}(d, dim)
+DiagOp{T<:Number}(d::AbstractArray{T}, dim::Vararg{Int64}) = DiagOp(T, d, dim...)
+DiagOp{T<:Number}(d::T, dim::Vararg{Int64}) = DiagOp(T, d, dim...)
 
 function diagop{D1}(x::OptVar{D1}, d) 
 	A = DiagOp(D1,d, size(x)...)
