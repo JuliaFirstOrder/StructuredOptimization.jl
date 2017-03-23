@@ -41,7 +41,8 @@ function vcat(A::Vararg{LinearOperator})
 end
 
 #constructor from affine
-function vcat(A::Vararg{AffineOperator})
+function vcat(A::AffineOperator...)
+	A = [A...]
 	H = vcat(operator.(A)...)
 	x = variable.(A)
 	for i = 2:length(x)

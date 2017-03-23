@@ -5,7 +5,7 @@ immutable Affine <: AffineOperator
 	x::Vector{AbstractOptVar}
 	A::LinearOperator
 	At::LinearOperator
-	b::Nullable{Vector{AbstractArray}}
+	b::Nullable{AbstractArray}
 end
 variable(A::Affine) = A.x
 operator(A::Affine) = A.A
@@ -13,7 +13,7 @@ adjoint(A::Affine)  = A.At
 
 #TODO add checks of dimension of OptVar  
 Affine(x::OptVar,A::LinearOperator) = Affine([x],A)
-Affine{T<:AbstractOptVar}(x::Vector{T}, A::LinearOperator) = Affine(x, A, A',Nullable{Vector{AbstractArray}}()) 
+Affine{T<:AbstractOptVar}(x::Vector{T}, A::LinearOperator) = Affine(x, A, A',Nullable{AbstractArray}()) 
 
   domainType(A::AffineOperator) =   domainType(operator(A))
 codomainType(A::AffineOperator) = codomainType(operator(A))
@@ -32,7 +32,7 @@ function (A::Affine)(x::AbstractArray)
 	return y
 end
 
-add_b!(y::AbstractArray,A::Affine) = isnull(A.b) ? nothing : y .+= get(A.b)[1]
+add_b!(y::AbstractArray,A::Affine) = isnull(A.b) ? nothing : y .+= get(A.b)
 
 function Base.show{Op <: AffineOperator }(io::IO, f::Op)
   println(io, "description : ", fun_name(f))
@@ -61,7 +61,6 @@ function sort_and_expand{T<:AbstractOptVar}(x::Vector{T}, A::Affine)
 	if all(x == A.x)
 		return A
 	else
-		D3   = codomainType(operator(A))
 		dim2 = size(operator(A),2)
 
 		H = Vector{LinearOperator}(length(x))

@@ -13,6 +13,9 @@ import Base:
   inv,
   size,
   ndims,
+  +,
+  -,
+  sign,
   ==
 
 size(A::LinearOperator, i::Int64) = size(A)[i]
@@ -23,6 +26,8 @@ ndims(A::LinearOperator, i::Int64) = length(size(A,i))
 codomainType{D1,D2}(A::LinearOperator{D1,D2}) = D2
 
 Ac_mul_B!(y::AbstractArray,A::LinearOperator,b::AbstractArray)  = A_mul_B!(y, A',b)
+ A_mul_B!(y::AbstractArray,A::LinearOperator,b::AbstractArray) = 
+sign(A) ? uA_mul_B!(y,A,b) : uA_mul_B!(y,A,-b)
 
 function *{D1,D2}(A::LinearOperator{D1,D2},b::AbstractArray)
 	y = zeros(D2,size(A,2))
@@ -32,7 +37,11 @@ end
 
 .*(A::LinearOperator,b) = A*b
 
++(A::LinearOperator) = A
+sign(A::LinearOperator) = A.sign ? true : false
+
 include("operators/Affine.jl")
+include("operators/Eye.jl")
 include("operators/MatrixOp.jl")
 include("operators/Reshape.jl")
 include("operators/NestedLinearOp.jl")
@@ -40,14 +49,13 @@ include("operators/DFT.jl")
 include("operators/DCT.jl")
 include("operators/Conv.jl")
 include("operators/DiagOp.jl")
-include("operators/Eye.jl")
 include("operators/GetIndex.jl")
-include("operators/Zeros.jl")
 include("operators/Empty.jl")
 include("operators/HCAT.jl")
 include("operators/VCAT.jl")
 include("operators/Plus.jl")
 include("operators/LBFGS.jl")
+include("operators/Zeros.jl")
 include("operators/utils.jl")
 
 function Base.show{Op <: LinearOperator }(io::IO, f::Op)
