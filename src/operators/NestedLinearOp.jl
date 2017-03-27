@@ -29,25 +29,22 @@ end
 NestedLinearOperator{D1,Dm,D2}(A::LinearOperator{Dm,D2},B::LinearOperator{D1,Dm}) = 
 NestedLinearOperator(A,B,Array{Dm}(size(B,2)))  
 
-function NestedLinearOperator{D1,Dm,D2}(A::LinearOperator{Dm,D2},
-					B::LinearOperator{D1,Dm},mid::AbstractArray)  
-	return NestedLinearOperator{D1,D2}(sign(A) == sign(B), [B,A], [mid])	
-end
 
-function NestedLinearOperator{D1,Dm,D2}(A::NestedLinearOperator{Dm,D2},
-					B::LinearOperator{D1,Dm},mid::AbstractArray)  
-	return NestedLinearOperator{D1,D2}(sign(A) == sign(B), [B,A.A...], [mid,A.mid...])	
-end
+NestedLinearOperator{D1,Dm,D2}(A::LinearOperator{Dm,D2},
+				B::LinearOperator{D1,Dm},mid::AbstractArray)  =
+NestedLinearOperator{D1,D2}(sign(A) == sign(B), [B,A], [mid])	
 
-function NestedLinearOperator{D1,Dm,D2}(A::LinearOperator{Dm,D2},
-					B::NestedLinearOperator{D1,Dm},mid::AbstractArray)  
-	return NestedLinearOperator{D1,D2}(sign(A) == sign(B), [B.A...,A], [B.mid...,mid])	
-end
+NestedLinearOperator{D1,Dm,D2}(A::NestedLinearOperator{Dm,D2},
+				B::LinearOperator{D1,Dm},mid::AbstractArray)  =
+NestedLinearOperator{D1,D2}(sign(A) == sign(B), [B,A.A...], [mid,A.mid...])	
 
-function NestedLinearOperator{D1,Dm,D2}(A::NestedLinearOperator{Dm,D2},
-					B::NestedLinearOperator{D1,Dm},mid::AbstractArray)  
-	return NestedLinearOperator{D1,D2}(sign(A) == sign(B), [B.A...,A.A...], [B.mid...,A.mid...])	
-end
+NestedLinearOperator{D1,Dm,D2}(A::LinearOperator{Dm,D2},
+				B::NestedLinearOperator{D1,Dm},mid::AbstractArray)  =
+NestedLinearOperator{D1,D2}(sign(A) == sign(B), [B.A...,A], [B.mid...,mid])	
+
+NestedLinearOperator{D1,Dm,D2}(A::NestedLinearOperator{Dm,D2},
+				B::NestedLinearOperator{D1,Dm},mid::AbstractArray) = 
+NestedLinearOperator{D1,D2}(sign(A) == sign(B), [B.A...,A.A...], [B.mid...,mid,A.mid...])	
 
 
 function transpose{D1,D2}(N::NestedLinearOperator{D1,D2})  

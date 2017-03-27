@@ -65,11 +65,10 @@ function sort_and_expand{T<:AbstractOptVar}(x::Vector{T}, A::Affine)
 
 		H = Vector{LinearOperator}(length(x))
 		[H[i] = Zeros(size(x[i]),dim2)  for i in eachindex(H) ]
-		s = ones(Bool,length(x))
 		for i in eachindex(x)
 			if any(A.x .== x[i])
 				idx = find(A.x .== x[i])[1]
-				H[i],s[i] = extract_operator(operator(A),idx)
+				H[i] = extract_operator(operator(A),idx)
 			end
 		end
 		H = hcat(H...)
@@ -77,7 +76,7 @@ function sort_and_expand{T<:AbstractOptVar}(x::Vector{T}, A::Affine)
 	end
 end
 
-extract_operator(A::LinearOperator, idx::Int64) = A,true
+extract_operator(A::LinearOperator, idx::Int64) = A
 
 
 

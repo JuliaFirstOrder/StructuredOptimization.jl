@@ -3,8 +3,9 @@ import Base: vcat
 type VCAT{D3} <: LinearOperator{D3}
 	A::AbstractArray{LinearOperator}
 	mid::AbstractArray
-	sign::Array{Bool,1}
 end
+sign(S::VCAT) = true
+-{D3}(A::VCAT{D3}) = VCAT{D3}((-).(A.A), A.mid) 
 
   domainType{D3}(A::VCAT{D3}) = D3
 codomainType(A::VCAT) = codomainType.(A.A)
@@ -17,13 +18,11 @@ fun_name(S::VCAT) = "Vertically Concatenated Operators"
 
 vcat(A::LinearOperator) = A
 
-function vcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3}, sign::Array{Bool} )
+function vcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3} )
 	if size(A,1) != size(B,1) throw(DimensionMismatch("operators must share codomain!")) end
 	mid = Array{D3}(size(B,1))
-	VCAT{D3}([A,B], mid, sign)
+	VCAT{D3}([A,B], mid)
 end
-
-vcat{D1,D2,D3}(A::LinearOperator{D1,D3}, B::LinearOperator{D2,D3} ) = vcat(A,B,[true; true])
 
 function vcat(A::Vararg{LinearOperator})
 	H = Vector{LinearOperator}()
@@ -36,22 +35,10 @@ function vcat(A::Vararg{LinearOperator})
 		end
 		push!(H,a)
 	end
-	sign = ones(Bool,length(A))
-	VCAT{D3}(H,mid,sign)
+	VCAT{D3}(H,mid)
 end
 
-#constructor from affine
-function vcat(A::AffineOperator...)
-	A = [A...]
-	H = vcat(operator.(A)...)
-	x = variable.(A)
-	for i = 2:length(x)
-		if x[i]!=x[1] error("different variables appear in vcat!") end
-	end
-	Affine(x[1],H)
-end
-
-transpose{D3}(A::VCAT{D3}) = HCAT{D3}((A.A.')[:], A.mid, A.sign)
+transpose{D3}(A::VCAT{D3}) = HCAT{D3}((A.A.')[:], A.mid)
 
 function *{D2}(A::VCAT{D2},b::AbstractArray) 
 	y = Array{AbstractArray,1}(length(A.A))
@@ -62,11 +49,11 @@ function *{D2}(A::VCAT{D2},b::AbstractArray)
 	return y
 end
 
-.*{D3}(A::VCAT{D3},B::VCAT{D3})  = VCAT{D3}(A.A.*B.A, A.mid, A.sign.*B.sign)
+.*{D3}(A::VCAT{D3},B::VCAT{D3})  = VCAT{D3}(A.A.*B.A, A.mid)
 
 function A_mul_B!{T1<:AbstractArray}(y::Array{T1,1}, S::VCAT, b::AbstractArray) 
 	for i = 1:length(S.A)
-		S.sign[i] ? A_mul_B!(y[i],S.A[i],b) : A_mul_B!(y[i],S.A[i],-b)
+		A_mul_B!(y[i],S.A[i],b)
 	end
 end
 
