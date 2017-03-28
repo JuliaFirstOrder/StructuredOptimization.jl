@@ -2,7 +2,7 @@
 #slv = ZeroFPR(verbose = verb)
 println("testing cost function constructors")
 
-x,y,z,u = OptVar(4), OptVar(4), OptVar(4), OptVar(4)
+x,y,z,u = OptVar(randn(4)), OptVar(randn(4)), OptVar(randn(2,2)), OptVar(randn(4))
 cf = ls(x)+ls(y)
 @test length(variable(cf)) == 2
 cf = ls(x+y)+ls(y)
@@ -15,12 +15,42 @@ cf = 10*(4*ls(x)+ls(x+y)+2*ls(z))
 @test length(variable(cf)) == 3
 @test  cf.f[1].lambda == 40 && cf.f[2].lambda == 10 && cf.f[3].lambda == 20
 show(cf)
-cf = ls(x+y)+ls(z+u)+norm(randn(4).*x,1)+norm(y,2)+norm(z,1)+norm(u)
+cf = ls(x+y-randn(4))+ls(y+reshape(z,4)+u)+1*norm(randn(4).*u,1)+2*norm(z-randn(2,2),2)+3*norm(y,1)
 @test length(variable(cf)) == 4
 show(cf)
 	
-#nonsmooth, smooth, quadratic, nonsmoothprox = RegLS.split(cf)
-#x_sorted = sort(variable(cf),by = object_id)
+x_sorted = sort(variable(cf),by = object_id)
+
+println("\n test split \n")
+smooth, proximable, nonsmooth = RegLS.split(cf)
+println("\n Smooth:")
+show(smooth)
+println("\n Proximable:")
+show(proximable)
+println("\n NonSmooth:")
+show(nonsmooth)
+
+
+println("\n test merge prox \n")
+p = RegLS.mergeProx(x_sorted, proximable)
+show(x_sorted)
+show(p.fs)
+
+println("\n test merge prox \n")
+smooth_exp = RegLS.mergeSmooth(x_sorted, smooth)
+show(RegLS.affine(smooth))
+show(RegLS.affine(smooth_exp))
+
+out1 = RegLS.affine(smooth_exp)[1](optData(x_sorted))
+out2 = RegLS.affine(smooth)[1]([x.x,y.x])
+@test norm(out1-out2) <= 1e-8
+
+out1 = RegLS.affine(smooth_exp)[2](optData(x_sorted))
+out2 = RegLS.affine(smooth)[2]([y.x,z.x,u.x])
+@test norm(out1-out2) <= 1e-8
+#norm(RegLS.affine(smooth_exp)[1]([X,Y,Z,U]))
+
+
 #	
 #
 #

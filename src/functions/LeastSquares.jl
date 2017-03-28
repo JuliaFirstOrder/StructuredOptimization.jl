@@ -5,11 +5,11 @@ immutable LinearLeastSquares <: SmoothFunction
 end
 
 function (f::LinearLeastSquares)(x::AbstractArray)
-	0.5*f.lambda*vecnorm(x)^2
+	return 0.5*f.lambda*vecnorm(x)^2
 end
 
 function gradient!(grad::AbstractArray, f::LinearLeastSquares)  
-	grad .= f.lambda.*grad
+	f.lambda == 1. ? nothing : grad .= f.lambda.*grad
 end
 
 function get_prox(T::LinearLeastSquares)

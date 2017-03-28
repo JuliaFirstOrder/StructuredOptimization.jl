@@ -1,23 +1,32 @@
 function split(cf::CostFunction)
 
-	nonsmooth     = Array{NonSmoothTerm, 1}(0) # terms with non simple-operator
-	quadratic     = Array{QuadraticTerm, 1}(0) # quadratic terms
-	smooth        = Array{SmoothTerm,    1}(0) # quadratic terms
-	nonsmoothprox = Array{NonSmoothTerm, 1}(0) # nonsmooth proximable terms
+	nA, nf = Vector{AffineOperator}(0), Vector{ExtendedRealValuedFunction}(0) 
+	# non-smooth terms with non simple-operator
+	sA, sf = Vector{AffineOperator}(0), Vector{ExtendedRealValuedFunction}(0) 
+	# smooth terms 
+	pA, pf = Vector{AffineOperator}(0), Vector{ExtendedRealValuedFunction}(0) 
+	# nonsmooth proximable terms
 
-	for t in cf.Terms
-		if isAbsorbable(t.A) && typeof(t)<:NonSmoothTerm
-			push!(nonsmoothprox,t)
+	for i in eachindex(cf.A)
+		if isAbsorbable(operator(cf.A[i])) && typeof(cf.f[i])<:NonSmoothFunction
+			push!(pf,cf.f[i])
+			push!(pA,cf.A[i])
 		else
-			if typeof(t) <: NonSmoothTerm
-				push!(nonsmooth,t)
-			elseif typeof(t) <: SmoothTerm
-				typeof(t) <: QuadraticTerm ? push!(quadratic,t) : push!(smooth,t)
+			if     typeof(cf.f[i]) <: NonSmoothFunction
+				push!(nf,cf.f[i])
+				push!(nA,cf.A[i])
+			elseif typeof(cf.f[i]) <: SmoothFunction
+				push!(sf,cf.f[i])
+				push!(sA,cf.A[i])
 			end
 		end
 	end
 
-	return nonsmooth, smooth, quadratic, nonsmoothprox
+	proximable =  CostFunction(variable(cf), pf, pA )
+	smooth     =  CostFunction(variable(cf), sf, sA )
+	nonsmooth  =  CostFunction(variable(cf), nf, nA )
+
+	return smooth, proximable, nonsmooth 
 
 end
 

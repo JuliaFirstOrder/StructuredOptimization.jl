@@ -1,6 +1,5 @@
 
 # absorb linear operator into proximable operator
-absorbOp(A::LinearOperator, p::ProximableFunction) = absorbOp(  A, p, 0.)
 absorbOp(A::AffineOperator, p::ProximableFunction) = absorbOp(operator(A), p, tilt(A))
 
 absorbOp{L <:IdentityOperator}(A::L, p::ProximableFunction, b) = b == 0. ? p : Precompose(p, 1., b)
