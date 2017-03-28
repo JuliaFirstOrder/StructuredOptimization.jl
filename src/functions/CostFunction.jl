@@ -1,35 +1,26 @@
-type CostFunction
+import Base: *, <=, ==
+
+immutable CostFunction
 	x::Array{OptVar,1}
-	Terms::Array{OptTerm, 1}
+	f::Array{ExtendedRealValuedFunction,1}
+	A::Array{AffineOperator,1}
 end
 
-+(h::OptTerm, g::OptTerm) = CostFunction(addVar(variable(h),variable(g)),[h,g])
-
-function +(cf::CostFunction, g::OptTerm) 
-	push!(cf.Terms,g)
-	addVar!(cf.x,variable(g))
-	return cf
+function +(h::CostFunction, g::CostFunction) 
+	x = addVar(h.x,g.x)
+	CostFunction(x,[h.f...,g.f...], [h.A...,g.A...])
 end
 
-function addVar{T1,T2}(x::OptVar{T1},y::OptVar{T2})
-	x == y ? [x] :[x,y]
-end
+*(lambda::Real, h::CostFunction)   = CostFunction(h.x,(*).(lambda, h.f),h.A)
 
-function addVar!{T}(x::Vector,y::OptVar{T})
-	any(x.==y) ? x : push!(x,y) 
-end
-addVar!{T}(y::OptVar{T}, x::Vector) = addVar!(x,y) 
+<=(h::CostFunction, lambda::Real)  = CostFunction(h.x,(<=).(h.f,lambda),h.A)
+==(h::CostFunction, lambda::Real,)  = CostFunction(h.x,(==).(h.f,lambda),h.A)
+
 
 function addVar{T}(x::Vector,y::OptVar{T})
 	any(x.==y) ? x : [x...,y] 
 end
-addVar{T}(y::OptVar{T}, x::Vector) = addVar(x,y) 
-
-function addVar!(x::Vector,y::Vector)
-	for xi in x
-		addVar!(xi,z)
-	end
-end
+addVar{T}(x::OptVar{T},y::Vector) = addVar(y,x) 
 
 function addVar(x::Vector,y::Vector)
 	z = copy(y)

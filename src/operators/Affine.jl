@@ -10,6 +10,7 @@ end
 variable(A::Affine) = A.x
 operator(A::Affine) = A.A
 adjoint(A::Affine)  = A.At
+tilt(A::Affine)  = isnull(A.b) ? 0. : get(A.b)
 
 #TODO add checks of dimension of OptVar  
 Affine(x::OptVar,A::LinearOperator) = Affine([x],A)

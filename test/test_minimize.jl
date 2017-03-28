@@ -1,8 +1,8 @@
-verb = 1
-slv = ZeroFPR(verbose = verb)
+#verb = 1
+#slv = ZeroFPR(verbose = verb)
 println("testing cost function constructors")
 
-x,y,z,u = OptVar(4), OptVar(2,2), OptVar(5), OptVar(4)
+x,y,z,u = OptVar(4), OptVar(4), OptVar(4), OptVar(4)
 cf = ls(x)+ls(y)
 @test length(variable(cf)) == 2
 cf = ls(x+y)+ls(y)
@@ -11,29 +11,32 @@ cf = ls(x+y)+ls(y)+ls(z)
 @test length(variable(cf)) == 3
 cf = ls(x)+ls(y)+ls(z)
 @test length(variable(cf)) == 3
-cf = ls(x)+ls(x+y)+ls(z)
+cf = 10*(4*ls(x)+ls(x+y)+2*ls(z))
 @test length(variable(cf)) == 3
+@test  cf.f[1].lambda == 40 && cf.f[2].lambda == 10 && cf.f[3].lambda == 20
+show(cf)
 cf = ls(x+y)+ls(z+u)+norm(randn(4).*x,1)+norm(y,2)+norm(z,1)+norm(u)
 @test length(variable(cf)) == 4
+show(cf)
 	
-nonsmooth, smooth, quadratic, nonsmoothprox = RegLS.split(cf)
-x_sorted = sort(variable(cf),by = object_id)
-	
-
-
-#####test single block of variable
-println("testing single variable primal")
-x = OptVar(zeros(5))
-minimize(ls(fft(x)-fft(randn(5)))+1e-2*norm(x,1), slv)
-
-n,m = 5,3
-A = randn(m,n)
-x = OptVar(zeros(n))
-b1,b2 = randn(m),randn(n)
-minimize(ls(A*x-randn(m))+1e-2*norm(x,1), slv)
-
-x = OptVar(zeros(n))
-minimize(ls(x-b2)+1e-2*norm(x,1), slv)
+#nonsmooth, smooth, quadratic, nonsmoothprox = RegLS.split(cf)
+#x_sorted = sort(variable(cf),by = object_id)
+#	
+#
+#
+######test single block of variable
+#println("testing single variable primal")
+#x = OptVar(zeros(5))
+#minimize(ls(fft(x)-fft(randn(5)))+1e-2*norm(x,1), slv)
+#
+#n,m = 5,3
+#A = randn(m,n)
+#x = OptVar(zeros(n))
+#b1,b2 = randn(m),randn(n)
+#minimize(ls(A*x-randn(m))+1e-2*norm(x,1), slv)
+#
+#x = OptVar(zeros(n))
+#minimize(ls(x-b2)+1e-2*norm(x,1), slv)
 #
 #X, = minimize(ls(A*x-b1), [norm(5.0*x,1) <= 1/1e-2], slv)
 #@test norm(X,1) <= 1/1e-2

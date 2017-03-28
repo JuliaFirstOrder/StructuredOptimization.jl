@@ -1,23 +1,31 @@
-abstract OptTerm
-abstract SmoothTerm      <: OptTerm
-abstract QuadraticTerm   <: SmoothTerm
-abstract NonSmoothTerm   <: OptTerm
+abstract ExtendedRealValuedFunction
+abstract SmoothFunction      <: ExtendedRealValuedFunction
+abstract NonSmoothFunction   <: ExtendedRealValuedFunction
 
 include("functions/CostFunction.jl")
 include("functions/absorb_merge.jl")
 include("functions/LeastSquares.jl")
-include("functions/HingeLoss.jl")
 include("functions/Norm.jl")
 include("functions/Box.jl")
+include("functions/HingeLoss.jl")
 
-operator(h::OptTerm) = typeof(h.A) <: Affine ? h.A.A : h.A
-variable(h::OptTerm) = variable(h.A)
+operator(h::ExtendedRealValuedFunction) = operator(h.A) 
 variable(cf::CostFunction) = cf.x
 
-function Base.show(io::IO, f::OptTerm)
-  println(io, "description : ", fun_name(f))
-  println(io, "operator    : ", fun_name(f.A))
-  println(io, "parameters  : ", fun_par(f))
+function Base.show(io::IO, cf::CostFunction)
+	description = fun_name(cf.f[1],1)
+	operator    = "\n A1 = "*fun_name(RegLS.operator(cf.A[1]))
+	parameter   = fun_par(cf.f[1],1)
+	for i = 2:length(cf.f)
+		description = description*"+ "fun_name(cf.f[i],i)
+		operator    = operator*",\n A$i = "*fun_name(RegLS.operator(cf.A[i]))
+		parameter = parameter*", "fun_par(cf.f[i],i)
+	end
+		
+	println(io, "Cost Function") 
+	println(io, "description : ", description) 
+	println(io, "operators   : ", operator   )
+	println(io, "parameters  : ", parameter  )
 end
 
 

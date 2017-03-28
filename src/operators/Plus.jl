@@ -60,6 +60,9 @@ end
 +(A::Affine,x::OptVar) = A+eye(x) 
 -(A::Affine,x::OptVar) = A-eye(x)
 
++(x::OptVar,y::OptVar) = eye(x)+eye(y) 
+-(x::OptVar,y::OptVar) = eye(x)-eye(y)
+
 function +(A::Affine, B::Affine) 
 	if variable(A) == variable(B)
 		if size(operator(A)) == size(operator(B)) 
