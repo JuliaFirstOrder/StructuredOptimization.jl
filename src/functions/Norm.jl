@@ -86,18 +86,6 @@ function norm(A::AffineOperator, p::Float64)
 	end
 end
 
-get_prox(T::NormL0)   = ProximalOperators.NormL0(T.lambda)
-get_prox(T::NormL1)   = ProximalOperators.NormL1(T.lambda)
-get_prox(T::NormL2)   = ProximalOperators.NormL2(T.lambda)
-get_prox(T::NormLinf) = ProximalOperators.NormLinf(T.lambda)
-
-get_prox(T::IndBallL0)   = ProximalOperators.IndBallL0(T.r)
-get_prox(T::IndBallL1)   = ProximalOperators.IndBallL1(T.r)
-get_prox(T::IndBallL2)   = ProximalOperators.IndBallL2(T.r)
-get_prox(T::IndBallLinf) = ProximalOperators.IndBallLinf(T.r)
-
-get_prox(T::IndSphereL2) = ProximalOperators.IndSphereL2(T.r)
-
 *(lambda::Real,  T::NormL0)   = NormL0(  T.lambda*lambda)
 *(lambda::Real,  T::NormL1)   = NormL1(  T.lambda*lambda)
 *(lambda::Real,  T::NormL2)   = NormL2(  T.lambda*lambda)
@@ -109,6 +97,19 @@ get_prox(T::IndSphereL2) = ProximalOperators.IndSphereL2(T.r)
 <=(T::NormLinf, r::Real)  = IndBallLinf(r/T.lambda) 
 
 ==(T::NormL2, r::Real)    = IndSphereL2(r/T.lambda) 
+
+get_prox(T::NormL0)   = ProximalOperators.NormL0(T.lambda)
+get_prox(T::NormL1)   = ProximalOperators.NormL1(T.lambda)
+get_prox(T::NormL2)   = ProximalOperators.NormL2(T.lambda)
+get_prox(T::NormLinf) = ProximalOperators.NormLinf(T.lambda)
+
+get_prox(T::IndBallL0)   = ProximalOperators.IndBallL0(T.r)
+get_prox(T::IndBallL1)   = ProximalOperators.IndBallL1(T.r)
+get_prox(T::IndBallL2)   = ProximalOperators.IndBallL2(T.r)
+get_prox(T::IndBallLinf) = ProximalOperators.IndBallLinf(T.r)
+get_prox(T::IndSphereL2) = ProximalOperators.IndSphereL2(T.r)
+
+
 
 
 

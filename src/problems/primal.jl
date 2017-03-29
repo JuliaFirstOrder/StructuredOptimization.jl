@@ -1,15 +1,20 @@
-immutable Primal{A<:AffineOperator}
-	Op::A
+immutable Primal
+	s::CostFunction          #smooth cost function
 	p::ProximableFunction
 end
 
-function problem{T<:SmoothTerm}(g::T, smooth::Array{OptTerm,1}, nonsmooth::Array{OptTerm,1})
+solve(P::Primal, args...) = solve(P.s, P.p, args...)
 
-	x = variable(g) #extract variables
-	p = get_prox(x, nonsmooth, smooth)
-	 
-	Primal(g.A, p)
+function Base.show(io::IO, P::Primal)
+	println("Primal Problem")
+	println()
+	println("Smooth Cost Function:")
+	println()
+	show(P.s)
+	println()
+	println("Proximable operators:")
+	println()
+	show(P.p)
+	println()
 end
-
-solve(P::Primal, args...) = solve(P.Op, P.p, args...)
 

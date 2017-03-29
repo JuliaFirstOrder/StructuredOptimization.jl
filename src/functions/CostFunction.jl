@@ -2,25 +2,9 @@ import Base: *, <=, ==, isempty
 export affine, terms, tilt
 
 immutable CostFunction
-	x::Array{OptVar,1}
-	f::Array{ExtendedRealValuedFunction,1}
-	A::Array{AffineOperator,1}
-end
-
-function (cf::CostFunction)(x::AbstractArray, no_affine::Bool = false)
-	if no_affine 
-		out = 0.0
-		for i in eachindex(cf.f)
-			out += terms(cf)[i](x) 
-		end
-		return out
-	else
-		out = 0.0
-		for i in eachindex(cf.f)
-			out += terms(cf)[i](affine(cf)[i](x)) 
-		end
-		return out
-	end
+	x::Vector{OptVar}
+	f::Vector{ExtendedRealValuedFunction}
+	A::Vector{AffineOperator}
 end
 
 variable(cf::CostFunction) = cf.x
@@ -41,11 +25,67 @@ end
 <=(h::CostFunction, lambda::Real)  = CostFunction(h.x,(<=).(h.f,lambda),h.A)
 ==(h::CostFunction, lambda::Real,)  = CostFunction(h.x,(==).(h.f,lambda),h.A)
 
-
-function addVar{T}(x::Vector,y::OptVar{T})
-	any(x.==y) ? x : [x...,y] 
+#this function must be used only with sorted and expanded affine operators!
+function cost{T}(cf::CostFunction, resx::Vector{T})
+	f = 0.0
+	for i in eachindex(terms(cf))
+		f += terms(cf)[i](resx[i])
+	end
+	return f
 end
-addVar{T}(x::OptVar{T},y::Vector) = addVar(y,x) 
+
+#this function must be used only with sorted and expanded affine operators!
+function evaluate!{T}(resx::Vector{T}, cf::CostFunction, x::AbstractArray)
+	f = 0.0
+	for i in eachindex(terms(cf))
+		evaluate!(resx[i],affine(cf)[i],x)
+		f += terms(cf)[i](resx[i])
+	end
+	return f
+end
+
+
+#this function must be used only with sorted and expanded affine operators!
+function evaluate(cf::CostFunction, x::AbstractArray)
+	f = 0.0
+	resx = Vector(length(terms(cf)))
+	for i in eachindex(terms(cf))
+		resx[i] = affine(cf)[i](x)
+		f += terms(cf)[i](resx[i])
+	end
+	return resx, f
+end
+
+#this function must be used only with sorted and expanded affine operators!
+#internal variables are used as buffer 
+function gradient!{T}(grad::AbstractArray, cf::CostFunction, resx::Vector{T} )
+	A_mul_B!(grad, adjoint(affine(cf)[1]), resx[1] )
+	gradient!(grad, terms(cf)[1])
+	for i = 2:length(terms(cf))
+		A_mul_B!(optData(variable(cf)), adjoint(affine(cf)[i]), resx[i] )
+		gradient!(optData(variable(cf)), terms(cf)[i])
+		grad .+= optData(variable(cf))
+	end
+end
+
+#this function must be used only with sorted and expanded affine operators!
+function gradient{T}(cf::CostFunction, resx::Vector{T} )
+	grad = deepsimilar(optData(variable(cf)))
+	gradient!(grad,cf,resx)
+	return grad
+end
+
+#this function must be used only with sorted and expanded affine operators!
+function shifted_residual!{T}(resx::Vector{T}, cf::CostFunction, x::AbstractArray)
+	f = 0.0
+	for i in eachindex(terms(cf))
+		A_mul_B!(resx[i],operator(affine(cf)[i]),x)
+	end
+end
+
+function addVar{T}(x::OptVar{T},y::Vector)
+	any(y.==x) ? y : [y...,x] 
+end
 
 function addVar(x::Vector,y::Vector)
 	z = copy(y)

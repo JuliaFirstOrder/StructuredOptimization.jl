@@ -54,7 +54,7 @@ PG(; tol::Float64 = 1e-8,
       verbose::Int64 = 1,
       halt::Function = halt_default,
       linesearch::Bool = true,
-			fast::Bool = false,
+      fast::Bool = false,
       gamma::Float64 = Inf) =
 	PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, fast, 0, 0)
 
@@ -67,14 +67,15 @@ FPG(; tol::Float64 = 1e-8,
       gamma::Float64 = Inf) =
 	PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
-function solve!{T<:SmoothTerm,
-		R<:AbstractArray
-		}(x::R, A::T, g::ProximableFunction, slv::PG)
+function solve(f::CostFunction, g::ProximableFunction, slv0::PG)
 
 	tic()
 
-	resx, fx = evaluate(A,x)
-	gradx    = gradient(A,resx)
+	slv = copy(slv0)
+	x = deepcopy(optData(variable(f)))
+
+	resx, fx = evaluate(f,x)
+	gradx    = gradient(f,resx)
 	slv.cnt_matvec += 2
 	fz = fx
 	gz = Inf
@@ -82,8 +83,8 @@ function solve!{T<:SmoothTerm,
 	normfpr0 = Inf
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps, = evaluate(A,x+sqrt(eps()))
-		gradx_eps = gradient(A,resx_eps)
+		resx_eps, = evaluate(f,x+sqrt(eps()))
+		gradx_eps = gradient(f,resx_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = 1/Lf
@@ -111,7 +112,7 @@ function solve!{T<:SmoothTerm,
 			slv.cnt_prox += 1
 			fpr = y-x
 			slv.normfpr = deepvecnorm(fpr)
-			fz = evaluate!(resx, A, x)
+			fz = evaluate!(resx, f, x)
 			slv.cnt_matvec += 1
 			if slv.linesearch == false break end
 			uppbnd = fy - real(deepvecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
@@ -136,8 +137,8 @@ function solve!{T<:SmoothTerm,
 		end
 
 		# compute gradient and f(y)
-		fy = 0.5*deepvecnorm(resy)^2
-		gradient!(grady,A,resy)
+		fy = cost(f,resy)
+		gradient!(grady,f,resy)
 		slv.cnt_matvec += 1
 
 		# update iterates
@@ -149,9 +150,10 @@ function solve!{T<:SmoothTerm,
 
 	print_status(slv, 2*(slv.verbose>0))
 
+	deepcopy!(optData(variable(f)),x)
 	slv.time = toq()
 
-	return x, slv
+	return slv
 
 end
 

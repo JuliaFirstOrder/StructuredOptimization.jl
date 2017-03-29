@@ -13,7 +13,7 @@ end
 
 size(x::OptVar) = size(x.x)
 optData(x::OptVar) = x.x
-optData{T<:AbstractOptVar}(x::Vector{T}) = optData.(x)
+optData{T<:AbstractOptVar}(x::Vector{T}) = length(x) == 1 ? optData(x[1]) : optData.(x)
 
 deepcopy!(x::OptVar,y::AbstractArray) = deepcopy!(x.x,y) 
 deepcopy!{T<:AbstractOptVar}(x::Vector{T},y::AbstractArray) = deepcopy!(optData(x),y) 

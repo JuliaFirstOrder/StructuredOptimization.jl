@@ -1,5 +1,6 @@
-#verb = 1
-#slv = ZeroFPR(verbose = verb)
+verb = 1
+slv = ZeroFPR(verbose = verb)
+
 println("testing cost function constructors")
 
 x,y,z,u = OptVar(randn(4)), OptVar(randn(4)), OptVar(randn(2,2)), OptVar(randn(4))
@@ -48,69 +49,74 @@ out2 = RegLS.affine(smooth)[1]([x.x,y.x])
 out1 = RegLS.affine(smooth_exp)[2](optData(x_sorted))
 out2 = RegLS.affine(smooth)[2]([y.x,z.x,u.x])
 @test norm(out1-out2) <= 1e-8
-#norm(RegLS.affine(smooth_exp)[1]([X,Y,Z,U]))
+
+#####test single block of variable
+println("testing single variable primal")
+M = randn(50,50)
+b = randn(50)
+x = OptVar(zeros(50))
+P = problem(ls(M*x-b), norm(x,1)<=10)
+show(P)
+
+slv1 = solve(P,slv)
+show(slv1)
+@test norm(x.x,1)-10 <= 1e-5
+slv1 = minimize(ls(M*x-b), norm(x,1)<=10, slv)
 
 
-#	
-#
-#
-######test single block of variable
-#println("testing single variable primal")
-#x = OptVar(zeros(5))
-#minimize(ls(fft(x)-fft(randn(5)))+1e-2*norm(x,1), slv)
-#
-#n,m = 5,3
-#A = randn(m,n)
-#x = OptVar(zeros(n))
-#b1,b2 = randn(m),randn(n)
-#minimize(ls(A*x-randn(m))+1e-2*norm(x,1), slv)
-#
-#x = OptVar(zeros(n))
-#minimize(ls(x-b2)+1e-2*norm(x,1), slv)
-#
-#X, = minimize(ls(A*x-b1), [norm(5.0*x,1) <= 1/1e-2], slv)
-#@test norm(X,1) <= 1/1e-2
-#
-#b = [b1,(A\b1)[1:2]]
-#X, = minimize(ls([A*x; x[1:2]]-b), [norm(x,1) <= 1/1e-8], slv)
-#@test norm(X,1) <= 1/1e-8
-#@test vecnorm([A*X,X[1:2]]-b) <= 1e-5
-#
-#####test merge regularize
-#X, = minimize(ls(A*x-b1)+1e7*ls(x-b2), [norm(x,1) <= 1/1e-2], slv)
-#@test norm(X-b2) < 1e-5
-#
-#
+n,m = 5,3
+A = randn(m,n)
+x = OptVar(zeros(n))
+b1,b2 = randn(m),randn(n)
+minimize(ls(A*x-randn(m))+1e-2*norm(x,1), slv)
+
+x = OptVar(zeros(n))
+minimize(ls(x-b2)+1e-2*norm(x,1), slv)
+
+minimize(ls(A*x-b1), [norm(5.0*x,1) <= 1/1e-2], slv)
+@test norm(x.x,1) <= 1/1e-2
+
+####test merge regularize
+minimize(ls(A*x-b1)+1e7*ls(x-b2), [norm(x,1) <= 1/1e-2], slv)
+@test norm(x.x-b2) < 1e-5
+
+minimize(ls(A*x-b1)+1e-7*ls(x-b2), [norm(x,1) <= 1/1e-2], slv)
+@test norm(A*x.x-b1) < 1e-5
+
+
 #println("testing block variables primal")
-#x, y = OptVar(n), OptVar(Complex{Float64},n)
-#X, = minimize(ls(fft(x)+y-fft(b2))+1e-7*norm(x,1), slv)
-#@test norm(fft(X[1])+X[2]-fft(b2))<1e-7
-#
-#x, y = OptVar(n), OptVar(m)
-#X, = minimize(ls(A*x+y)+1e-2*norm(x,1), norm(y-b1,1) <= 1e-2, slv)
-#
-#@test (norm(X[2]-b1,1)-1e-2)<1e-8
-#
-#X, = minimize(ls(A*x+y), [norm(x,2)<=1e2, norm(2*y-b1,1) <= 1e-2], slv)
-#
-#@test (norm(2.*X[2]-b1,1)-1e-2)<1e-8
-#@test  norm(X[1],2)<= 1e2
-#
-#X, = minimize(ls(A*x+y), [norm(x,2)<=1e2, (y-b1) in [-1e-2,1e-2]], slv)
-#
-#@test any(-1e-2-1e-8 .<= (X[2]-b1) .<= 1e-2+1e-8)
-#@test  norm(X[1],2)<= 1e2
-#
+n,m = 5,3
+b1,b2 = randn(m),randn(n)
+x, y = OptVar(n), OptVar(Complex{Float64},n)
+minimize(ls(fft(x)+y-fft(b2))+1e-3*norm(x,1), slv)
+cf = ls(fft(x)+y-fft(b2))+1e-3*norm(x,1)
+@test norm(fft(x.x)+y.x-fft(b2))<1e-3
+
+x, y = OptVar(n), OptVar(m)
+minimize(ls(A*x+y)+1e-2*norm(x,1), norm(y-b1,1) <= 1e-2, slv)
+
+@test (norm(y.x-b1,1)-1e-2)<1e-8
+
+minimize(ls(A*x+y), [norm(x,2)<=1e2, norm(2*y-b1,1) <= 1e-2], slv)
+
+@test (norm(2.*y.x-b1,1)-1e-2)<1e-8
+@test  norm(x.x,2)<= 1e2
+
+minimize(ls(A*x+y), [norm(x,2)<=1e2, (y-b1) in [-1e-2,1e-2]], slv)
+
+@test any(-1e-2-1e-8 .<= (y.x-b1) .<= 1e-2+1e-8)
+@test  norm(x.x,2)<= 1e2
+
 #####testing merge regularize
-#X, = minimize(ls(A*x+y)+1e-3*ls(x), [norm(x,2)<=1e2, (y-b1) in [-1e-2,1e-2]], slv)
-#
-#@test any(-1e-2-1e-8 .<= (X[2]-b1) .<= 1e-2+1e-8)
-#@test norm(X[1],2)<= 1e2
-#
-#X, = minimize(ls(A*x+y)+1e-3*ls(5.0*x-randn(n)), [norm(5.0*x,2)<=1e2, (y-b1) in [-1e-2,1e-2]], slv)
-#
-#@test any(-1e-2-1e-8 .<= (X[2]-b1) .<= 1e-2+1e-8)
-#@test norm(5*X[1],2)<= 1e2
+minimize(ls(A*x+y)+1e-3*ls(x), [norm(x,2)<=1e2, (y-b1) in [-1e-2,1e-2]], slv)
+
+@test any(-1e-2-1e-8 .<= (y.x-b1) .<= 1e-2+1e-8)
+@test norm(x.x,2)<= 1e2
+
+minimize(ls(A*x+y)+1e-3*ls(5.0*x-randn(n)), [norm(5.0*x,2)<=1e2, (y-b1) in [-1e-2,1e-2]], slv)
+
+@test any(-1e-2-1e-8 .<= (y.x-b1) .<= 1e-2+1e-8)
+@test norm(5*x.x,2)<= 1e2
 
 #println("testing single variable dual")
 #n,m = 5,3

@@ -70,22 +70,23 @@ ZeroFPR(tol,
         0, Inf, Inf, NaN, linesearch, 0, 0)
 
 
-function solve!{T <: SmoothTerm,
-		R<:AbstractArray
-		}(x::R, A::T, g::ProximableFunction, slv::ZeroFPR)
+function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 
 	tic()
 
-	LBFGS = lbfgs(x,slv.mem)
+	slv = copy(slv0)
+	x = deepcopy(optData(variable(f)))
+
+	lbfgs = LBFGS(x,slv.mem)
 	beta = 0.05
 
-	resx, fx = evaluate(A,x)
-	gradx    = gradient(A,resx)
+	resx, fx = evaluate(f,x)
+	gradx    = gradient(f,resx)
 	slv.cnt_matvec += 2
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps, = evaluate(A,x+sqrt(eps()))
-		gradx_eps = gradient(A,resx_eps)
+		resx_eps, = evaluate(f,x+sqrt(eps()))
+		gradx_eps = gradient(f,resx_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = (1-beta)/Lf
@@ -110,10 +111,10 @@ function solve!{T <: SmoothTerm,
 	d         = deepcopy(x)
 	ATAd      = deepcopy(x)
 	gradstep  = deepcopy(x)
-	gradxbar = deepcopy(x)
-	xbarbar = deepcopy(x)
+	gradxbar  = deepcopy(x)
+	xbarbar   = deepcopy(x)
 	Ad        = deepcopy(resx)
-	resxbar = deepcopy(resx)
+	resxbar   = deepcopy(resx)
 
 	for slv.it = 1:slv.maxit
 
@@ -121,7 +122,7 @@ function solve!{T <: SmoothTerm,
 		if slv.halt(slv, normfpr0, FBEx, FBEprev) break end
 		FBEprev = FBEx
 
-		fxbar = evaluate!(resxbar,A,xbar)
+		fxbar = evaluate!(resxbar,f,xbar)
 		slv.cnt_matvec += 1
 
 		# line search on gamma
@@ -136,7 +137,7 @@ function solve!{T <: SmoothTerm,
 				slv.cnt_prox += 1
 				r .= (-).(x, xbar)
 				slv.normfpr = deepvecnorm(r)
-				fxbar = evaluate!(resxbar,A,xbar)
+				fxbar = evaluate!(resxbar,f,xbar)
 				slv.cnt_matvec += 1
 				uppbnd = fx - real(deepvecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 			end
@@ -152,7 +153,7 @@ function solve!{T <: SmoothTerm,
 		print_status(slv)
 
 		# compute rbar
-		gradient!(gradxbar, A, resxbar)
+		gradient!(gradxbar, f, resxbar)
 		slv.cnt_matvec += 1
 		gradstep .= (*).(-slv.gamma, gradxbar)
 		gradstep .+= xbar
@@ -164,8 +165,8 @@ function solve!{T <: SmoothTerm,
 		if slv.it == 1
 			deepcopy!(d,-rbar)
 		else
-			update!(LBFGS, xbar, xbar_prev, rbar, rbar_prev)
-			A_mul_B!(d,LBFGS, rbar)
+			update!(lbfgs, xbar, xbar_prev, rbar, rbar_prev)
+			A_mul_B!(d,lbfgs, rbar)
 		end
 
 		# store xbar and rbar for later use
@@ -175,13 +176,13 @@ function solve!{T <: SmoothTerm,
 		# line search on tau
 		level = FBEx - sigma*slv.normfpr^2
 		tau = 1.0
-		A_mul_B!(Ad, operator(A),  d)
-		gradient!(ATAd, A, Ad)
+		shifted_residual!(Ad, f,  d) 
+		gradient!(ATAd, f, Ad)
 		slv.cnt_matvec += 2
 		for j = 1:32
 			x .= (+).(xbar_prev, (*).(tau,d))
 			resx .= (+).(resxbar, (*).(tau,Ad))
-			fx = A(resx)
+			fx = cost(f,resx)
 			gradx .= (+).(gradxbar, (*).(tau,ATAd))
 			gradstep .= (*).(-slv.gamma, gradx)
 			gradstep .+= x
@@ -198,9 +199,10 @@ function solve!{T <: SmoothTerm,
 
 	print_status(slv, 2*(slv.verbose>0))
 
+	deepcopy!(optData(variable(f)),x)
 	slv.time = toq()
 
-	return x, slv
+	return slv
 end
 
 import Base: copy

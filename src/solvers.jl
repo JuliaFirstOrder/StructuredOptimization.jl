@@ -24,7 +24,7 @@ function Base.show(io::IO, slv::ForwardBackwardSolver)
 	println(io, "matvec eval: $(slv.cnt_matvec)")
 end
 
-export solve, solve!
+export solve
 
 solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction) =
 solve(A, b, g, zeros(eltype(b), size(A,2)))
@@ -46,15 +46,4 @@ function solve(b::AbstractArray, g::ProximableFunction, A::AbstractArray, args..
 	y, slv = solve(A', b, Conjugate(g), args...)
 	return -A'*y+b, slv, y
 end
-#new solvers
-function solve{T <: QuadraticTerm, S<:Solver}(A::T, g::ProximableFunction, slv::S)
-	x0 = copy(optArray(A.A))
-	slv2 = copy(slv) 
-	x, slv2 = solve!(A, g, slv2)
-	x_out = copy(x)
-	optArray!(A.A,x0)
-	return x_out, slv2
-end
-
-solve!{T <: QuadraticTerm}(A::T, args...) = solve!(optArray(A.A), A, args...)
 

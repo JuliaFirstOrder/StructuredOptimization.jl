@@ -9,7 +9,7 @@ include("functions/Norm.jl")
 include("functions/Box.jl")
 include("functions/HingeLoss.jl")
 
-operator(h::ExtendedRealValuedFunction) = operator(h.A) 
+gradient(f::ExtendedRealValuedFunction) = error("gradient not implemented for $f")
 
 function Base.show(io::IO, cf::CostFunction)
 	if isempty(cf)
@@ -24,7 +24,6 @@ function Base.show(io::IO, cf::CostFunction)
 			parameter = parameter*", "fun_par(cf.f[i],i)
 		end
 		
-		println(io, "Cost Function") 
 		println(io, "description : ", description) 
 		println(io, "operators   : ", operator   )
 		println(io, "parameters  : ", parameter  )
