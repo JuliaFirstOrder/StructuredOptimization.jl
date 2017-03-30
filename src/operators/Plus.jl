@@ -41,6 +41,9 @@ function A_mul_B!(y::AbstractArray,S::SumSameVar,b::AbstractArray)
 	end
 end
 
++(A::Affine,b::Float64) = b == 0.0 ? A : error("cannot sum $(typeof(A)) with $(typeof(b))") 
+-(A::Affine,b::Float64) = b == 0.0 ? A : error("cannot sum $(typeof(A)) with $(typeof(b))") 
+
 -(A::Affine) = isnull(A.b) ? Affine(A.x,-A.A,-A.At,A.b) : Affine(A.x,-A.A,-A.At,Nullable(-get(A.b)))
 -(x::Variable) = -(eye(x)) 
 

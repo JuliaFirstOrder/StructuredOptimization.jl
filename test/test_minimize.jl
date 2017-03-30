@@ -23,8 +23,8 @@ p = RegLS.mergeProx(x_sorted, proximable)
 show(x_sorted)
 show(p.fs)
 
-println("\n test merge prox \n")
-smooth_exp = RegLS.mergeSmooth(x_sorted, smooth)
+println("\n sort_and_expand \n")
+smooth_exp = RegLS.sort_and_expand(x_sorted, smooth)
 show(RegLS.affine(smooth))
 show(RegLS.affine(smooth_exp))
 
@@ -112,44 +112,52 @@ minimize(ls(A*x+y)+1e-3*ls(5.0*x-randn(n)), [norm(5.0*x,2)<=1e2, (y-b1) in [lb,u
 @test any(lb-1e-8 .<= (~y-b1) .<= ub+1e-8)
 @test norm(5*~x,2)<= 1e2
 
-#println("testing single variable dual")
-#n,m = 5,3
-#x = Variable(zeros(n))
-#A = randn(m,n)
-#b1 = randn(n)
-#b2 = randn(m)
-#d = rand(n)+2
-#
-#X, = minimize(ls(x-b1)+1e-10*norm(A*x-b2,1), slv)
-#@test norm(X-b1) <= 1e-6
-#
-#r = 1e-3
-#X, = minimize(ls(x-b1), norm(A*x-b2,1) <= r, slv)
-#@test norm(A*X-b2,1) <= r+1e-5
-#
-#X, = minimize(ls(d.*x-b1)+1e-10*norm(A*x-b2,1), slv)
-#@test norm(d.*X-b1) <= 1e-6
-#
-#r = 1e-3
-#X, = minimize(ls(d.*x), norm(A*x-b2,1) <= r, slv)
-#@test norm(A*X-b2,1) <= r+1e-5
-#
-#r = 1e8
-#X, = minimize(ls(d.*x-b1), norm(A*x-b2,1) <= r, slv)
-#@test norm(d.*X-b1) <= 1e-6
-#
-#X, = minimize(ls(x)+1e3*hingeloss(A*x,b2), slv)
-#
-#println("testing block variables dual")
-#
-#x,y = Variable(zeros(n)),Variable(m)
-#r = 1e8
-#X, = minimize(ls(d.*x-b1)+ls(5.0*y-b2), norm(A*x-y,1) <= r, slv)
-#@test norm(d.*X[1]-b1) <= 1e-6
-#@test norm(5.*X[2]-b2) <= 1e-6
-#
-#r = 1e-3
-#X, = minimize(ls(d.*x-b1)+ls(5.0*y-b2), norm(A*x-y,1) <= r, slv)
-#@test norm(A*X[1]-X[2],1) <= r+1e-5
-#
-#
+println("testing single variable dual")
+n,m = 5,3
+x = Variable(n)
+A = randn(m,n)
+b1 = randn(n)
+b2 = randn(m)
+d = rand(n)+2
+
+x = Variable(n)
+D = problem(1e5*ls(x-b1)+norm(A*x-b2,1))
+show(D)
+solve(D, slv)
+@test norm(~x-b1) <= 1e-4
+
+x = Variable(n)
+D = problem(ls(x-b1)+1e-5*norm(A*x-b2,1))
+solve(D, slv)
+@test norm(~x-b1) <= 1e-4
+
+r = 1e-3
+minimize(ls(x-b1), norm(A*x-b2,1) <= r, slv)
+@test norm(A*~x-b2,1) <= r+1e-5
+
+minimize(ls(d.*x-b1)+1e-10*norm(A*x-b2,1), slv)
+@test norm(d.*~x-b1) <= 1e-6
+
+r = 1e-3
+minimize(ls(d.*x), norm(A*x-b2,1) <= r, slv)
+@test norm(A*~x-b2,1) <= r+1e-5
+
+r = 1e8
+minimize(ls(d.*x-b1), norm(A*x-b2,1) <= r, slv)
+@test norm(d.*~x-b1) <= 1e-6
+
+minimize(ls(x)+1e3*hingeloss(A*x,b2), slv)
+
+println("testing block variables dual")
+
+x,y = Variable(zeros(n)),Variable(m)
+r = 1e8
+minimize(ls(d.*x-b1)+ls(5.0*y-b2), norm(A*x-y,1) <= r, slv)
+@test norm(d.*~x-b1) <= 1e-6
+@test norm(5.*~y-b2) <= 1e-6
+
+r = 1e-3
+minimize(ls(d.*x-b1)+ls(5.0*y-b2), norm(A*x-y,1) <= r, slv)
+@test norm(A*~x-~y,1) <= r+1e-5
+
+

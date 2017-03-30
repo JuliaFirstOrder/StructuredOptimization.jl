@@ -32,3 +32,6 @@ function mergeProx(f::Vector{ExtendedRealValuedFunction}, affOps::Vector{AffineO
 		error("sliced separable sum not implemented, or there are multiple proximable terms with the same variables i.e. separable sum not possible!")
 	end
 end
+
+isempty(p::ProximableFunction) = typeof(p) <: IndFree
+isempty(p::SeparableSum) = all([typeof(f) <: IndFree for f in p.fs ])

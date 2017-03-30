@@ -7,6 +7,10 @@ immutable CostFunction
 	A::Vector{AffineOperator}
 end
 
+CostFunction() = CostFunction(Vector{Variable}(0),
+			      Vector{ExtendedRealValuedFunction}(0),
+			     Vector{AffineOperator}(0)) 
+
 variable(cf::CostFunction) = cf.x
 affine(  cf::CostFunction) = cf.A
 terms(   cf::CostFunction) = cf.f
@@ -14,6 +18,7 @@ operator(cf::CostFunction) = operator.(cf.A)
 tilt(    cf::CostFunction) = tilt.(cf.A)
 
 isempty( cf::CostFunction) = length(cf.f) == 0 ? true : false
+isLeastSquares( cf::CostFunction) =  all([typeof(t) <: LinearLeastSquares for t in terms(cf) ])
 
 function +(h::CostFunction, g::CostFunction) 
 	x = addVar(h.x,g.x)
@@ -93,4 +98,23 @@ function addVar(x::Vector,y::Vector)
 		z = addVar(xi,z)
 	end
 	return z
+end
+
+function Base.show(io::IO, cf::CostFunction)
+	if isempty(cf)
+		println(io, "Empty Cost Function") 
+	else
+		description = fun_name(cf.f[1],1)
+		operator    = "\n A1 = "*fun_name(RegLS.operator(cf.A[1]))
+		parameter   = fun_par(cf.f[1],1)
+		for i = 2:length(cf.f)
+			description = description*"+ "fun_name(cf.f[i],i)
+			operator    = operator*",\n A$i = "*fun_name(RegLS.operator(cf.A[i]))
+			parameter = parameter*", "fun_par(cf.f[i],i)
+		end
+		
+		println(io, "description : ", description) 
+		println(io, "operators   : ", operator   )
+		println(io, "parameters  : ", parameter  )
+	end
 end

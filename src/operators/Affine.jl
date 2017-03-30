@@ -1,4 +1,4 @@
-import Base: +, -
+import Base: +, -, *
 export operator, adjoint, variable, Affine
 
 immutable Affine <: AffineOperator
@@ -13,6 +13,7 @@ adjoint(A::Affine)  = A.At
 tilt(A::Affine)  = isnull(A.b) ? 0. : get(A.b)
 
 #TODO add checks of dimension of Variable  
+*(A::LinearOperator, x::Variable) = Affine(x,A)
 Affine(x::Variable,A::LinearOperator) = Affine([x],A)
 Affine{T<:AbstractVariable}(x::Vector{T}, A::LinearOperator) = Affine(x, A, A',Nullable{AbstractArray}()) 
 

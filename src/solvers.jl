@@ -34,7 +34,8 @@ solve(A, b, g, x0, ZeroFPR() )
 
 function solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction, x0::AbstractArray, args...) 
 	x = Variable(deepcopy(x0))
-	solve(ls(A*x+b), g, args...)
+	slv = solve(ls(A*x+b), g, args...)
+	return ~x, slv
 end
 
 #
