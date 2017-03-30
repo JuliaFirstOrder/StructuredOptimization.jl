@@ -16,7 +16,7 @@ Eye(T::Type, dim::Vararg{Int64}) = Eye{T,T}(dim)
 Eye(dim::Vararg{Int64}) = Eye(Float64, dim)
 Eye(dim::Tuple        ) = Eye(Float64, dim)
 
-eye{D1}(x::OptVar{D1}) = Affine([x], Eye(D1,size(x)), Eye(D1,size(x)),
+eye{D1}(x::Variable{D1}) = Affine([x], Eye(D1,size(x)), Eye(D1,size(x)),
 				Nullable{AbstractArray}() )
 
 function uA_mul_B!{T}(y::AbstractArray{T},A::Eye,b::AbstractArray{T})

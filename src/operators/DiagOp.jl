@@ -18,7 +18,7 @@ DiagOp(T::Type, d::Complex, dim::Vararg{Int64}) = DiagOp{T,Complex{Float64}}(d, 
 DiagOp{T<:Number}(d::AbstractArray{T}, dim::Vararg{Int64}) = DiagOp(T, d, dim...)
 DiagOp{T<:Number}(d::T, dim::Vararg{Int64}) = DiagOp(T, d, dim...)
 
-function diagop{D1}(x::OptVar{D1}, d) 
+function diagop{D1}(x::Variable{D1}, d) 
 	A = DiagOp(D1,d, size(x)...)
 	At = A'
 	Affine([x], A, A', Nullable{AbstractArray}() )
@@ -42,8 +42,8 @@ diagop(B::AffineOperator, args...) = NestedLinearOperator(diagop,B, args...)
 #other constructors with * and .*
 
 *(d::Number, B::AffineOperator) = NestedLinearOperator(diagop, B, d)
-*(d::Number, x::OptVar)  = diagop(x,d)
-.*(d::AbstractArray, x::OptVar) = diagop(x,d)
+*(d::Number, x::Variable)  = diagop(x,d)
+.*(d::AbstractArray, x::Variable) = diagop(x,d)
 
 isInvertable(A::DiagOp) = true
 

@@ -132,7 +132,7 @@ stuff = [
 for i in eachindex(stuff)
 
 	x,y = deepcopy(stuff[i]["args"])
-	X,Y = OptVar(x), OptVar(y)
+	X,Y = Variable(x), Variable(y)
 
 	params = stuff[i]["params"][1]
 	Op     = stuff[i]["Operator"][1]
@@ -170,7 +170,7 @@ x1 = randn(3)
 y1 = randn(3)
 b1 = randn(3)
 M = randn(3,3)
-X1 = OptVar(x1)
+X1 = Variable(x1)
 x = x1
 y = y1
 
@@ -194,7 +194,7 @@ test3 = RegLS.test_Op(A, x, y)
 @test test3 < 1e-8
 
 x1 = randn(3)
-X1 = OptVar(x1)
+X1 = Variable(x1)
 y = randn(3)
 M = randn(3,3)
 x = x1
@@ -234,7 +234,7 @@ test3 = RegLS.test_Op(A, x, y)
 ##test HCAT
 
 x1,x2 = randn(3,3), randn(3,3)
-X1,X2 = OptVar(x1), OptVar(x2)
+X1,X2 = Variable(x1), Variable(x2)
 y = randn(3,3)
 b = randn(3,3)
 x = [x1,x2]
@@ -253,7 +253,7 @@ test3 = RegLS.test_Op(A, x, y)
 ##test HCAT .*
 
 x1,x2 = randn(3,3), randn(3*3)
-X1,X2 = OptVar(x1), OptVar(x2)
+X1,X2 = Variable(x1), Variable(x2)
 y = randn(3,3)
 x = [x1,x2]
 
@@ -274,7 +274,7 @@ A.*[x1,x1]
 #test HCAT merge
 
 x1,x2,x3 = randn(3),randn(3),randn(3)
-X1,X2,X3 = OptVar(x1), OptVar(x2), OptVar(x3)
+X1,X2,X3 = Variable(x1), Variable(x2), Variable(x3)
 M = randn(3,3)
 y = randn(3)
 b = randn(3)
@@ -306,9 +306,9 @@ test3 = RegLS.test_Op(A, x, y)
 #test VCAT
 
 x1 = randn(3,3)
-X1 = OptVar(x1)
+X1 = Variable(x1)
 y1,y2 = randn(3,3),randn(3)
-Y1,Y2 = OptVar(y1),OptVar(y2)
+Y1,Y2 = Variable(y1),Variable(y2)
 x = x1
 y = [y1,y2]
 
@@ -329,7 +329,7 @@ test3 = RegLS.test_Op(A, y, x)
 #test VCAT .*
 
 x1 = randn(3,3)
-X1 = OptVar(x1)
+X1 = Variable(x1)
 y1,y2 = randn(3,3),randn(6)
 x = x1
 y = [y1,y2]
@@ -352,7 +352,7 @@ test3 = RegLS.test_Op(C, y, x)
 
 ##test sorting Affine
 
-x,y = OptVar(10), OptVar(2,5)
+x,y = Variable(10), Variable(2,5)
 X = [randn(10), randn(2,5)]
 Y = randn(10)
 A = eye(x)-reshape(y,10)
@@ -395,7 +395,7 @@ end
 
 ##test sort_and_expand
 
-x,y,z = OptVar(10), OptVar(2,5), OptVar(10)
+x,y,z = Variable(10), Variable(2,5), Variable(10)
 X = [randn(10), randn(2,5), randn(10)]
 Y = randn(10)
 A = reshape(y,10)

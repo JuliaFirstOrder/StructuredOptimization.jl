@@ -1,4 +1,4 @@
-x1,x2 = OptVar(3),OptVar(4)
+x1,x2 = Variable(3),Variable(4)
 X1,X2 = randn(3),randn(4)
 b1,b2 = randn(3),randn(4)
 M1 = randn(4,3)
@@ -126,3 +126,18 @@ show(T)
 y = RegLS.get_prox(T.f[1])
 println()
 
+println("testing cost function constructors")
+
+x,y,z,u = Variable(randn(4)), Variable(randn(4)), Variable(randn(2,2)), Variable(randn(4))
+cf = ls(x)+ls(y)
+@test length(variable(cf)) == 2
+cf = ls(x+y)+ls(y)
+@test length(variable(cf)) == 2
+cf = ls(x+y)+ls(y)+ls(z)
+@test length(variable(cf)) == 3
+cf = ls(x)+ls(y)+ls(z)
+@test length(variable(cf)) == 3
+cf = 10*(4*ls(x)+ls(x+y)+2*ls(z))
+@test length(variable(cf)) == 3
+@test  cf.f[1].lambda == 40 && cf.f[2].lambda == 10 && cf.f[3].lambda == 20
+show(cf)

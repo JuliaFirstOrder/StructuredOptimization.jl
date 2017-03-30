@@ -35,11 +35,11 @@ function zeros{D3}(A::HCAT{D3})
 	hcat(V...)
 end
 
-zeros{D1}(x::OptVar{D1}) = Affine([x], Zeros{D1,D1}((size(x),size(x))), 
+zeros{D1}(x::Variable{D1}) = Affine([x], Zeros{D1,D1}((size(x),size(x))), 
 				 Zeros{D1,D1}((size(x),size(x))),
 				 Nullable{AbstractArray}() )
 
-zeros{D1}(x::OptVar{D1}, dim::Vararg{Int64}) = Affine([x], Zeros{D1,D1}((size(x),dim)), 
+zeros{D1}(x::Variable{D1}, dim::Vararg{Int64}) = Affine([x], Zeros{D1,D1}((size(x),dim)), 
 						     Zeros{D1,D1}((dim,size(x))),
 						     Nullable{AbstractArray}() )
 

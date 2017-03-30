@@ -15,7 +15,7 @@ size(A::DCT) = (A.dim, A.dim)
 DCT{D1}(x::AbstractArray{D1}) = DCT{D1,D1}(plan_dct(x), size(x))
 transpose{D1}(A::DCT{D1,D1})  = IDCT{D1,D1}(sign(A), plan_idct( zeros(D1,A.dim) ), A.dim )
 
-function dct(x::OptVar)  
+function dct(x::Variable)  
 	A = DCT(x.x) 
 	Affine([x], A, A', Nullable{AbstractArray}() )
 end
@@ -34,7 +34,7 @@ size(A::IDCT) = (A.dim, A.dim)
 IDCT{D1}(x::AbstractArray{D1}) = IDCT{D1,D1}(plan_idct(x), size(x))
 transpose{D1}(A::IDCT{D1,D1})  =  DCT{D1,D1}(sign(A), plan_dct( zeros(D1,A.dim) ), A.dim )
 
-function idct(x::OptVar)  
+function idct(x::Variable)  
 	A = IDCT(x.x) 
 	Affine([x], A, A', Nullable{AbstractArray}() )
 end

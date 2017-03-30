@@ -15,7 +15,7 @@ MatrixOp{D2}(T::Type, A::AbstractMatrix{D2}) = MatrixOp{T,D2}(A)
 MatrixOp(A::AbstractMatrix) = MatrixOp(Float64, A)
 
 fun_name(A::MatrixOp)  = "Matrix Operator"
-*{D1,D2}(A::AbstractMatrix{D2}, x::OptVar{D1}) = Affine([x], MatrixOp(D1,A), MatrixOp(D2,A'),
+*{D1,D2}(A::AbstractMatrix{D2}, x::Variable{D1}) = Affine([x], MatrixOp(D1,A), MatrixOp(D2,A'),
 							Nullable{AbstractArray}() )
 
 transpose{D1,D2}(A::MatrixOp{D1,D2}) = MatrixOp{D2,D1}(sign(A),A.A')

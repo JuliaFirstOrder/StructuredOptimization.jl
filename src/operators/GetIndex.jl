@@ -12,7 +12,7 @@ end
 size(A::GetIndex) = A.dim
 -{D1,D2}(A::GetIndex{D1,D2}) = GetIndex{D1,D2}(false == sign(A),A.idx,A.isTranspose,A.dim) 
 
-function getindex{D1}(x::OptVar{D1}, args...)   
+function getindex{D1}(x::Variable{D1}, args...)   
 	A = GetIndex{D1,D1}(args, false, get_size(size(x),args...))
 	Affine([x], A, A', Nullable{AbstractArray}() )
 end

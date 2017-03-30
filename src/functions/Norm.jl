@@ -63,8 +63,8 @@ end
 fun_name(T::IndBallLinf, i::Int64) = " Ind{‖A$(i)x‖∞ ≤ r$(i)}(x) "
 fun_par( T::IndBallLinf, i::Int64) = " r$(i) = $(round(T.r,3)) "
 
-norm(x::OptVar)    = norm(eye(x))
-norm(x::OptVar, p) = norm(eye(x), p)
+norm(x::Variable)    = norm(eye(x))
+norm(x::Variable, p) = norm(eye(x), p)
 
 function norm(A::AffineOperator, p::Int64=2)
 	if p == 0

@@ -7,8 +7,8 @@ type IndBox{S1 <: Union{Real, AbstractArray},
 	ub::S2
 end
 
-<=(x::OptVar, args...) = <=(eye(x), args...)
-<={S1 <: Union{Real, AbstractArray}}(lb::S1, x::OptVar) = <=(lb, eye(x))
+<=(x::Variable, args...) = <=(eye(x), args...)
+<={S1 <: Union{Real, AbstractArray}}(lb::S1, x::Variable) = <=(lb, eye(x))
 
 <={S1 <: Union{Real, AbstractArray}}(A::AffineOperator,  ub::S1) =  
 CostFunction(variable(A), [IndBox(-Inf, ub )], [A])
@@ -16,7 +16,7 @@ CostFunction(variable(A), [IndBox(-Inf, ub )], [A])
 CostFunction(variable(A), [IndBox(lb, Inf )], [A])
 
 
-in(x::OptVar, args...) = in(eye(x), args...)
+in(x::Variable, args...) = in(eye(x), args...)
 function in{S1 <: Union{Real, AbstractArray}}(A::AffineOperator, bnd::AbstractArray{S1,1}) 
 	if length(bnd) != 2 error("should provide 2 bounds!") end
 	CostFunction(variable(A), [IndBox(bnd[1],bnd[2])], [A])

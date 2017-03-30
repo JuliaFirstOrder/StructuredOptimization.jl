@@ -15,7 +15,7 @@ size(A::DFT) = (A.dim, A.dim)
 DFT{D1}(x::AbstractArray{D1}) = DFT{D1,Complex{Float64}}(plan_fft(x), size(x))
 transpose{D1,D2}(A::DFT{D1,D2})  = IDFT{D2,D1}(sign(A), plan_ifft( zeros(D2,A.dim) ), A.dim )
 
-function fft(x::OptVar)  
+function fft(x::Variable)  
 	A = DFT(x.x) 
 	Affine([x], A, A', Nullable{AbstractArray}() )
 end
@@ -34,7 +34,7 @@ size(A::IDFT) = (A.dim, A.dim)
 IDFT{D1}(x::AbstractArray{D1})    = IDFT{D1,Complex{Float64}}(plan_ifft(x), size(x))
 transpose{D1,D2}(A::IDFT{D1,D2})  = DFT{D2,D1}(sign(A), plan_fft( zeros(D2,A.dim) ), A.dim )
 
-function ifft(x::OptVar)  
+function ifft(x::Variable)  
 	A = IDFT(x.x) 
 	Affine([x], A, A', Nullable{AbstractArray}() )
 end

@@ -1,5 +1,5 @@
 function optArray{T<:AffineOperator}(A::T) 
-	if typeof(variable(A)) <: OptVar 
+	if typeof(variable(A)) <: Variable 
 		return variable(A).x 
 	else
 		if length(variable(A)) == 1 
@@ -10,7 +10,7 @@ function optArray{T<:AffineOperator}(A::T)
 	end
 end
 function optArray!{T<:AffineOperator,B <:AbstractArray}(A::T,x::B)  
-	if typeof(variable(A)) <: OptVar 
+	if typeof(variable(A)) <: Variable 
 		copy!(variable(A).x, x)  
 	else
 		length(variable(A)) != 1 ? error("something went wrong!") : 

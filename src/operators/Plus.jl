@@ -42,7 +42,7 @@ function A_mul_B!(y::AbstractArray,S::SumSameVar,b::AbstractArray)
 end
 
 -(A::Affine) = isnull(A.b) ? Affine(A.x,-A.A,-A.At,A.b) : Affine(A.x,-A.A,-A.At,Nullable(-get(A.b)))
--(x::OptVar) = -(eye(x)) 
+-(x::Variable) = -(eye(x)) 
 
 +(A::Affine,b::AbstractArray)  =  
 (isnull(A.b) ? Affine(A.x,A.A,A.At,Nullable(b)) : Affine(A.x,A.A,A.At,Nullable(get(A.b)+b)))
@@ -50,18 +50,18 @@ end
 -(A::Affine,b::AbstractArray)  = A+(-b)
 -(b::AbstractArray, A::Affine) =  (-A)+b
 
-+(x::OptVar,b::AbstractArray) = eye(x)+b 
--(x::OptVar,b::AbstractArray) = eye(x)-b
-+(b::AbstractArray,x::OptVar) = b+eye(x) 
--(b::AbstractArray,x::OptVar) = b+(-eye(x))
++(x::Variable,b::AbstractArray) = eye(x)+b 
+-(x::Variable,b::AbstractArray) = eye(x)-b
++(b::AbstractArray,x::Variable) = b+eye(x) 
+-(b::AbstractArray,x::Variable) = b+(-eye(x))
 
-+(x::OptVar,A::Affine) = eye(x)+A 
--(x::OptVar,A::Affine) = eye(x)-A
-+(A::Affine,x::OptVar) = A+eye(x) 
--(A::Affine,x::OptVar) = A-eye(x)
++(x::Variable,A::Affine) = eye(x)+A 
+-(x::Variable,A::Affine) = eye(x)-A
++(A::Affine,x::Variable) = A+eye(x) 
+-(A::Affine,x::Variable) = A-eye(x)
 
-+(x::OptVar,y::OptVar) = eye(x)+eye(y) 
--(x::OptVar,y::OptVar) = eye(x)-eye(y)
++(x::Variable,y::Variable) = eye(x)+eye(y) 
+-(x::Variable,y::Variable) = eye(x)-eye(y)
 
 function +(A::Affine, B::Affine) 
 	if variable(A) == variable(B)
@@ -116,15 +116,15 @@ function sum_b(A::Affine,B::Affine, sign::Bool)
 	return b
 end
 
-function unsigned_sum{D1,D2,D3}(xa::Vector{AbstractOptVar}, A::LinearOperator{D1,D3}, 
-				xb::Vector{AbstractOptVar}, B::LinearOperator{D2,D3}, sign::Bool)
+function unsigned_sum{D1,D2,D3}(xa::Vector{AbstractVariable}, A::LinearOperator{D1,D3}, 
+				xb::Vector{AbstractVariable}, B::LinearOperator{D2,D3}, sign::Bool)
 	sign ? (hcat(A,B), [xa[1],xb[1]]) : (hcat(A,-B), [xa[1],xb[1]])
 
 end
 
 function unsigned_sum{D1,D2,
-		      T1<:AbstractOptVar,
-		      T2<:AbstractOptVar}(xa::Vector{T1}, A::HCAT{D2}, 
+		      T1<:AbstractVariable,
+		      T2<:AbstractVariable}(xa::Vector{T1}, A::HCAT{D2}, 
 			    		  xb::Vector{T2}, B::LinearOperator{D1,D2}, sign::Bool)
 	H = copy(A.A)
 	x = copy(xa)
@@ -139,12 +139,12 @@ function unsigned_sum{D1,D2,
 	return HCAT{D2}(H,A.mid), x
 end
 
-unsigned_sum{D1,D2}(xa::Vector{AbstractOptVar}, A::LinearOperator{D1,D2}, 
-		    xb::Vector{AbstractOptVar}, B::HCAT{D2}, sign::Bool) = unsigned_sum(xb,B,xa,A,sign)
+unsigned_sum{D1,D2}(xa::Vector{AbstractVariable}, A::LinearOperator{D1,D2}, 
+		    xb::Vector{AbstractVariable}, B::HCAT{D2}, sign::Bool) = unsigned_sum(xb,B,xa,A,sign)
 
 function unsigned_sum{D2,
-		      T1<:AbstractOptVar,
-		      T2<:AbstractOptVar}(xa::Vector{T1}, A::HCAT{D2}, 
+		      T1<:AbstractVariable,
+		      T2<:AbstractVariable}(xa::Vector{T1}, A::HCAT{D2}, 
 			    		  xb::Vector{T2}, B::HCAT{D2}, sign::Bool)
 
 	H, x = unsigned_sum(xa,A,[xb[1]],B.A[1],sign)

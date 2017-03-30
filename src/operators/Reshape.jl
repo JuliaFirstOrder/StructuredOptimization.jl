@@ -13,7 +13,7 @@ size(A::Reshape) = (A.dim[1],A.dim[2])
 
 Reshape{D1}(x::AbstractArray{D1}, dim...) = Reshape{D1,D1}((size(x),dim))
 
-function reshape{D1}(x::OptVar{D1}, dim::Vararg{Int64}) 
+function reshape{D1}(x::Variable{D1}, dim::Vararg{Int64}) 
 	A = Reshape(x.x, dim...)
 	Affine([x], A, A',Nullable{Vector{AbstractArray}}() )
 end

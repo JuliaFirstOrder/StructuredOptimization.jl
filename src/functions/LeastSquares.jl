@@ -16,7 +16,7 @@ function get_prox(T::LinearLeastSquares)
 	return ProximalOperators.SqrNormL2(T.lambda)
 end
 
-ls(x::OptVar)         = ls(eye(x))
+ls(x::Variable)       = ls(eye(x))
 ls(A::AffineOperator) = CostFunction(variable(A), [LinearLeastSquares(1.)], [A])
 
 *(lambda::Real,f::LinearLeastSquares) = LinearLeastSquares(f.lambda*lambda)

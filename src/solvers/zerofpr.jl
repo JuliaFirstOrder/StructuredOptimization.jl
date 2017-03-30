@@ -75,7 +75,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 	tic()
 
 	slv = copy(slv0)
-	x = deepcopy(optData(variable(f)))
+	x = deepcopy(~variable(f))
 
 	lbfgs = LBFGS(x,slv.mem)
 	beta = 0.05
@@ -199,7 +199,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 
 	print_status(slv, 2*(slv.verbose>0))
 
-	deepcopy!(optData(variable(f)),x)
+	deepcopy!(~variable(f),x)
 	slv.time = toq()
 
 	return slv

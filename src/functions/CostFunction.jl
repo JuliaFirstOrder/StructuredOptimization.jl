@@ -2,7 +2,7 @@ import Base: *, <=, ==, isempty
 export affine, terms, tilt
 
 immutable CostFunction
-	x::Vector{OptVar}
+	x::Vector{Variable}
 	f::Vector{ExtendedRealValuedFunction}
 	A::Vector{AffineOperator}
 end
@@ -62,15 +62,15 @@ function gradient!{T}(grad::AbstractArray, cf::CostFunction, resx::Vector{T} )
 	A_mul_B!(grad, adjoint(affine(cf)[1]), resx[1] )
 	gradient!(grad, terms(cf)[1])
 	for i = 2:length(terms(cf))
-		A_mul_B!(optData(variable(cf)), adjoint(affine(cf)[i]), resx[i] )
-		gradient!(optData(variable(cf)), terms(cf)[i])
-		grad .+= optData(variable(cf))
+		A_mul_B!(~variable(cf), adjoint(affine(cf)[i]), resx[i] )
+		gradient!(~variable(cf), terms(cf)[i])
+		grad .+= ~variable(cf)
 	end
 end
 
 #this function must be used only with sorted and expanded affine operators!
 function gradient{T}(cf::CostFunction, resx::Vector{T} )
-	grad = deepsimilar(optData(variable(cf)))
+	grad = deepsimilar(~variable(cf))
 	gradient!(grad,cf,resx)
 	return grad
 end
@@ -83,7 +83,7 @@ function shifted_residual!{T}(resx::Vector{T}, cf::CostFunction, x::AbstractArra
 	end
 end
 
-function addVar{T}(x::OptVar{T},y::Vector)
+function addVar{T}(x::Variable{T},y::Vector)
 	any(y.==x) ? y : [y...,x] 
 end
 

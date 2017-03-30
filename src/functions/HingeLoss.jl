@@ -5,7 +5,7 @@ type HingeLoss{R1 <: Real, R2 <: Real}   <: NonSmoothFunction
 	mu::R2
 end
 
-hingeloss(x::OptVar, args...) = hingeloss(eye(x), args...)
+hingeloss(x::Variable, args...) = hingeloss(eye(x), args...)
 
 hingeloss{R <: Real}(A::AffineOperator, b::Array{R,1}) = 
 CostFunction(variable(A), [HingeLoss(b, 1.0)], [A])

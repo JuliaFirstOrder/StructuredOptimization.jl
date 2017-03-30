@@ -2,7 +2,7 @@ import Base: +, -
 export operator, adjoint, variable, Affine
 
 immutable Affine <: AffineOperator
-	x::Vector{AbstractOptVar}
+	x::Vector{AbstractVariable}
 	A::LinearOperator
 	At::LinearOperator
 	b::Nullable{AbstractArray}
@@ -12,9 +12,9 @@ operator(A::Affine) = A.A
 adjoint(A::Affine)  = A.At
 tilt(A::Affine)  = isnull(A.b) ? 0. : get(A.b)
 
-#TODO add checks of dimension of OptVar  
-Affine(x::OptVar,A::LinearOperator) = Affine([x],A)
-Affine{T<:AbstractOptVar}(x::Vector{T}, A::LinearOperator) = Affine(x, A, A',Nullable{AbstractArray}()) 
+#TODO add checks of dimension of Variable  
+Affine(x::Variable,A::LinearOperator) = Affine([x],A)
+Affine{T<:AbstractVariable}(x::Vector{T}, A::LinearOperator) = Affine(x, A, A',Nullable{AbstractArray}()) 
 
   domainType(A::AffineOperator) =   domainType(operator(A))
 codomainType(A::AffineOperator) = codomainType(operator(A))
@@ -58,7 +58,7 @@ function sort(A::Affine)
 	end
 end
 
-function sort_and_expand{T<:AbstractOptVar}(x::Vector{T}, A::Affine)
+function sort_and_expand{T<:AbstractVariable}(x::Vector{T}, A::Affine)
 	if all(x == A.x)
 		return A
 	else

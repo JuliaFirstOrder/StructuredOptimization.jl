@@ -5,7 +5,7 @@ immutable Empty{D1,D2} <: LinearOperator{D1,D2}
 end
 size(A::Empty) = (A.dim[1], A.dim[2])
 
-emptyop{D1}(x::OptVar{D1}) = Affine([x], Empty{D1,D1}((size(x),size(x))), 
+emptyop{D1}(x::Variable{D1}) = Affine([x], Empty{D1,D1}((size(x),size(x))), 
 				   Empty{D1,D1}((size(x),size(x))),
 				   Nullable{Vector{AbstractArray}}() )
 

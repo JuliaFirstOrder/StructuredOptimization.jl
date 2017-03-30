@@ -9,7 +9,7 @@ x = zeros(n*m)
 x[10] = 20
 y = randn(n*m)
 
-A = OptVar(zeros(n*m))+reshape(OptVar(zeros(n,m)),n*m) 
+A = Variable(zeros(n*m))+reshape(Variable(zeros(n,m)),n*m) 
 b = A*[x,X]
 A = A-b
 
@@ -41,7 +41,7 @@ y_star = A*x_star
 y_m = y_star+randn(n)
 
 L =x-> A*x[1]-x[2]
-Op = A*OptVar(zeros(m))-OptVar(zeros(n))
+Op = A*Variable(zeros(m))-Variable(zeros(n))
 
 xx,yy = randn(size(x_star)),randn(size(y_star))
 @test vecnorm(L([xx,yy])-Op*[xx,yy]) <1e-12
@@ -58,7 +58,7 @@ x_z, slv = solve(Op, g, ZeroFPR(tol = 1e-9,verbose = verb))
 n,m = 100,50
 srand(123)
 # test with VCAT Op
-X = OptVar(randn(n,m))
+X = Variable(randn(n,m))
 b = [randn(n,m),randn(100)]
 
 A = [dct(X);X[1:100]]-b

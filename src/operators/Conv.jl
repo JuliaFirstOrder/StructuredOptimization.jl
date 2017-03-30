@@ -16,12 +16,12 @@ size(A::Conv) = A.dim
 Conv{D1}(h::AbstractVector{D1}, x::AbstractVector{D1}) = 
 Conv{D1,D1}(h, (size(x), ( length(x)+length(h)-1, )  ), false)
 
-function conv(h::AbstractVector, x::OptVar) 
+function conv(h::AbstractVector, x::Variable) 
 	A = Conv(h,x.x) 
 	Affine([x], A, A', Nullable{AbstractArray}() )
 end
 
-conv(x::OptVar,h::AbstractVector) = conv(h,x)
+conv(x::Variable,h::AbstractVector) = conv(h,x)
 
 function uA_mul_B!{T}(y::AbstractVector{T},A::Conv,b::AbstractVector{T})
 	if A.isTranspose
@@ -54,7 +54,7 @@ size(A::Xcorr) = A.dim
 Xcorr{D1}(x::AbstractVector{D1}, h::AbstractVector{D1}) = 
 Xcorr{D1,D1}(h,(size(x), ( 2*max(length(x),length(h))-1, )  ), false)
 
-function xcorr(x::OptVar, h::AbstractVector) 
+function xcorr(x::Variable, h::AbstractVector) 
 	A = Xcorr(x.x,h) 
 	Affine([x], A, A', Nullable{AbstractArray}() )
 end

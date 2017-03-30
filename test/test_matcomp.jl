@@ -9,7 +9,7 @@ B = M.*B_orig
 L = Ladj = X -> M.*X
 g = IndBallRank(r)
 x0 = randn(m, n)
-A = diagop(OptVar(x0),M)-B
+A = diagop(Variable(x0),M)-B
 verb = 0
 maxit = 10000
 tol = 1e-6

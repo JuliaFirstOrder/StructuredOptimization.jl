@@ -12,7 +12,7 @@ NestedLinearOperator{D1,D2}(false == sign(A), A.A, A.mid)
 
 function NestedLinearOperator(f::Function,B::AffineOperator, args...) 
 	mid = Array{codomainType(operator(B))}(size(operator(B),2))
-	(f == *) ? A = f(args[1], OptVar(mid)) : A = f(OptVar(mid), args...)
+	(f == *) ? A = f(args[1], Variable(mid)) : A = f(Variable(mid), args...)
 	N = NestedLinearOperator(operator(A),operator(B),mid)
 	b = Nullable{AbstractArray}()
 	isnull(B.b) ? nothing : b = adjoint(A)*get(B.b) 

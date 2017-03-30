@@ -1,21 +1,26 @@
-import Base: size
-export OptVar, optData
+import Base: size, ~
+export Variable
 
-abstract AbstractOptVar 
+abstract AbstractVariable 
 
-immutable OptVar{T <: Union{Real,Complex}} <: AbstractOptVar
+immutable Variable{T <: Union{Real,Complex}} <: AbstractVariable
 	x::AbstractArray{T}
 end
 
-function OptVar(args...)
-  OptVar(zeros(args...))
+function Variable(args...)
+  Variable(zeros(args...))
 end
 
-size(x::OptVar) = size(x.x)
-optData(x::OptVar) = x.x
-optData{T<:AbstractOptVar}(x::Vector{T}) = length(x) == 1 ? optData(x[1]) : optData.(x)
+size(x::Variable) = size(x.x)
+"""
+`~(x::RegLS.Variable)`
 
-deepcopy!(x::OptVar,y::AbstractArray) = deepcopy!(x.x,y) 
-deepcopy!{T<:AbstractOptVar}(x::Vector{T},y::AbstractArray) = deepcopy!(optData(x),y) 
+return the `Array` inside `Variable`.
+"""
+~(x::Variable) = x.x
+~{T<:AbstractVariable}(x::Vector{T}) = length(x) == 1 ? ~(x[1]) : (~).(x)
+
+deepcopy!(x::Variable,y::AbstractArray) = deepcopy!(x.x,y) 
+deepcopy!{T<:AbstractVariable}(x::Vector{T},y::AbstractArray) = deepcopy!(~x,y) 
 
 

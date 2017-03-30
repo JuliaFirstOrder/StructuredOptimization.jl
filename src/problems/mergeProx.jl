@@ -1,4 +1,4 @@
-function mergeProx(x_sorted::Vector{OptVar}, cf::CostFunction)
+function mergeProx(x_sorted::Vector{Variable}, cf::CostFunction)
 	if length(x_sorted) == 1 #no block variables
 		return mergeProx(terms(cf), affine(cf))
 	else

@@ -33,7 +33,7 @@ solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction, x0::AbstractArr
 solve(A, b, g, x0, ZeroFPR() )
 
 function solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction, x0::AbstractArray, args...) 
-	x = OptVar(deepcopy(x0))
+	x = Variable(deepcopy(x0))
 	solve(ls(A*x+b), g, args...)
 end
 

@@ -72,7 +72,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::PG)
 	tic()
 
 	slv = copy(slv0)
-	x = deepcopy(optData(variable(f)))
+	x = deepcopy(~variable(f))
 
 	resx, fx = evaluate(f,x)
 	gradx    = gradient(f,resx)
@@ -150,7 +150,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::PG)
 
 	print_status(slv, 2*(slv.verbose>0))
 
-	deepcopy!(optData(variable(f)),x)
+	deepcopy!(~variable(f),x)
 	slv.time = toq()
 
 	return slv
