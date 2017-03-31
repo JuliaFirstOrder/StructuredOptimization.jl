@@ -1,5 +1,5 @@
 verb = 1
-slv = PG(verbose = verb)
+slv = ZeroFPR(verbose = verb)
 
 #x,y,z,u = Variable(randn(4)), Variable(randn(4)), Variable(randn(2,2)), Variable(randn(4))
 #cf = ls(x+y-randn(4))+ls(y+reshape(z,4)+u)+1*norm(randn(4).*u,1)+2*norm(z-randn(2,2),2)+3*norm(y,1)
@@ -44,10 +44,10 @@ x = Variable(zeros(5))
 P = problem(ls(M*x-b), norm(x,1)<=10)
 show(P)
 
-slv1 = solve(P,slv)
+slv1 = solve(P)
 show(slv1)
 @test norm(~x,1)-10 <= 1e-5
-slv1 = minimize(ls(M*x-b), norm(x,1)<=10, slv)
+slv1 = minimize(ls(M*x-b), norm(x,1)<=10)
 
 
 n,m = 5,3
@@ -123,7 +123,7 @@ d = rand(n)+2
 x = Variable(n)
 D = problem(1e5*ls(x-b1)+norm(A*x-b2,1))
 show(D)
-solve(D, slv)
+solve(D)
 @test norm(~x-b1) <= 1e-4
 
 x = Variable(n)

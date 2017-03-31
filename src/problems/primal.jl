@@ -3,7 +3,7 @@ immutable Primal
 	p::ProximableFunction
 end
 
-solve(P::Primal, args...) = solve(P.s, P.p, args...)
+solve(P::Primal, slv::Solver = default_slv()) = solve(P.s, P.p, slv)
 
 function Base.show(io::IO, P::Primal)
 	println("Primal Problem")

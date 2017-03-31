@@ -11,6 +11,8 @@ include("solvers/zerofpr.jl")
 
 include("solvers/utils.jl")
 
+default_slv = ZeroFPR
+
 # To print out solver objects
 
 function Base.show(io::IO, slv::ForwardBackwardSolver)

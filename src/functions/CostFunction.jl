@@ -54,12 +54,12 @@ end
 #this function must be used only with sorted and expanded affine operators!
 function evaluate(cf::CostFunction, x::AbstractArray)
 	f = 0.0
-	resx = Vector{AbstractArray}(length(terms(cf)))
+	resx = Vector(length(terms(cf)))
 	for i in eachindex(terms(cf))
 		resx[i] = affine(cf)[i](x)
 		f += terms(cf)[i](resx[i])
 	end
-	return resx, f
+	return [resx...], f
 end
 
 #this function must be used only with sorted and expanded affine operators!
