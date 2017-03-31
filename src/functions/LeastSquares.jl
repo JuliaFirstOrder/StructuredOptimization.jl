@@ -4,6 +4,8 @@ immutable LinearLeastSquares <: SmoothFunction
 	lambda::Real
 end
 
+lambda(f::LinearLeastSquares) = f.lambda
+
 function (f::LinearLeastSquares)(x::AbstractArray)
 	return 0.5*f.lambda*vecnorm(x)^2
 end

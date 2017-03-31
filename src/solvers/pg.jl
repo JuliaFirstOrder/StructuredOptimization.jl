@@ -56,7 +56,16 @@ PG(; tol::Float64 = 1e-8,
       linesearch::Bool = true,
       fast::Bool = false,
       gamma::Float64 = Inf) =
-	PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, fast, 0, 0)
+PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, fast, 0, 0)
+
+	
+(p::PG)(; tol::Float64   = p.tol, 
+	maxit::Int64     = p.maxit,
+	verbose::Int64   = p.verbose,
+	halt::Function   = p.halt,
+	linesearch::Bool = p.linesearch,
+	gamma::Float64   = p.gamma        ) =
+PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, p.fast, 0, 0)
 
 # alias for fast = true
 FPG(; tol::Float64 = 1e-8,
@@ -65,7 +74,7 @@ FPG(; tol::Float64 = 1e-8,
       halt::Function = halt_default,
       linesearch::Bool = true,
       gamma::Float64 = Inf) =
-	PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
+PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
 function solve(f::CostFunction, g::ProximableFunction, slv0::PG)
 

@@ -69,6 +69,21 @@ ZeroFPR(tol,
 	gamma,
         0, Inf, Inf, NaN, linesearch, 0, 0)
 
+(z::ZeroFPR)(;tol::Float64    =z.tol, 
+	     maxit::Int64     =z.maxit, 
+	     mem::Int64       =z.mem, 
+	     verbose::Int64   =z.verbose, 
+	     halt::Function   =z.halt, 
+	     gamma::Float64   =z.gamma, 
+	     linesearch::Bool =z.linesearch) =
+ZeroFPR(tol,
+	maxit,
+	verbose,
+	mem,
+	halt,
+	gamma,
+        0, Inf, Inf, NaN, linesearch, 0, 0)
+
 
 function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 

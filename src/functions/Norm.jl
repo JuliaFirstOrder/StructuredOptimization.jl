@@ -1,8 +1,12 @@
 import Base: norm 
 
-type NormL0  <: NonSmoothFunction
+abstract NormFunction <: NonSmoothFunction
+
+type NormL0  <: NormFunction
 	lambda::Real
 end
+
+lambda(f::NormFunction) = f.lambda
 
 fun_name(T::NormL0, i::Int64) = " λ$(i) ‖A$(i)x‖₀ "
 fun_par(T::NormL0, i::Int64) = " λ$(i) = $(round(T.lambda,3)) "
@@ -14,7 +18,7 @@ end
 fun_name(T::IndBallL0, i::Int64) = "Ind{‖A$(i)x‖₀ ≤ r$(i)}(x) "
 fun_par( T::IndBallL0, i::Int64) = " r$(i) = $(T.r) "
 
-type NormL1  <: NonSmoothFunction
+type NormL1  <: NormFunction
 	lambda::Real
 end
 
@@ -28,7 +32,7 @@ end
 fun_name(T::IndBallL1, i::Int64) = " Ind{‖A$(i)x‖₁ ≤ r$(i)}(x) "
 fun_par( T::IndBallL1, i::Int64) = " r$(i) = $(round(T.r,3)) "
 
-type NormL2 <: NonSmoothFunction
+type NormL2 <: NormFunction
 	lambda::Real
 end
 
@@ -49,7 +53,7 @@ end
 fun_name(T::IndSphereL2, i::Int64) = " Ind{‖A$(i)x‖₂ = r$(i)}(x) "
 fun_par( T::IndSphereL2, i::Int64) = " r$(i) = $(round(T.r,3)) "
 
-type NormLinf <: NonSmoothFunction
+type NormLinf <: NormFunction
 	lambda::Real
 end
 

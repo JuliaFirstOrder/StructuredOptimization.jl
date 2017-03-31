@@ -11,6 +11,7 @@ include("functions/Box.jl")
 include("functions/HingeLoss.jl")
 
 gradient(f::ExtendedRealValuedFunction) = error("gradient not implemented for $f")
+lambda(f::ExtendedRealValuedFunction) = 1.0
 
 
 

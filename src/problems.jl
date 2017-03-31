@@ -4,6 +4,7 @@ include("problems/split.jl")
 include("problems/mergeProx.jl")
 include("problems/primal.jl")
 include("problems/dual.jl")
+include("problems/smoothed.jl")
 
 problem(h::CostFunction) = problem(h, Array{CostFunction,1}(0))
 problem(h::CostFunction, cstr::CostFunction) = problem(h, [cstr])
@@ -25,7 +26,7 @@ function problem{T<:CostFunction}(cf::CostFunction, cstr::Array{T,1} )
 		if isempty(proximable) && length(terms(nonsmooth)) == 1
 			return Dual(smooth,nonsmooth)
 		else
-			error("dual or smooth not implemented yet")
+			return SmoothedPrimal(smooth,nonsmooth,proximable)
 		end
 	end
 

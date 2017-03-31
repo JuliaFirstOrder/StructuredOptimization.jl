@@ -5,6 +5,8 @@ type HingeLoss{R1 <: Real, R2 <: Real}   <: NonSmoothFunction
 	mu::R2
 end
 
+lambda(f::HingeLoss) = f.mu
+
 hingeloss(x::Variable, args...) = hingeloss(eye(x), args...)
 
 hingeloss{R <: Real}(A::AffineOperator, b::Array{R,1}) = 
