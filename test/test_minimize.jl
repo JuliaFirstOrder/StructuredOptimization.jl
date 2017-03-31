@@ -1,40 +1,60 @@
 verb = 1
 slv = ZeroFPR(verbose = verb)
 
-#x,y,z,u = Variable(randn(4)), Variable(randn(4)), Variable(randn(2,2)), Variable(randn(4))
-#cf = ls(x+y-randn(4))+ls(y+reshape(z,4)+u)+1*norm(randn(4).*u,1)+2*norm(z-randn(2,2),2)+3*norm(y,1)
-#@test length(variable(cf)) == 4
-#show(cf)
-#	
-#x_sorted = sort(variable(cf),by = object_id)
-#
-#println("\n test split \n")
-#smooth, proximable, nonsmooth = RegLS.split(cf)
-#println("\n Smooth:")
-#show(smooth)
-#println("\n Proximable:")
-#show(proximable)
-#println("\n NonSmooth:")
-#show(nonsmooth)
-#
-#
-#println("\n test merge prox \n")
-#p = RegLS.mergeProx(x_sorted, proximable)
-#show(x_sorted)
-#show(p.fs)
-#
-#println("\n sort_and_expand \n")
-#smooth_exp = RegLS.sort_and_expand(x_sorted, smooth)
-#show(RegLS.affine(smooth))
-#show(RegLS.affine(smooth_exp))
-#
-#out1 = RegLS.affine(smooth_exp)[1](~x_sorted)
-#out2 = RegLS.affine(smooth)[1]([~x,~y])
-#@test norm(out1-out2) <= 1e-8
-#
-#out1 = RegLS.affine(smooth_exp)[2](~x_sorted)
-#out2 = RegLS.affine(smooth)[2](~[y,z,u])
-#@test norm(out1-out2) <= 1e-8
+x,y,z,u = Variable(randn(4)), Variable(randn(4)), Variable(randn(2,2)), Variable(randn(4))
+cf = ls(x+y-randn(4))+ls(y+reshape(z,4)+u)+1*norm(randn(4).*u,1)+2*norm(z-randn(2,2),2)+3*norm(y,1)
+@test length(variable(cf)) == 4
+show(cf)
+
+x_sorted = sort(variable(cf),by = object_id)
+
+println("\n test split \n")
+smooth, proximable, nonsmooth = RegLS.split(cf)
+println("\n Smooth:")
+show(smooth)
+println("\n Proximable:")
+show(proximable)
+println("\n NonSmooth:")
+show(nonsmooth)
+
+
+println("\n test merge prox \n")
+p = RegLS.mergeProx(x_sorted, proximable)
+show(x_sorted)
+show(p.fs)
+
+println("\n sort_and_expand \n")
+smooth_exp = RegLS.sort_and_expand(x_sorted, smooth)
+show(RegLS.affine(smooth))
+show(RegLS.affine(smooth_exp))
+
+out1 = RegLS.affine(smooth_exp)[1](~x_sorted)
+out2 = RegLS.affine(smooth)[1]([~x,~y])
+@test norm(out1-out2) <= 1e-8
+
+out1 = RegLS.affine(smooth_exp)[2](~x_sorted)
+out2 = RegLS.affine(smooth)[2](~[y,z,u])
+@test norm(out1-out2) <= 1e-8
+
+####test lasso
+println("testing lasso (checking optimality condition)")
+m, n = 10, 50
+A = randn(m, n)
+b = randn(m)
+x = Variable(n)
+lam_max = norm(A'*b,Inf)
+lam = 0.05*lam_max
+sol = minimize(ls(A*x-b) + lam*norm(x,1))
+# compute proximal-gradient step manually, check fixed-point residual
+gstep = ~x - sol.gamma*(A'*(A*(~x)-b))
+pgstep = sign(gstep).*max(0, abs.(gstep)-lam*sol.gamma)
+@test norm(pgstep - (~x), Inf) <= 1e-8
+# project subgr onto the subdifferential of the L1-norm at x
+subgr = -A'*(A*(~x)-b)
+subgr_proj = min(max(subgr, -lam), lam)
+subgr_proj[(~x) .< 0] = -lam
+subgr_proj[(~x) .> 0] = lam
+@test norm(subgr - subgr_proj, Inf) <= 1e-6
 
 ####test single block of variable
 println("testing single variable primal")
@@ -48,7 +68,6 @@ slv1 = solve(P)
 show(slv1)
 @test norm(~x,1)-10 <= 1e-5
 slv1 = minimize(ls(M*x-b), norm(x,1)<=10)
-
 
 n,m = 5,3
 A = randn(m,n)
@@ -159,5 +178,3 @@ minimize(ls(d.*x-b1)+ls(5.0*y-b2), norm(A*x-y,1) <= r, slv)
 r = 1e-3
 minimize(ls(d.*x-b1)+ls(5.0*y-b2), norm(A*x-y,1) <= r, slv)
 @test norm(A*~x-~y,1) <= r+1e-5
-
-
