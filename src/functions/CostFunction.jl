@@ -5,6 +5,7 @@ immutable CostFunction
 	x::Vector{Variable}
 	f::Vector{ExtendedRealValuedFunction}
 	A::Vector{AffineOperator}
+	CostFunction(x,f,A) = new(x,f,A)
 end
 
 CostFunction() = CostFunction(Vector{Variable}(0),
@@ -53,7 +54,7 @@ end
 #this function must be used only with sorted and expanded affine operators!
 function evaluate(cf::CostFunction, x::AbstractArray)
 	f = 0.0
-	resx = Vector(length(terms(cf)))
+	resx = Vector{AbstractArray}(length(terms(cf)))
 	for i in eachindex(terms(cf))
 		resx[i] = affine(cf)[i](x)
 		f += terms(cf)[i](resx[i])
@@ -62,27 +63,38 @@ function evaluate(cf::CostFunction, x::AbstractArray)
 end
 
 #this function must be used only with sorted and expanded affine operators!
-#internal variables are used as buffer 
-function gradient!{T}(grad::AbstractArray, cf::CostFunction, resx::Vector{T} )
-	A_mul_B!(grad, adjoint(affine(cf)[1]), resx[1] )
-	gradient!(grad, terms(cf)[1])
-	for i = 2:length(terms(cf))
-		A_mul_B!(~variable(cf), adjoint(affine(cf)[i]), resx[i] )
-		gradient!(~variable(cf), terms(cf)[i])
-		grad .+= ~variable(cf)
+function gradient!{T}(gradfi::Vector{T}, cf::CostFunction, resx::Vector{T} )
+	for i in eachindex(terms(cf))
+		gradient!(gradfi[i], terms(cf)[i], resx[i])
 	end
 end
 
 #this function must be used only with sorted and expanded affine operators!
 function gradient{T}(cf::CostFunction, resx::Vector{T} )
+	gradfi = deepsimilar(resx)
+	gradient!(gradfi,cf,resx)
+	return gradfi
+end
+
+#this function must be used only with sorted and expanded affine operators!
+#internal variables are used as buffer 
+function At_mul_gradfi!{T}(grad::AbstractArray, cf::CostFunction, gradfi::Vector{T} )
+	A_mul_B!(grad, adjoint(affine(cf)[1]), gradfi[1]  )
+	for i = 2:length(terms(cf))
+		A_mul_B!(~variable(cf), adjoint(affine(cf)[i]), gradfi[i] )
+		grad .+= ~variable(cf)
+	end
+end
+
+#this function must be used only with sorted and expanded affine operators!
+function At_mul_gradfi{T}(cf::CostFunction, gradfi::Vector{T} )
 	grad = deepsimilar(~variable(cf))
-	gradient!(grad,cf,resx)
+	At_mul_gradfi!(grad, cf, gradfi)
 	return grad
 end
 
 #this function must be used only with sorted and expanded affine operators!
-function shifted_residual!{T}(resx::Vector{T}, cf::CostFunction, x::AbstractArray)
-	f = 0.0
+function A_mul_x!{T}(resx::Vector{T}, cf::CostFunction, x::AbstractArray)
 	for i in eachindex(terms(cf))
 		A_mul_B!(resx[i],operator(affine(cf)[i]),x)
 	end

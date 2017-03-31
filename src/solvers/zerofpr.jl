@@ -81,16 +81,20 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 	beta = 0.05
 
 	resx, fx = evaluate(f,x)
-	gradx    = gradient(f,resx)
+	gradfi    =      gradient(f,resx)
+	gradx     = At_mul_gradfi(f,gradfi)
 	slv.cnt_matvec += 2
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
 		resx_eps, = evaluate(f,x+sqrt(eps()))
-		gradx_eps = gradient(f,resx_eps)
+		gradfi_eps = gradient(f,resx_eps)
+		gradx_eps  = At_mul_gradfi(f,gradfi_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = (1-beta)/Lf
+		gradfi_eps = gradx_eps = []
 	end
+
 
 	sigma = beta/(4*slv.gamma)
 	tau = 1.
@@ -153,7 +157,10 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 		print_status(slv)
 
 		# compute rbar
-		gradient!(gradxbar, f, resxbar)
+	
+		gradient!(gradfi,f,resxbar)
+		At_mul_gradfi!(gradxbar,f,gradfi)
+
 		slv.cnt_matvec += 1
 		gradstep .= (*).(-slv.gamma, gradxbar)
 		gradstep .+= xbar
@@ -176,8 +183,11 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 		# line search on tau
 		level = FBEx - sigma*slv.normfpr^2
 		tau = 1.0
-		shifted_residual!(Ad, f,  d) 
-		gradient!(ATAd, f, Ad)
+
+		A_mul_x!(Ad, f,  d) 
+		gradient!(gradfi,f,Ad)
+		At_mul_gradfi!(ATAd,f,gradfi)
+
 		slv.cnt_matvec += 2
 		for j = 1:32
 			x .= (+).(xbar_prev, (*).(tau,d))

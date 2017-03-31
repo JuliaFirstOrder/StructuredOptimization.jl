@@ -4,6 +4,7 @@ abstract NonSmoothFunction   <: ExtendedRealValuedFunction
 
 include("functions/CostFunction.jl")
 include("functions/absorb_merge.jl")
+include("functions/smooth.jl")
 include("functions/LeastSquares.jl")
 include("functions/Norm.jl")
 include("functions/Box.jl")

@@ -1,46 +1,46 @@
 verb = 1
-slv = ZeroFPR(verbose = verb)
+slv = PG(verbose = verb)
 
-x,y,z,u = Variable(randn(4)), Variable(randn(4)), Variable(randn(2,2)), Variable(randn(4))
-cf = ls(x+y-randn(4))+ls(y+reshape(z,4)+u)+1*norm(randn(4).*u,1)+2*norm(z-randn(2,2),2)+3*norm(y,1)
-@test length(variable(cf)) == 4
-show(cf)
-	
-x_sorted = sort(variable(cf),by = object_id)
-
-println("\n test split \n")
-smooth, proximable, nonsmooth = RegLS.split(cf)
-println("\n Smooth:")
-show(smooth)
-println("\n Proximable:")
-show(proximable)
-println("\n NonSmooth:")
-show(nonsmooth)
-
-
-println("\n test merge prox \n")
-p = RegLS.mergeProx(x_sorted, proximable)
-show(x_sorted)
-show(p.fs)
-
-println("\n sort_and_expand \n")
-smooth_exp = RegLS.sort_and_expand(x_sorted, smooth)
-show(RegLS.affine(smooth))
-show(RegLS.affine(smooth_exp))
-
-out1 = RegLS.affine(smooth_exp)[1](~x_sorted)
-out2 = RegLS.affine(smooth)[1]([~x,~y])
-@test norm(out1-out2) <= 1e-8
-
-out1 = RegLS.affine(smooth_exp)[2](~x_sorted)
-out2 = RegLS.affine(smooth)[2](~[y,z,u])
-@test norm(out1-out2) <= 1e-8
+#x,y,z,u = Variable(randn(4)), Variable(randn(4)), Variable(randn(2,2)), Variable(randn(4))
+#cf = ls(x+y-randn(4))+ls(y+reshape(z,4)+u)+1*norm(randn(4).*u,1)+2*norm(z-randn(2,2),2)+3*norm(y,1)
+#@test length(variable(cf)) == 4
+#show(cf)
+#	
+#x_sorted = sort(variable(cf),by = object_id)
+#
+#println("\n test split \n")
+#smooth, proximable, nonsmooth = RegLS.split(cf)
+#println("\n Smooth:")
+#show(smooth)
+#println("\n Proximable:")
+#show(proximable)
+#println("\n NonSmooth:")
+#show(nonsmooth)
+#
+#
+#println("\n test merge prox \n")
+#p = RegLS.mergeProx(x_sorted, proximable)
+#show(x_sorted)
+#show(p.fs)
+#
+#println("\n sort_and_expand \n")
+#smooth_exp = RegLS.sort_and_expand(x_sorted, smooth)
+#show(RegLS.affine(smooth))
+#show(RegLS.affine(smooth_exp))
+#
+#out1 = RegLS.affine(smooth_exp)[1](~x_sorted)
+#out2 = RegLS.affine(smooth)[1]([~x,~y])
+#@test norm(out1-out2) <= 1e-8
+#
+#out1 = RegLS.affine(smooth_exp)[2](~x_sorted)
+#out2 = RegLS.affine(smooth)[2](~[y,z,u])
+#@test norm(out1-out2) <= 1e-8
 
 ####test single block of variable
 println("testing single variable primal")
-M = randn(50,50)
-b = randn(50)
-x = Variable(zeros(50))
+M = randn(5,5)
+b = randn(5)
+x = Variable(zeros(5))
 P = problem(ls(M*x-b), norm(x,1)<=10)
 show(P)
 
@@ -60,7 +60,7 @@ x = Variable(zeros(n))
 minimize(ls(x-b2)+1e-2*norm(x,1), slv)
 
 minimize(ls(A*x-b1), [norm(5.0*x,1) <= 1/1e-2], slv)
-@test norm(~x,1) <= 1/1e-2
+@test norm(5.*~x,1) <= 1/1e-2
 
 ####test merge regularize
 minimize(ls(A*x-b1)+1e7*ls(x-b2), [norm(x,1) <= 1/1e-2], slv)
