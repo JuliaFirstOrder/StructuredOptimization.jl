@@ -83,8 +83,8 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::PG)
 	slv = copy(slv0)
 	x = deepcopy(~variable(f))
 
-	resx, fx = evaluate(f,x)
-	gradfi    =      gradient(f,resx)
+	resx, fx = residual(f,x)
+	gradfi,   =      gradient(f,resx)
 	gradx     = At_mul_gradfi(f,gradfi)
 	slv.cnt_matvec += 2
 	fz = fx
@@ -93,8 +93,8 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::PG)
 	normfpr0 = Inf
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps, = evaluate(f,x+sqrt(eps()))
-		gradfi_eps = gradient(f,resx_eps)
+		resx_eps, = residual(f,x+sqrt(eps()))
+		gradfi_eps,= gradient(f,resx_eps)
 		gradx_eps  = At_mul_gradfi(f,gradfi_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
@@ -124,7 +124,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::PG)
 			slv.cnt_prox += 1
 			fpr = y-x
 			slv.normfpr = deepvecnorm(fpr)
-			fz = evaluate!(resx, f, x)
+			fz = residual!(resx, f, x)
 			slv.cnt_matvec += 1
 			if slv.linesearch == false break end
 			uppbnd = fy - real(deepvecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
@@ -149,9 +149,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::PG)
 		end
 
 		# compute gradient and f(y)
-		fy = cost(f,resy)
-
-		gradient!(gradfi,f,resy)
+		fy = gradient!(gradfi,f,resy)
 		At_mul_gradfi!(grady,f,gradfi)
 	
 		slv.cnt_matvec += 1

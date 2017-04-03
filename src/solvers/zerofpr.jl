@@ -95,21 +95,20 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 	lbfgs = LBFGS(x,slv.mem)
 	beta = 0.05
 
-	resx, fx = evaluate(f,x)
-	gradfi    =      gradient(f,resx)
-	gradx     = At_mul_gradfi(f,gradfi)
+	resx,      = residual(f,x)
+	gradfi, fx = gradient(f,resx)
+	gradx      = At_mul_gradfi(f,gradfi)
 	slv.cnt_matvec += 2
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps, = evaluate(f,x+sqrt(eps()))
-		gradfi_eps = gradient(f,resx_eps)
+		resx_eps,   = residual(f,x+sqrt(eps()))
+		gradfi_eps, = gradient(f,resx_eps)
 		gradx_eps  = At_mul_gradfi(f,gradfi_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = (1-beta)/Lf
 		gradfi_eps = gradx_eps = []
 	end
-
 
 	sigma = beta/(4*slv.gamma)
 	tau = 1.
@@ -141,7 +140,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 		if slv.halt(slv, normfpr0, FBEx, FBEprev) break end
 		FBEprev = FBEx
 
-		fxbar = evaluate!(resxbar,f,xbar)
+		fxbar = residual!(resxbar,f,xbar)
 		slv.cnt_matvec += 1
 
 		# line search on gamma
@@ -156,7 +155,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 				slv.cnt_prox += 1
 				r .= (-).(x, xbar)
 				slv.normfpr = deepvecnorm(r)
-				fxbar = evaluate!(resxbar,f,xbar)
+				fxbar = residual!(resxbar,f,xbar)
 				slv.cnt_matvec += 1
 				uppbnd = fx - real(deepvecdot(gradx,r)) + 1/(2*slv.gamma)*slv.normfpr^2
 			end

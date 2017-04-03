@@ -52,7 +52,7 @@ end
 
 function solve(P::Dual, slv::Solver = default_slv()) 
 	slv = solve(P.cf, P.p, slv)
-	resy, = evaluate(P.cf,~variable(P.cf)) 
+	resy, = residual(P.cf,~variable(P.cf)) 
 	~P.x[1] .= -(P.Ainv[1]'*resy[1])
 	for i = 2:length(resy)
 		~P.x[i] .= -(P.Ainv[i]'*resy[i])

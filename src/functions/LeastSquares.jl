@@ -12,6 +12,7 @@ end
 
 function gradient!(grad::AbstractArray, f::LinearLeastSquares, x::AbstractArray)  
 	grad .= (*).(f.lambda, x)
+	return f(x)
 end
 
 function get_prox(T::LinearLeastSquares)

@@ -5,12 +5,11 @@ immutable CostFunction
 	x::Vector{Variable}
 	f::Vector{ExtendedRealValuedFunction}
 	A::Vector{AffineOperator}
-	CostFunction(x,f,A) = new(x,f,A)
 end
 
 CostFunction() = CostFunction(Vector{Variable}(0),
 			      Vector{ExtendedRealValuedFunction}(0),
-			     Vector{AffineOperator}(0)) 
+			      Vector{AffineOperator}(0)) 
 
 variable(cf::CostFunction) = cf.x
 affine(  cf::CostFunction) = cf.A
@@ -31,8 +30,7 @@ end
 <=(h::CostFunction, lambda::Real)  = CostFunction(h.x,(<=).(h.f,lambda),h.A)
 ==(h::CostFunction, lambda::Real,)  = CostFunction(h.x,(==).(h.f,lambda),h.A)
 
-#this function must be used only with sorted and expanded affine operators!
-function cost{T}(cf::CostFunction, resx::Vector{T})
+function cost{T}(cf::CostFunction,resx::Vector{T})
 	f = 0.0
 	for i in eachindex(terms(cf))
 		f += terms(cf)[i](resx[i])
@@ -41,7 +39,7 @@ function cost{T}(cf::CostFunction, resx::Vector{T})
 end
 
 #this function must be used only with sorted and expanded affine operators!
-function evaluate!{T}(resx::Vector{T}, cf::CostFunction, x::AbstractArray)
+function residual!{T}(resx::Vector{T}, cf::CostFunction, x::AbstractArray)
 	f = 0.0
 	for i in eachindex(terms(cf))
 		evaluate!(resx[i],affine(cf)[i],x)
@@ -50,9 +48,8 @@ function evaluate!{T}(resx::Vector{T}, cf::CostFunction, x::AbstractArray)
 	return f
 end
 
-
 #this function must be used only with sorted and expanded affine operators!
-function evaluate(cf::CostFunction, x::AbstractArray)
+function residual(cf::CostFunction, x::AbstractArray)
 	f = 0.0
 	resx = Vector(length(terms(cf)))
 	for i in eachindex(terms(cf))
@@ -64,16 +61,19 @@ end
 
 #this function must be used only with sorted and expanded affine operators!
 function gradient!{T}(gradfi::Vector{T}, cf::CostFunction, resx::Vector{T} )
+	f = 0.0
 	for i in eachindex(terms(cf))
-		gradient!(gradfi[i], terms(cf)[i], resx[i])
+		fx, = gradient!(gradfi[i], terms(cf)[i], resx[i])
+		f += fx
 	end
+	return f
 end
 
 #this function must be used only with sorted and expanded affine operators!
 function gradient{T}(cf::CostFunction, resx::Vector{T} )
 	gradfi = deepsimilar(resx)
-	gradient!(gradfi,cf,resx)
-	return gradfi
+	f = gradient!(gradfi,cf,resx)
+	return gradfi, f
 end
 
 #this function must be used only with sorted and expanded affine operators!
