@@ -30,3 +30,12 @@ function split(cf::CostFunction)
 
 end
 
+split_quadratic(cf::CostFunction) = 
+CostFunction(variable(cf), 
+	      terms(cf)[isquadratic.(terms(cf))], 
+	     affine(cf)[isquadratic.(terms(cf))]),
+CostFunction(variable(cf), 
+	      terms(cf)[!isquadratic.(terms(cf))], 
+	     affine(cf)[!isquadratic.(terms(cf))])
+
+
