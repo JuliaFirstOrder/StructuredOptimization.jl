@@ -1,6 +1,6 @@
 export ls
 
-immutable LinearLeastSquares <: SmoothFunction
+immutable LinearLeastSquares <: QuadraticFunction
 	lambda::Real
 end
 

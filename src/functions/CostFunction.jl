@@ -78,7 +78,7 @@ end
 
 #this function must be used only with sorted and expanded affine operators!
 #internal variables are used as buffer 
-function At_mul_gradfi!{T}(grad::AbstractArray, cf::CostFunction, gradfi::Vector{T} )
+function At_mul_B!{T}(grad::AbstractArray, cf::CostFunction, gradfi::Vector{T} )
 	A_mul_B!(grad, adjoint(affine(cf)[1]), gradfi[1]  )
 	for i = 2:length(terms(cf))
 		A_mul_B!(~variable(cf), adjoint(affine(cf)[i]), gradfi[i] )
@@ -87,14 +87,14 @@ function At_mul_gradfi!{T}(grad::AbstractArray, cf::CostFunction, gradfi::Vector
 end
 
 #this function must be used only with sorted and expanded affine operators!
-function At_mul_gradfi{T}(cf::CostFunction, gradfi::Vector{T} )
+function At_mul_B{T}(cf::CostFunction, gradfi::Vector{T} )
 	grad = deepsimilar(~variable(cf))
-	At_mul_gradfi!(grad, cf, gradfi)
+	At_mul_B!(grad, cf, gradfi)
 	return grad
 end
 
 #this function must be used only with sorted and expanded affine operators!
-function A_mul_x!{T}(resx::Vector{T}, cf::CostFunction, x::AbstractArray)
+function A_mul_B!{T}(resx::Vector{T}, cf::CostFunction, x::AbstractArray)
 	for i in eachindex(terms(cf))
 		A_mul_B!(resx[i],operator(affine(cf)[i]),x)
 	end

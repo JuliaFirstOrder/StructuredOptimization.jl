@@ -1,6 +1,7 @@
 abstract ExtendedRealValuedFunction
-abstract SmoothFunction      <: ExtendedRealValuedFunction
-abstract NonSmoothFunction   <: ExtendedRealValuedFunction
+abstract SmoothFunction    <: ExtendedRealValuedFunction
+abstract QuadraticFunction <: SmoothFunction
+abstract NonSmoothFunction <: ExtendedRealValuedFunction
 
 include("functions/CostFunction.jl")
 include("functions/absorb_merge.jl")

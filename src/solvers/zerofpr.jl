@@ -97,13 +97,13 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 
 	resx,      = residual(f,x)
 	gradfi, fx = gradient(f,resx)
-	gradx      = At_mul_gradfi(f,gradfi)
+	gradx      = At_mul_B(f,gradfi)
 	slv.cnt_matvec += 2
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
 		resx_eps,   = residual(f,x+sqrt(eps()))
 		gradfi_eps, = gradient(f,resx_eps)
-		gradx_eps  = At_mul_gradfi(f,gradfi_eps)
+		gradx_eps  = At_mul_B(f,gradfi_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = (1-beta)/Lf
@@ -173,7 +173,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 		# compute rbar
 	
 		gradient!(gradfi,f,resxbar)
-		At_mul_gradfi!(gradxbar,f,gradfi)
+		At_mul_B!(gradxbar,f,gradfi)
 
 		slv.cnt_matvec += 1
 		gradstep .= (*).(-slv.gamma, gradxbar)
@@ -198,9 +198,9 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 		level = FBEx - sigma*slv.normfpr^2
 		tau = 1.0
 
-		A_mul_x!(Ad, f,  d) 
+		A_mul_B!(Ad, f,  d) 
 		gradient!(gradfi,f,Ad)
-		At_mul_gradfi!(ATAd,f,gradfi)
+		At_mul_B!(ATAd,f,gradfi)
 
 		slv.cnt_matvec += 2
 		for j = 1:32
