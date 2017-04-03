@@ -129,7 +129,7 @@ fx = RegLS.residual!(resx, T, X1)
 gradfi, fx = RegLS.gradient(T, resx)
 @test norm(fx-(0.1/2*vecnorm(X1)^2))<1e-8
 @test norm(gradfi[1]-0.1*resx[1])<1e-8
-grad   = RegLS.At_mul_gradfi(T, gradfi)
+grad   = RegLS.At_mul_B(T, gradfi)
 @test norm(grad-(0.1*(X1)))<1e-8
 println()
 
@@ -139,7 +139,7 @@ resx, fx = RegLS.residual(T,X1)
 fx = RegLS.residual!(resx, T, X1)
 gradfi, fx = RegLS.gradient(T, resx)
 @test norm(fx-(0.1/2*vecnorm(X1)^2+1/2*vecnorm(M1*X1)^2))<1e-8
-grad   = RegLS.At_mul_gradfi(T, gradfi)
+grad   = RegLS.At_mul_B(T, gradfi)
 @test norm(grad-(0.1*(X1)+M1'*(M1*X1)))<1e-8
 println()
 
@@ -149,7 +149,7 @@ resx, fx = RegLS.residual(T,[X1,X2])
 fx = RegLS.residual!(resx, T, [X1,X2])
 gradfi, fx = RegLS.gradient(T, resx)
 @test norm(fx-(0.1/2*vecnorm(X1+M2*X2-b1)^2+1/2*vecnorm(M1*X1-X2-b2)^2))<1e-8
-grad   = RegLS.At_mul_gradfi(T, gradfi)
+grad   = RegLS.At_mul_B(T, gradfi)
 @test norm(grad-([0.1*(X1+M2*X2-b1)+M1'*(M1*X1-X2-b2), 0.1*M2'*(X1+M2*X2-b1)-(M1*X1-X2-b2)]))<1e-8
 
 
@@ -167,7 +167,7 @@ p, = prox(NormL1(lambda), resx[1],lambda*gamma0)
 @test norm(fx-( lambda*norm(p,1)+1/(2*gamma0*lambda)*vecnorm(resx[1]-p)^2  ) )<1e-8
 gradfi, fx3 = RegLS.gradient(T, resx)
 @test norm(fx-fx3) <= 1e-8
-grad   = RegLS.At_mul_gradfi(T, gradfi)
+grad   = RegLS.At_mul_B(T, gradfi)
 grad2 = 1/(gamma0*lambda)*M1'*(resx[1]-p) 
 @test norm(grad-grad2)<=1e-8
 
@@ -183,7 +183,7 @@ p, = prox(NormL1(lambda), resx[1],lambda*gamma0)
 @test norm(fx-( lambda*norm(p,1)+1/(2*gamma0*lambda)*vecnorm(resx[1]-p)^2  ) )<1e-8
 gradfi, fx3 = RegLS.gradient(T, resx)
 @test norm(fx-fx3) <= 1e-8
-grad   = RegLS.At_mul_gradfi(T, gradfi)
+grad   = RegLS.At_mul_B(T, gradfi)
 gradX1 = 1/(gamma0*lambda)*M1'*(resx[1]-p)
 gradX2 = 1/(gamma0*lambda)*(resx[1]-p)
 @test norm(grad[1]-gradX1)<=1e-8
