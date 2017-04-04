@@ -146,7 +146,7 @@ r = 1e8
 minimize(ls(d.*x-b1), norm(A*x-b2,1) <= r, slv)
 @test norm(d.*~x-b1) <= 1e-6
 
-minimize(ls(x)+1e3*hingeloss(A*x,b2), slv)
+#minimize(ls(x)+1e3*hingeloss(A*x,b2), slv)
 
 println("testing block variables dual")
 

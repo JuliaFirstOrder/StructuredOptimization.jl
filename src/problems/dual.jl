@@ -47,7 +47,7 @@ end
 #no tilt
 function get_cjprox{T<:NonSmoothFunction}(g::T, b2::Float64)
 	#is precompose really needed?
-	Precompose(Conjugate(get_prox(g)),-1,0)
+	PrecomposeDiagonal(Conjugate(get_prox(g)),-1,0)
 end
 
 function solve(P::Dual, slv::Solver = default_slv()) 

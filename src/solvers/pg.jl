@@ -120,7 +120,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::PG)
 		for j = 1:32
 			gradstep .= (*).(-slv.gamma, grady)
 			gradstep .+= y
-			gz = prox!(g, gradstep, x, slv.gamma)
+			gz = prox!(x, g, gradstep, slv.gamma)
 			slv.cnt_prox += 1
 			fpr = y-x
 			slv.normfpr = deepvecnorm(fpr)

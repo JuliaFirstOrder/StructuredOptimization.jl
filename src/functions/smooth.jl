@@ -12,7 +12,7 @@ function (s::MoreauEnvelope)(x::AbstractArray)
 end
 
 function gradient!(grad::AbstractArray, s::MoreauEnvelope, x::AbstractArray)  
-	prox!(s.p, x, grad, s.gamma)
+	prox!(grad, s.p, x, s.gamma)
 	fgamma = s.p(grad)
 	grad .=  x - grad 
 	fx = fgamma+1/(2*s.gamma)*vecnorm(grad)^2

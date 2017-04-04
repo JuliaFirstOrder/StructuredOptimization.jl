@@ -152,7 +152,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 				sigma = 2*sigma
 				gradstep .= (*).(-slv.gamma, gradx)
 				gradstep .+= x
-				gxbar = prox!(g, gradstep, xbar, slv.gamma)
+				gxbar = prox!(xbar, g, gradstep, slv.gamma)
 				slv.cnt_prox += 1
 				r .= (-).(x, xbar)
 				slv.normfpr = deepvecnorm(r)
@@ -179,7 +179,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 		slv.cnt_matvec += 1
 		gradstep .= (*).(-slv.gamma, gradxbar)
 		gradstep .+= xbar
-		prox!(g, gradstep, xbarbar, slv.gamma)
+		prox!(xbarbar, g, gradstep, slv.gamma)
 		slv.cnt_prox += 1
 		rbar .=(-).(xbar, xbarbar)
 
@@ -211,7 +211,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 			gradx .= (+).(gradxbar, (*).(tau,ATAd))
 			gradstep .= (*).(-slv.gamma, gradx)
 			gradstep .+= x
-			gxbar = prox!(g, gradstep, xbar, slv.gamma)
+			gxbar = prox!(xbar, g, gradstep, slv.gamma)
 			slv.cnt_prox += 1
 			r .= (-).(x, xbar)
 			slv.normfpr = deepvecnorm(r)
