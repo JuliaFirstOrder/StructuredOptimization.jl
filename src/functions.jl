@@ -14,8 +14,11 @@ include("functions/HingeLoss.jl")
 gradient(f::ExtendedRealValuedFunction) = error("gradient not implemented for $f")
 lambda(f::ExtendedRealValuedFunction) = 1.0
 
-isquadratic(f::ExtendedRealValuedFunction) = false
-isquadratic(f::QuadraticFunction) = true
+isQuadratic(f::ExtendedRealValuedFunction) = false
+isQuadratic(f::QuadraticFunction) = true
+
+isSmooth(f::ExtendedRealValuedFunction) = false
+isSmooth(f::SmoothFunction) = true
 
 
 

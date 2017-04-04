@@ -1,41 +1,54 @@
+"""
+`split(cf::CostFunction) -> (smooth, proximable, nonsmooth)`
+ 
+Splits cost function into `SmoothFunction`, proximable and `NonSmoothFunction` terms.
+"""
 function split(cf::CostFunction)
 
-	nA, nf = Vector{AffineOperator}(0), Vector{ExtendedRealValuedFunction}(0) 
-	# non-smooth terms with non simple-operator
-	sA, sf = Vector{AffineOperator}(0), Vector{ExtendedRealValuedFunction}(0) 
-	# smooth terms 
-	pA, pf = Vector{AffineOperator}(0), Vector{ExtendedRealValuedFunction}(0) 
-	# nonsmooth proximable terms
-
-	for i in eachindex(cf.A)
-		if isAbsorbable(operator(cf.A[i])) && typeof(cf.f[i])<:NonSmoothFunction
-			push!(pf,cf.f[i])
-			push!(pA,cf.A[i])
-		else
-			if     typeof(cf.f[i]) <: NonSmoothFunction
-				push!(nf,cf.f[i])
-				push!(nA,cf.A[i])
-			elseif typeof(cf.f[i]) <: SmoothFunction
-				push!(sf,cf.f[i])
-				push!(sA,cf.A[i])
-			end
-		end
-	end
-
-	proximable =  CostFunction(variable(cf), pf, pA )
-	smooth     =  CostFunction(variable(cf), sf, sA )
-	nonsmooth  =  CostFunction(variable(cf), nf, nA )
+	smooth,     nonsmooth = split_Smooth(cf)
+	proximable, nonsmooth = split_Proximable(nonsmooth)
 
 	return smooth, proximable, nonsmooth 
 
 end
 
-split_quadratic(cf::CostFunction) = 
+"""
+`split_Smooth(cf::CostFunction) -> (smooth, nonsmooth)`
+ 
+Splits cost function into `SmoothFunction` and `NonSmoothFunction` terms.
+"""
+split_Smooth(cf::CostFunction) = 
 CostFunction(variable(cf), 
-	      terms(cf)[isquadratic.(terms(cf))], 
-	     affine(cf)[isquadratic.(terms(cf))]),
+	      terms(cf)[isSmooth.(terms(cf))], 
+	     affine(cf)[isSmooth.(terms(cf))]),
 CostFunction(variable(cf), 
-	      terms(cf)[!isquadratic.(terms(cf))], 
-	     affine(cf)[!isquadratic.(terms(cf))])
+	      terms(cf)[!isSmooth.(terms(cf))], 
+	     affine(cf)[!isSmooth.(terms(cf))])
+
+"""
+`split_Proximable(cf::CostFunction) -> (proximable, non_proximable)`
+ 
+Splits cost function into proximable and non proximable terms.
+"""
+split_Proximable(cf::CostFunction) = 
+CostFunction(variable(cf), 
+	      terms(cf)[isAbsorbable.(operator(cf))], 
+	     affine(cf)[isAbsorbable.(operator(cf))]),
+CostFunction(variable(cf), 
+	      terms(cf)[!isAbsorbable.(operator(cf))], 
+	     affine(cf)[!isAbsorbable.(operator(cf))])
+
+"""
+`split_Quadratic(cf::CostFunction) -> (quadratic, non_quadratic)`
+ 
+Splits cost function into `QuadraticFunction` and non `QuadraticFunction` terms.
+"""
+split_Quadratic(cf::CostFunction) = 
+CostFunction(variable(cf), 
+	      terms(cf)[isQuadratic.(terms(cf))], 
+	     affine(cf)[isQuadratic.(terms(cf))]),
+CostFunction(variable(cf), 
+	      terms(cf)[!isQuadratic.(terms(cf))], 
+	     affine(cf)[!isQuadratic.(terms(cf))])
 
 

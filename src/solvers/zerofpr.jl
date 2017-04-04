@@ -88,7 +88,7 @@ ZeroFPR(tol,
 function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 
 	tic()
-	q, s = split_quadratic(f)
+	q, s = split_Quadratic(f)
 
 	slv = copy(slv0)
 	x = deepcopy(~variable(f))
