@@ -42,6 +42,7 @@ println("testing single variable primal")
 M = randn(5,5)
 b = randn(5)
 x = Variable(zeros(5))
+
 P = problem(ls(M*x-b), norm(x,1)<=10)
 show(P)
 
@@ -62,10 +63,26 @@ minimize(ls(x-b2)+1e-2*norm(x,1), slv)
 minimize(ls(A*x-b1), [norm(5.0*x,1) <= 1/1e-2], slv)
 @test norm(5.*~x,1) <= 1/1e-2
 
-####test merge regularize
+#testing sliced variables
+b3 = randn(n,n)
+x = Variable(zeros(n,n))
+minimize(ls(x)+1e5*norm(x[1:2,:]-b3[1:2,:],1)+1e5*norm(x[3:5,:]-b3[3:5,:],1), slv)
+@test vecnorm(~x-b3,1) <= 1e-4
+
+x = Variable(zeros(n,n))
+minimize(ls(x)+1e5*norm(x[1:2,:]-b3[1:2,:],1), [ norm(x[3:5,:]-b3[3:5,:],1) <= 1e-5  ], slv)
+@test vecnorm(~x-b3,1) <= 1e-4
+
+x = Variable(zeros(n,n))
+minimize(ls(x), [norm(x[1:2,:]-b3[1:2,:],1)<=1e-5, norm(x[3:5,:]-b3[3:5,:],1) <= 1e-5  ], slv)
+@test vecnorm(~x-b3,1) <= 1e-4
+
+#####test merge regularize
+x = Variable(zeros(n))
 minimize(ls(A*x-b1)+1e7*ls(x-b2), [norm(x,1) <= 1/1e-2], slv)
 @test norm(~x-b2) < 1e-5
 
+x = Variable(zeros(n))
 minimize(ls(A*x-b1)+1e-7*ls(x-b2), [norm(x,1) <= 1/1e-2], slv)
 @test norm(A*~x-b1) < 1e-4
 

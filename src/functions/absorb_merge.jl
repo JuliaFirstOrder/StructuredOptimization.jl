@@ -1,8 +1,11 @@
 
 # absorb linear operator into proximable operator
 absorbOp(A::AffineOperator, p::ProximableFunction) = absorbOp(operator(A), p, tilt(A))
+absorbOp(A::Vector{AffineOperator}, p::Vector{ProximableFunction}) = 
+absorbOp.(operator(A), p, tilt.(A))
 
-absorbOp{L <:IdentityOperator}(A::L, p::ProximableFunction, b) = b == 0. ? p : PrecomposeDiagonal(p, 1., b)
+absorbOp{L <:Union{IdentityOperator,GetIndex}}(A::L, p::ProximableFunction, b) = 
+b == 0. ? p : PrecomposeDiagonal(p, 1., b)
 absorbOp{L <:DiagonalOperator}(A::L, p::ProximableFunction, b) = PrecomposeDiagonal(p, A.d, b)
 
 # merge Proximal operators 

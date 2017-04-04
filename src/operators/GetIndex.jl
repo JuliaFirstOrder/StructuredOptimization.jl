@@ -50,7 +50,8 @@ function get_size(dim,args...)
 	end
 end
 
-
+get_idx(A::GetIndex) = A.idx
+isAbsorbable(A::GetIndex) = true 
 
 
 

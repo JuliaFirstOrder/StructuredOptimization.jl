@@ -29,7 +29,13 @@ function mergeProx(f::Vector{ExtendedRealValuedFunction}, affOps::Vector{AffineO
 			p = absorbOp(affOps[1], get_prox(f[1]) )
 		end
 	else
-		error("sliced separable sum not implemented, or there are multiple proximable terms with the same variables i.e. separable sum not possible!")
+		if all([typeof(A) <: GetIndex for A in  operator.(affOps)])
+			idxs = get_idx.(operator.(affOps))
+			ps = absorbOp.(affOps, get_prox.(f) )
+			p = SlicedSeparableSum(ps,idxs)
+		else
+			error("too many terms with the same variables!")
+		end
 	end
 end
 
