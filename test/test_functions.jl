@@ -64,6 +64,18 @@ RegLS.lambda(terms(T)[1])
 y = RegLS.get_prox(T.f[1])
 println()
 
+T = sum(norm(X),1)
+RegLS.lambda(terms(T)[1])
+show(T)
+y = RegLS.get_prox(T.f[1])
+println()
+
+T = 0.5*sum(norm(X),2)
+RegLS.lambda(terms(T)[1])
+show(T)
+y = RegLS.get_prox(T.f[1])
+println()
+
 T = norm(x1,Inf) <= 2
 show(T)
 RegLS.lambda(terms(T)[1])
@@ -106,17 +118,12 @@ show(T)
 y = RegLS.get_prox(T.f[1])
 println()
 
-T = sum(norm(X),1)
+T = rank(X) <= 2
 RegLS.lambda(terms(T)[1])
 show(T)
 y = RegLS.get_prox(T.f[1])
 println()
 
-T = 0.5*sum(norm(X),2)
-RegLS.lambda(terms(T)[1])
-show(T)
-y = RegLS.get_prox(T.f[1])
-println()
 
 println("testing cost function constructors")
 
