@@ -1,5 +1,6 @@
 x1,x2 = Variable(3),Variable(4)
 X1,X2 = randn(3),randn(4)
+X = Variable(3,4)
 b1,b2 = randn(3),randn(4)
 M1 = randn(4,3)
 M2  = randn(3,4)
@@ -63,6 +64,18 @@ RegLS.lambda(terms(T)[1])
 y = RegLS.get_prox(T.f[1])
 println()
 
+T = sum(norm(X),1)
+RegLS.lambda(terms(T)[1])
+show(T)
+y = RegLS.get_prox(T.f[1])
+println()
+
+T = 0.5*sum(norm(X),2)
+RegLS.lambda(terms(T)[1])
+show(T)
+y = RegLS.get_prox(T.f[1])
+println()
+
 T = norm(x1,Inf) <= 2
 show(T)
 RegLS.lambda(terms(T)[1])
@@ -104,6 +117,13 @@ RegLS.lambda(terms(T)[1])
 show(T)
 y = RegLS.get_prox(T.f[1])
 println()
+
+T = rank(X) <= 2
+RegLS.lambda(terms(T)[1])
+show(T)
+y = RegLS.get_prox(T.f[1])
+println()
+
 
 println("testing cost function constructors")
 

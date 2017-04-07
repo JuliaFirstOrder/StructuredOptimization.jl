@@ -1,4 +1,4 @@
-#test linear operators
+##test linear operators
 
 stuff = [
 	 Dict("Operator" => (zeros,),
@@ -98,6 +98,43 @@ stuff = [
               "params" => (([ones(100)]),),
 	      "args"   => ( ones(30), ones(2*100-1) )
 	     ),
+	 Dict("Operator" => (finiteDiff,),
+              "params" => ((),),
+	      "args"   => ( randn(4), randn(4) )
+	     ),
+	 Dict("Operator" => (finiteDiff,),
+              "params" => ((),),
+	      "args"   => ( randn(4), randn(4) )
+	     ),
+	 Dict("Operator" => (finiteDiff,),
+              "params" => ((1),),
+	      "args"   => ( randn(4,6), randn(4,6) )
+	     ),
+	 Dict("Operator" => (finiteDiff,),
+              "params" => ((2),),
+	      "args"   => ( randn(4,6), randn(4,6) )
+	     ),
+	 Dict("Operator" => (finiteDiff,),
+              "params" => ((1),),
+	      "args"   => ( randn(4,6,3), randn(4,6,3) )
+	     ),
+	 Dict("Operator" => (finiteDiff,),
+              "params" => ((2),),
+	      "args"   => ( randn(4,6,3), randn(4,6,3) )
+	     ),
+	 Dict("Operator" => (finiteDiff,),
+              "params" => ((3),),
+	      "args"   => ( randn(4,6,3), randn(4,6,3) )
+	     ),
+	 Dict("Operator" => (tv,),
+              "params" => ((),),
+	      "args"   => ( randn(4,6), randn(4*6,2) )
+	     ),
+	 Dict("Operator" => (tv,),
+              "params" => ((),),
+	      "args"   => ( randn(4,6,5), randn(4*6*5,3) )
+	     ),
+	 #####some tests on nested operators###
 	 Dict("Operator" => (*, dct),
               "params" => ((randn(32,64)) ,() ),
 	      "args"   => ( randn(64), randn(32) )
@@ -430,3 +467,52 @@ test1,test2 = RegLS.test_FwAdj(B, X, Y)
 @test test2 < 1e-8
 test3 = RegLS.test_Op(B, X, Y)
 @test test3 < 1e-8
+
+#testing FiniteDiff
+
+b = repmat(collect(linspace(0,1,5)),1,4)
+x = Variable(b)
+
+A = FiniteDiff(~x)
+
+y = A*b
+@test vecnorm(y-0.25*ones(size(b))) <1e-8
+
+A = FiniteDiff(~x, 2)
+y = A*b
+@test vecnorm(y) <1e-8
+
+A = TV(~x)
+y = A*b
+
+@test vecnorm(y[:,1]-0.25*ones(size(b))[:]) <1e-8
+@test vecnorm(y[:,2]) <1e-8
+
+b = randn(size(b))
+y1 = TV(~x)*b
+yx = FiniteDiff(~x)*b
+yy = FiniteDiff(~x,2)*b
+
+@test norm(y1[:,1]-yx[:]) <=1e-8
+@test norm(y1[:,2]-yy[:]) <=1e-8
+
+b = randn(40,50)
+x = Variable(b)
+
+x1 = FiniteDiff(~x)'*b
+x2 = TV(~x)'*[b[:] 0*b[:]]
+
+@test vecnorm(x1-x2) <= 1e-8
+
+x1 = FiniteDiff(~x,2)'*b
+x2 = TV(~x)'*[0*b[:] b[:]]
+
+@test vecnorm(x1-x2) <= 1e-8
+
+b = randn(40,50,20)
+x = Variable(b)
+
+x1 = FiniteDiff(~x)'*b
+x2 = TV(~x)'*[b[:] 0*b[:] 0*b[:]]
+
+@test vecnorm(x1-x2) <= 1e-8

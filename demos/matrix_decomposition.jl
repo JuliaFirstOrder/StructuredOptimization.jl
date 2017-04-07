@@ -24,34 +24,24 @@ end
 
 F = [reshape(R,n*m,N); reshape(G,n*m,N); reshape(B,n*m,N)]'
 
+X = Variable(N*n*m,3)
+Y = Variable(N,3*n*m)
+slv = ZeroFPR()
+slv = FPG()
+slv = slv(verbose = 1, tol = 1e-3, linesearch = false, gamma = 0.5)
 
-Frg = zeros(Float64,N*n*m,3)
-Bkg = zeros(Float64,N,3*n*m)
-L = X-> reshape(X[1],N,3*n*m)+X[2]
-Ladj = Y-> [reshape(Y,N*n*m,3),Y]
-
-X = OptVar(zeros(Float64,N*n*m,3))
-Y = OptVar(zeros(Float64,N,3*n*m))
-A = reshape(X,N,3*n*m)+Y
-
-XX =[randn(size(Frg)),randn(size(Bkg))] 
-vecnorm(A*XX-L(XX)) #verify adjoint operator
-
-g = SeparableSum([NormL21(0.1,2), IndBallRank(1)])
-
-@time X,slv  = solve(A, F, g, [Frg,Bkg], ZeroFPR(verbose = 1, tol = 1e-3, 
-																									linesearch = false, gamma = 0.5))
+@time slv = minimize(ls(reshape(X,N,3*n*m)+Y-F)+0.1*sum(norm(X),2), [rank(Y) <= 1], slv)
 show(slv)
 
-Frg = copy(X[1])
-Frg[Frg.!=0] = Frg[Frg.!=0]+reshape(X[2],N*m*n*3)[Frg.!=0]
+Frg = copy(~X)
+Frg[Frg.!=0] = Frg[Frg.!=0]+reshape(~Y,N*m*n*3)[Frg.!=0]
 Frg[repmat(sum(Frg,2).==0,1,3)] = 1 #put white in null pixels
 Frg = reshape(Frg,N,3*n*m)
 
 f = 1	
 a = @sprintf("%5.5i",frames[f])
 img = load("bootstrap/b$a.bmp")
-Bkg = reshape(X[2][1,:],n,m,3)
+Bkg = reshape((~Y)[1,:],n,m,3)
 Frgf = reshape(Frg[f,:],n,m,3)
 Bkgim = [ RGB(Bkg[i,ii,1],Bkg[i,ii,2],Bkg[i,ii,3]) for i = 1:n,ii =1:m]
 Frgim = [ RGB(Frgf[i,ii,1],Frgf[i,ii,2],Frgf[i,ii,3]) for i = 1:n,ii =1:m]
@@ -59,12 +49,4 @@ Frgim = [ RGB(Frgf[i,ii,1],Frgf[i,ii,2],Frgf[i,ii,3]) for i = 1:n,ii =1:m]
 imshow(img)
 imshow(Frgim)
 imshow(Bkgim)
-#
-#
-#
-#
-#
-#
-#
-#
-#
+

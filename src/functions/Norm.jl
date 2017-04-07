@@ -1,4 +1,4 @@
-import Base: norm 
+import Base: norm, sum 
 
 abstract NormFunction <: NonSmoothFunction
 
@@ -38,6 +38,15 @@ end
 
 fun_name(T::NormL2, i::Int64) = " λ$(i) ‖A$(i)x‖₂ "
 fun_par( T::NormL2, i::Int64) = " λ$(i) = $(round(T.lambda,3)) "
+
+type NormL21 <: NormFunction
+	lambda::Real
+	dim::Int
+end
+
+fun_name(T::NormL21, i::Int64) =  T.dim == 1 ? " λ$(i) ∑_j ‖ (A$(i)x)[:,j] ‖₂ " : 
+                                               " λ$(i) ∑_j ‖ (A$(i)x)[j,:] ‖₂ "
+fun_par( T::NormL21, i::Int64) = " λ$(i) = $(round(T.lambda,3)) "
 
 type IndBallL2 <: NonSmoothFunction
 	r::Real
@@ -93,6 +102,7 @@ end
 *(lambda::Real,  T::NormL0)   = NormL0(  T.lambda*lambda)
 *(lambda::Real,  T::NormL1)   = NormL1(  T.lambda*lambda)
 *(lambda::Real,  T::NormL2)   = NormL2(  T.lambda*lambda)
+*(lambda::Real,  T::NormL21)  = NormL21( T.lambda*lambda, T.dim)
 *(lambda::Real,  T::NormLinf) = NormLinf(T.lambda*lambda)
  
 <=(T::NormL0,   r::Integer) = IndBallL0(r) 
@@ -102,9 +112,12 @@ end
 
 ==(T::NormL2, r::Real)    = IndSphereL2(r/T.lambda) 
 
+sum(T::NormL2,   d::Int)  = NormL21(T.lambda,d) 
+
 get_prox(T::NormL0)   = ProximalOperators.NormL0(T.lambda)
 get_prox(T::NormL1)   = ProximalOperators.NormL1(T.lambda)
 get_prox(T::NormL2)   = ProximalOperators.NormL2(T.lambda)
+get_prox(T::NormL21)  = ProximalOperators.NormL21(T.lambda,T.dim)
 get_prox(T::NormLinf) = ProximalOperators.NormLinf(T.lambda)
 
 get_prox(T::IndBallL0)   = ProximalOperators.IndBallL0(T.r)

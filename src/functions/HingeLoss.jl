@@ -1,6 +1,6 @@
 export hingeloss
 
-type HingeLoss{R1 <: Real, R2 <: Real}   <: NonSmoothFunction
+immutable HingeLoss{R1 <: Real, R2 <: Real}   <: NonSmoothFunction
 	b::Array{R1,1}
 	mu::R2
 end

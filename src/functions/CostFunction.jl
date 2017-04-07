@@ -1,4 +1,4 @@
-import Base: *, <=, ==, isempty
+import Base: *, <=, ==, sum, isempty
 export affine, terms, tilt
 
 immutable CostFunction
@@ -28,7 +28,8 @@ end
 *(lambda::Real, h::CostFunction)   = CostFunction(h.x,(*).(lambda, h.f),h.A)
 
 <=(h::CostFunction, lambda::Real)  = CostFunction(h.x,(<=).(h.f,lambda),h.A)
-==(h::CostFunction, lambda::Real,)  = CostFunction(h.x,(==).(h.f,lambda),h.A)
+==(h::CostFunction, lambda::Real)  = CostFunction(h.x,(==).(h.f,lambda),h.A)
+sum(h::CostFunction,  dim::Int  ) = CostFunction(h.x,(sum).(h.f,dim   ),h.A)
 
 function cost{T}(cf::CostFunction,resx::Vector{T})
 	f = 0.0
