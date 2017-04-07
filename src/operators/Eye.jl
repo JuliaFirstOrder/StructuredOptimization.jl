@@ -1,37 +1,21 @@
-import Base: eye
 export Eye
 
-immutable Eye{D1,D2} <: IdentityOperator{D1,D2}
-	sign::Bool
+immutable Eye <: IdentityOperator
+	domainType::Type
 	dim::Tuple
-	Eye(sign,dim) = new(sign,dim)
-	Eye(dim) = new(true,dim)
 end
 
-size(A::Eye) = (A.dim, A.dim)
--{D1,D2}(A::Eye{D1,D2}) = Eye{D1,D2}(false == sign(A), A.dim)
+size(L::Eye) = (L.dim, L.dim)
+  domainType(L::Eye) = L.domainType
+codomainType(L::Eye) = L.domainType
 
-Eye(T::Type, dim::Tuple        ) = Eye{T,T}(dim)
-Eye(T::Type, dim::Vararg{Int64}) = Eye{T,T}(dim)
-Eye(dim::Vararg{Int64}) = Eye(Float64, dim)
-Eye(dim::Tuple        ) = Eye(Float64, dim)
+Eye{T}(x::AbstractArray{T}) = Eye(T,size(x))
 
-function uA_mul_B!{T}(y::AbstractArray{T},A::Eye,b::AbstractArray{T})
-	y .= b
-end
+A_mul_B!{T}(y::AbstractArray{T}, L::Eye, b::AbstractArray{T}) = y .= b
+Ac_mul_B!(y, L::Eye, b) = A_mul_B!(y,L,b) 
 
-transpose{D1}(A::Eye{D1,D1} ) = A
-inv{D1}(A::Eye{D1,D1} )       = A
+transpose(L::Eye) = L
+inv(L::Eye ) = L
 
-fun_name(A::Eye)  = "Identity Operator"
-
-eye(B::AffineOperator, args...) = NestedLinearOperator(eye, B, args...)
-
-isInvertible(A::Eye) = true
-
-################################################################################
-# FROM HERE ON IT IS USERS' SYNTAX
-################################################################################
-
-eye{D1}(x::Variable{D1}) = Affine([x], Eye(D1,size(x)), Eye(D1,size(x)),
-				Nullable{AbstractArray}() )
+fun_name(L::Eye)  = "Identity Operator"
+isInvertible(L::Eye) = true

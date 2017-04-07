@@ -1,7 +1,7 @@
 abstract AffineOperator
-abstract LinearOperator{D1,D2}
-abstract DiagonalOperator{D1,D2} <: LinearOperator{D1,D2}
-abstract IdentityOperator{D1,D2} <: DiagonalOperator{D1,D2}
+abstract LinearOperator
+abstract DiagonalOperator <:   LinearOperator
+abstract IdentityOperator <: DiagonalOperator
 #abstract DiagonalOp <: DiagGramOp
 
 import Base:
@@ -18,16 +18,13 @@ import Base:
   sign,
   ==
 
-size(A::LinearOperator, i) = size(A)[i]
-nblocks(A::LinearOperator) = (length(size(A,1)),length(size(A,2)))
-nblocks(A::LinearOperator, i) = length(size(A,i))
+size(L::LinearOperator, i) = size(L)[i]
+nblocks(L::LinearOperator) = (length(size(L,1)),length(size(L,2)))
+nblocks(L::LinearOperator, i) = length(size(L,i))
 
-#   domainType{D1,D2}(A::LinearOperator{D1,D2}) = D1
-# codomainType{D1,D2}(A::LinearOperator{D1,D2}) = D2
+  domainType(L::LinearOperator) =   L.domainType
+codomainType(L::LinearOperator) = L.codomainType
 
-# Ac_mul_B!(y::AbstractArray,A::LinearOperator,b::AbstractArray)  = A_mul_B!(y, A',b)
-#  A_mul_B!(y::AbstractArray,A::LinearOperator,b::AbstractArray) =
-# sign(A) ? uA_mul_B!(y,A,b) : uA_mul_B!(y,A,-b)
 
 # function *{D1,D2}(A::LinearOperator{D1,D2},b::AbstractArray)
 # 	y = zeros(D2,size(A,2))
@@ -35,43 +32,37 @@ nblocks(A::LinearOperator, i) = length(size(A,i))
 # 	return y
 # end
 
-# .*(A::LinearOperator,b) = A*b
-#
-# +(A::LinearOperator) = A
-# sign(A::LinearOperator) = A.sign ? true : false
++(L::LinearOperator) = L
 
-function (*)(L::LinearOperator, x::AbstractArray)
-  if nblocks(L, 1) == 1
-    y = zeros(size(L, 1))
-  else
-    y = Vector()
-    for s in size(L, 1)
-      push!(y, zeros(s))
-    end
-  end
-  A_mul_B!(y, L, x)
+function *(L::LinearOperator,b::AbstractArray)
+	y = zeros(codomainType(L),size(L,1))        
+	A_mul_B!(y,L,b)        
+	return y 
 end
 
-include("operators/Affine.jl")
+
+
+
+
 include("operators/Eye.jl")
-include("operators/MatrixOp.jl")
-include("operators/Reshape.jl")
-include("operators/Compose.jl")
-include("operators/DFT.jl")
-include("operators/FiniteDiff.jl")
-include("operators/TV.jl")
-include("operators/DCT.jl")
-include("operators/Conv.jl")
-include("operators/DiagOp.jl")
-include("operators/GetIndex.jl")
-include("operators/Empty.jl")
-include("operators/HCAT.jl")
-include("operators/VCAT.jl")
-include("operators/Sum.jl")
-include("operators/Scale.jl")
-include("operators/Transpose.jl")
-include("operators/LBFGS.jl")
-include("operators/Zeros.jl")
+#include("operators/MatrixOp.jl")
+#include("operators/Reshape.jl")
+#include("operators/Compose.jl")
+#include("operators/DFT.jl")
+#include("operators/FiniteDiff.jl")
+#include("operators/TV.jl")
+#include("operators/DCT.jl")
+#include("operators/Conv.jl")
+#include("operators/DiagOp.jl")
+#include("operators/GetIndex.jl")
+#include("operators/Empty.jl")
+#include("operators/HCAT.jl")
+#include("operators/VCAT.jl")
+#include("operators/Sum.jl")
+#include("operators/Scale.jl")
+#include("operators/Transpose.jl")
+#include("operators/LBFGS.jl")
+#include("operators/Zeros.jl")
 include("operators/utils.jl")
 
 function Base.show(io::IO, L::LinearOperator)
@@ -80,11 +71,11 @@ function Base.show(io::IO, L::LinearOperator)
 end
 
 fun_name(  L) = "n/a"
-fun_type(  L) = "$(size(L,2)) → $(size(L,1))"
+fun_type(  L) = fun_domain(L)*" → "*fun_codomain(L)
 fun_par(   L) = "n/a"
 
-# fun_domain{D1<:Complex, D2}(A::LinearOperator{D1,D2})   = "ℂ^$(size(A,2))"
-# fun_domain{D1<:Real,    D2}(A::LinearOperator{D1,D2})   = "ℝ^$(size(A,2))"
+fun_domain(L::LinearOperator)   =   domainType(L) <: Complex ? "ℂ^$(size(L,2))" : "ℝ^$(size(L,2))"
+fun_codomain(L::LinearOperator) = codomainType(L) <: Complex ? "ℂ^$(size(L,1))" : "ℝ^$(size(L,1))"
 #
 # fun_codomain{D1, D2<:Complex}(A::LinearOperator{D1,D2}) = "ℂ^$(size(A,1))"
 # fun_codomain{D1, D2<:Real   }(A::LinearOperator{D1,D2}) = "ℝ^$(size(A,1))"

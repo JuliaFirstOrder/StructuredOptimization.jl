@@ -24,10 +24,9 @@ function optArray!{T<:AffineOperator,B <:AbstractArray}(A::T,x::Array{B,1})
 end
 
 #testing utils
-function test_FwAdj(Af::Affine, x, y)
-	println(); show(Af); println()
+function test_FwAdj(A::LinearOperator, x, y)
+	println(); show(A); println()
 
-	A = operator(Af)
 	println("forward")
 	y = A*x          #verify linear operator works
 	@time y = A*x
@@ -39,23 +38,22 @@ function test_FwAdj(Af::Affine, x, y)
 	test1 =  vecnorm(y-y2) #verify equivalence
 
 	println("adjoint")
-	At = adjoint(Af)
-	x  = At*y          #verify adjoint operator works
-	x3 = A'*y          #verify adjoint operator inside Affine is the same
-	@time x = At*y
+	x = A'*y          #verify adjoint operator inside Affine is the same
+	@time x = A'*y
 
 	println("adjoint preallocated")
 	x2 = 0*copy(x)
-	A_mul_B!(x2,At,y) #verify in-place linear operator works
-	@time A_mul_B!(x2,At,y)
+	A_mul_B!(x2,A',y) #verify in-place linear operator works
+	@time A_mul_B!(x2,A',y)
 
 	test2 = vecnorm(x-x2) #verify equivalence
-	test3 = vecnorm(x-x3) #verify equivalence
 
-	return test1, test2, test3
+	return test1, test2
 
 end
 
-function test_Op(Af::Affine,x,y)
-	return norm( RegLS.deepvecdot(operator(Af)*x,y) - RegLS.deepvecdot(x,adjoint(Af)*y))   #verify operator and its ajoint
+function test_Op(L::LinearOperator,x,y)
+	d1 = RegLS.deepvecdot(L*x,  y)
+	d2 = RegLS.deepvecdot(x, L'*y)
+	return norm( d1 - d2 )   #verify operator and its ajoint
 end

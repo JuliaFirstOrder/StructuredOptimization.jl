@@ -7,8 +7,8 @@ using Ipopt
 
 srand(1)
 
-#include("test_linOp.jl")
-include("test_functions.jl")
+include("test_linOp.jl")
+#include("test_functions.jl")
 #include("test_minimize.jl")
 #include("test_lbfgs.jl")
 #include("test_lbfgs_larger.jl")

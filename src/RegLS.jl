@@ -4,7 +4,7 @@ module RegLS
 
 using ProximalOperators
 
-# include("utils.jl")
+include("utils.jl")
 include("variables.jl")
 include("operators.jl")
 # include("functions.jl")
