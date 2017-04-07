@@ -32,11 +32,11 @@ Splits cost function into proximable and non proximable terms.
 """
 split_Proximable(cf::CostFunction) = 
 CostFunction(variable(cf), 
-	      terms(cf)[isAbsorbable.(operator(cf))], 
-	     affine(cf)[isAbsorbable.(operator(cf))]),
+	      terms(cf)[isGramDiagonal.(operator(cf))], 
+	     affine(cf)[isGramDiagonal.(operator(cf))]),
 CostFunction(variable(cf), 
-	      terms(cf)[!isAbsorbable.(operator(cf))], 
-	     affine(cf)[!isAbsorbable.(operator(cf))])
+	      terms(cf)[!isGramDiagonal.(operator(cf))], 
+	     affine(cf)[!isGramDiagonal.(operator(cf))])
 
 """
 `split_Quadratic(cf::CostFunction) -> (quadratic, non_quadratic)`

@@ -1,25 +1,28 @@
 export MatrixOp
 
-#TODO add matrix *matrix 
-immutable MatrixOp{D1,D2} <: LinearOperator{D1,D2}
-	sign::Bool
+immutable MatrixOp <: LinearOperator
 	A::AbstractMatrix
-
-	MatrixOp(sign,A) = new(sign,A)
-	MatrixOp(A) = new(true,A)
 end
-size(A::MatrixOp) = ((size(A.A,2),),(size(A.A,1),))
--{D1,D2}(A::MatrixOp{D1,D2}) = MatrixOp{D1,D2}(false == sign(A),A.A) 
 
-MatrixOp{D2}(T::Type, A::AbstractMatrix{D2}) = MatrixOp{T,D2}(A)
-MatrixOp(A::AbstractMatrix) = MatrixOp(Float64, A)
+size(A::MatrixOp) = ((size(A.A,1),),(size(A.A,2),))
 
-fun_name(A::MatrixOp)  = "Matrix Operator"
-*{D1,D2}(A::AbstractMatrix{D2}, x::Variable{D1}) = Affine([x], MatrixOp(D1,A), MatrixOp(D2,A'),
-							Nullable{AbstractArray}() )
+A_mul_B!(y, A::MatrixOp, b) = A_mul_B!(y, A.A, b)
+At_mul_B!(y, A::MatrixOp, b) = At_mul_B!(y, A.A, b)
 
-transpose{D1,D2}(A::MatrixOp{D1,D2}) = MatrixOp{D2,D1}(sign(A),A.A')
+fun_name(A::MatrixOp)  = "Matrix operator"
 
-uA_mul_B!(y::AbstractArray,A::MatrixOp,b::AbstractArray) = A_mul_B!(y,A.A,b) 
+# function *(A::MatrixOp,b::AbstractArray)
+# 	C = codomainType(A)
+# 	y = Array{C}(size(A,1))
+# 	A_mul_B!(y,A,b)
+# 	return y
+# end
+
+################################################################################
+# FROM HERE ON IT IS USERS' SYNTAX
+################################################################################
+
+*{D1,D2}(A::AbstractMatrix{D2}, x::Variable{D1}) = Affine([x], MatrixOp(D1,A), MatrixOp(D2,A'), Nullable{AbstractArray}() )
+
 #nested Operations
 *(A::AbstractMatrix,B::AffineOperator) = NestedLinearOperator(*, B, A)

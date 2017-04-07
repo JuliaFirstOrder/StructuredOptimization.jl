@@ -85,7 +85,7 @@ stuff = [
               "params" => ((), ),
 	      "args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
 	      ),
-	
+
 	 Dict("Operator" => (reshape,),
               "params" => ((10,10), ),
 	      "args"   => ( randn(100), randn(10,10) )
@@ -136,7 +136,7 @@ for i in eachindex(stuff)
 
 	params = stuff[i]["params"][1]
 	Op     = stuff[i]["Operator"][1]
-	if (Op == *) || (Op == .*) 
+	if (Op == *) || (Op == .*)
 		A = Op(params,X)
 	else
 		A = Op(X, params...)
@@ -144,14 +144,14 @@ for i in eachindex(stuff)
 	for j = 2:length(stuff[i]["params"])
 		params = stuff[i]["params"][j]
 		Op     = stuff[i]["Operator"][j]
-		if Op == * 
+		if Op == *
 			A = Op(params,A)
 		else
 			A = Op(A, params...)
 		end
 	end
-	Aminus = -operator(A)
-	@test vecnorm(operator(A)*x + Aminus*x) <= 1e-8 #test sign
+	# Aminus = -operator(A)
+	# @test vecnorm(operator(A)*x + Aminus*x) <= 1e-8 #test sign
 	test1,test2,test3 = RegLS.test_FwAdj(A, x, y)
 	@test test1 < 1e-8
 	@test test2 < 1e-8
@@ -361,13 +361,13 @@ show(issorted(A))
 if issorted(A) == false #this if is in case object_id are actually sorted already!
 
 	show(operator(A).A)
-	y1 = operator(A)*X 
-	x1 = adjoint(A)*Y 
-	p = sortperm(A) 
+	y1 = operator(A)*X
+	x1 = adjoint(A)*Y
+	p = sortperm(A)
 	A2 = sort(A)
 	X2 = X[p]
 	y2 = operator(A2)*X2
-	x2 = adjoint(A2)*Y 
+	x2 = adjoint(A2)*Y
 
 	show(operator(A2).A)
 	@test issorted(A2) == true
@@ -378,13 +378,13 @@ else
 	X = [X[2], X[1]]
 
 	show(operator(A).A)
-	y1 = operator(A)*X 
-	x1 = adjoint(A)*Y 
-	p = sortperm(A) 
+	y1 = operator(A)*X
+	x1 = adjoint(A)*Y
+	p = sortperm(A)
 	A2 = sort(A)
 	X2 = X[p]
 	y2 = operator(A2)*X2
-	x2 = adjoint(A2)*Y 
+	x2 = adjoint(A2)*Y
 
 	show(operator(A2).A)
 	@test issorted(A2) == true
@@ -430,17 +430,3 @@ test1,test2 = RegLS.test_FwAdj(B, X, Y)
 @test test2 < 1e-8
 test3 = RegLS.test_Op(B, X, Y)
 @test test3 < 1e-8
-
-
-
-
-
-
-
-
-
-
-
-
-
-

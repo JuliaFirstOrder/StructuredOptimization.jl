@@ -12,23 +12,24 @@ operator(A::Affine) = A.A
 adjoint(A::Affine)  = A.At
 tilt(A::Affine)  = isnull(A.b) ? 0. : get(A.b)
 
-#TODO add checks of dimension of Variable  
+#TODO add checks of dimension of Variable
 *(A::LinearOperator, x::Variable) = Affine(x,A)
 Affine(x::Variable,A::LinearOperator) = Affine([x],A)
-Affine{T<:AbstractVariable}(x::Vector{T}, A::LinearOperator) = Affine(x, A, A',Nullable{AbstractArray}()) 
+Affine{T<:AbstractVariable}(x::Vector{T}, A::LinearOperator) = Affine(x, A, A',Nullable{AbstractArray}())
 
-  domainType(A::AffineOperator) =   domainType(operator(A))
+domainType(A::AffineOperator) =   domainType(operator(A))
 codomainType(A::AffineOperator) = codomainType(operator(A))
 
 fun_name(A::Affine) = "Affine "*fun_name(A.A)
-fun_dom(A::Affine)  = fun_dom(A.A)
+fun_domain(A::Affine)  = fun_domain(A.A)
+fun_codomain(A::Affine)  = fun_codomain(A.A)
 
-function evaluate!(y::AbstractArray, A::Affine, x::AbstractArray) 
+function evaluate!(y::AbstractArray, A::Affine, x::AbstractArray)
 	A_mul_B!(y,A.A,x)
 	add_b!(y,A)
 end
 
-function (A::Affine)(x::AbstractArray) 
+function (A::Affine)(x::AbstractArray)
 	y = operator(A)*x
 	add_b!(y,A)
 	return y
@@ -38,7 +39,7 @@ add_b!(y::AbstractArray,A::Affine) = isnull(A.b) ? nothing : y .+= get(A.b)
 
 function Base.show{Op <: AffineOperator }(io::IO, f::Op)
   println(io, "description : ", fun_name(f))
-  println(io, "domain      : ", fun_dom(f))
+  println(io, "type        : ", fun_type(f))
 end
 
 #sorting operators
@@ -79,19 +80,3 @@ function sort_and_expand{T<:AbstractVariable}(x::Vector{T}, A::Affine)
 end
 
 extract_operator(A::LinearOperator, idx::Int64) = A
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

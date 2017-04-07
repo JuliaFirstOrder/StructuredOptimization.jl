@@ -20,7 +20,7 @@ function Dual(smooth::CostFunction, nonsmooth::CostFunction)
 	for i in eachindex(variable(smooth))
 		A = operator(affine(smooth)[i])
 		typeof(A)<: HCAT ? A = A.A[i] : nothing
-		isInvertable(A) == true ? nothing : error("operator not easily invertable")
+		isInvertible(A) == true ? nothing : error("operator not easily invertable")
 		Ainv[i] = inv(A)
 	end
 		
