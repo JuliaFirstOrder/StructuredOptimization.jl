@@ -1,10 +1,10 @@
-immutable Scale{T <: Real} <: LinearOperator
+immutable Scale{T <: Union{Real, Complex, AbstractArray}} <: LinearOperator
   coeff::T
 	A::LinearOperator
 end
 
 # So we avoid nesting stuff
-Scale{T <: Real}(coeff::T, L::Scale) = Scale(coeff*L.coeff, L.A);
+Scale{T <: Union{Real, Complex, AbstractArray}}(coeff::T, L::Scale) = Scale(coeff.*L.coeff, L.A);
 
 size(L::Scale) = size(L.A)
 
@@ -15,7 +15,7 @@ end
 
 function At_mul_B!(y, A::Scale, x)
   At_mul_B!(y, L.A, x)
-  y .*= L.coeff
+  y .*= conj(L.coeff)
 end
 
 fun_name(L::Scale)  = "$(fun_name(L.A)) (scaled by $(L.coeff))"
