@@ -2,9 +2,13 @@ export MatrixOp
 
 immutable MatrixOp <: LinearOperator
 	A::AbstractMatrix
+	size_in::Tuple
 end
 
-size(A::MatrixOp) = ((size(A.A,1),),(size(A.A,2),))
+MatrixOp(A::AbstractMatrix) = MatrixOp(A, (size(A, 2),))
+MatrixOp(A::AbstractMatrix, x::AbstractArray) = MatrixOp(A, size(x))
+
+size(L::MatrixOp) = length(L.size_in) == 1 ? ((size(L.A,1),), L.size_in) : ((size(L.A,1), L.size_in[2]), L.size_in)
 
 A_mul_B!(y, A::MatrixOp, b) = A_mul_B!(y, A.A, b)
 At_mul_B!(y, A::MatrixOp, b) = At_mul_B!(y, A.A, b)
