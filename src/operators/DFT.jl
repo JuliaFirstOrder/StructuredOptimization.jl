@@ -1,32 +1,34 @@
 export DFT, IDFT
 
-immutable DFT{D1,D2} <: LinearOperator{D1,D2}
-	sign::Bool
-	A::Base.DFT.Plan
+immutable DFT <: LinearOperator
+	domainType::Type
+	codomainType::Type
 	dim::Tuple
-	DFT(A,dim)      = new(true,A,dim)
-	DFT(sign,A,dim) = new(sign,A,dim)
+	A::Base.DFT.Plan
 end
 
-size(A::DFT) = (A.dim, A.dim)
--{D1,D2}(A::DFT{D1,D2}) = DFT{D1,D2}(false == sign(A), A.A, A.dim)
+size(L::DFT) = (L.dim,L.dim)
 
-DFT{D1}(x::AbstractArray{D1}) = DFT{D1,Complex{Float64}}(plan_fft(x), size(x))
-transpose{D1,D2}(A::DFT{D1,D2})  = IDFT{D2,D1}(sign(A), plan_ifft( zeros(D2,A.dim) ), A.dim )
+  domainType(L::DFT) = L.domainType
+codomainType(L::DFT) = L.codomainType
 
-immutable IDFT{D1,D2} <: LinearOperator{D1,D2}
-	sign::Bool
-	A::Base.DFT.Plan
+transpose(L::DFT) = IDFT(L.codomain, L.domain, L.dim,  plan_ifft( zeros(codomainType(L),L.dim) ) )
+
+DFT(x::AbstractArray)
+
+immutable IDFT <: LinearOperator
+	domainType::Type
+	codomainType::Type
 	dim::Tuple
-
-	IDFT(A,dim)      = new(true,A,dim)
-	IDFT(sign,A,dim) = new(sign,A,dim)
+	A::Base.DFT.Plan
 end
-size(A::IDFT) = (A.dim, A.dim)
--{D1,D2}(A::IDFT{D1,D2}) = IDFT{D1,D2}(false == sign(A), A.A, A.dim)
 
-IDFT{D1}(x::AbstractArray{D1})    = IDFT{D1,Complex{Float64}}(plan_ifft(x), size(x))
-transpose{D1,D2}(A::IDFT{D1,D2})  = DFT{D2,D1}(sign(A), plan_fft( zeros(D2,A.dim) ), A.dim )
+size(L::IDFT) = (L.dim,L.dim)
+
+  domainType(L::IDFT) = L.domainType
+codomainType(L::IDFT) = L.codomainType
+
+transpose(L::IDFT) = DFT(L.codomain, L.domain, L.dim,  plan_fft( zeros(codomainType(L),L.dim) ) )
 
 function uA_mul_B!(y::AbstractArray,A::DFT,b::AbstractArray)
 	A_mul_B!(y,A.A,b)
@@ -63,22 +65,3 @@ end
 fun_name(A::DFT) = "Discrete Fourier Transform"
 fun_name(A::IDFT) = "Inverse Discrete Fourier Transform"
 
-################################################################################
-# FROM HERE ON IT IS USERS' SYNTAX
-################################################################################
-
-import Base: fft, ifft
-
-function fft(x::Variable)
-	A = DFT(x.x)
-	Affine([x], A, A', Nullable{AbstractArray}() )
-end
-
-function ifft(x::Variable)
-	A = IDFT(x.x)
-	Affine([x], A, A', Nullable{AbstractArray}() )
-end
-
-#nested Operations
-fft(B::AffineOperator) = NestedLinearOperator(fft,B)
-ifft(B::AffineOperator) = NestedLinearOperator(ifft,B)

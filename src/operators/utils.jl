@@ -37,6 +37,7 @@ function test_FwAdj(A::LinearOperator, x, y)
 	@time A_mul_B!(y2,A,x)
 	test1 =  vecnorm(y-y2) #verify equivalence
 
+	println(); show(A'); println()
 	println("adjoint")
 	x = A'*y          #verify adjoint operator inside Affine is the same
 	@time x = A'*y

@@ -6,9 +6,8 @@ immutable Eye <: IdentityOperator
 end
 
 size(L::Eye) = (L.dim, L.dim)
-  domainType(L::Eye) = L.domainType
-codomainType(L::Eye) = L.domainType
 
+Eye(dim::Tuple)             = Eye(Float64,dim)
 Eye{T}(x::AbstractArray{T}) = Eye(T,size(x))
 
 A_mul_B!{T}(y::AbstractArray{T}, L::Eye, b::AbstractArray{T}) = y .= b

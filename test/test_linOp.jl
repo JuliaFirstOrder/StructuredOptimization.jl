@@ -1,165 +1,51 @@
 ##test linear operators
 
 stuff = [
-#	 Dict("Operator" => (zeros,),
-#              "params" => ((),),
-#	      "args"   => ( randn(4), randn(4) )
-#	     ),
-#	 Dict("Operator" => (zeros,),
-#              "params" => ((2,),),
-#	      "args"   => ( randn(4), randn(2) )
-#	     ),
 	 Dict(
        "Operator" => (Eye,),
-       "params"   => ((Float64, (4,4),),),
+       "params"   => (((4,4),),),
        "args"     => ( randn(4,4), randn(4,4) )
 	     ),
-#	 Dict("Operator" => (diagop,),
-#              "params" => ((randn(2,2)+im*randn(2,2),),),
-#	      "args"   => ( randn(2,2)+im*randn(2,2), randn(2,2)+im*randn(2,2) )
-#	      ),
-#	 Dict("Operator" => (diagop,),
-#              "params" => ((2,),),
-#	      "args"   => ( randn(2,2), randn(2,2) )
-#	      ),
-#	 Dict("Operator" => (diagop,),
-#              "params" => ((2+im*3,),),
-#	      "args"   => ( randn(2,2), (2+im*3)*randn(2,2) )
-#	      ),
-#	 Dict("Operator" => (*,),
-#              "params" => ((2+im*3),),
-#	      "args"   => ( randn(2,2), (2+im*3)*randn(2,2) )
-#	      ),
-#	 Dict("Operator" => (.*,),
-#              "params" => ((randn(2,2)),),
-#	      "args"   => ( randn(2,2), randn(2,2) )
-#	      ),
-#	 Dict("Operator" => (*,),
-#              "params" => ((randn(4,4)),),
-#	      "args"   => ( randn(4), randn(4) )
-#	      ),
-#	 Dict("Operator" => (*,),
-#              "params" => ((randn(6,2)+im*randn(6,2)),),
-#	      "args"   => ( randn(2)+im*randn(2), randn(6)+im*randn(6) )
-#	      ),
-#	 Dict("Operator" => (*,),
-#              "params" => ((randn(2,6)+im*randn(2,6)),),
-#	      "args"   => ( randn(6)+im*randn(6), randn(2)+im*randn(2) )
-#	      ),
-#	 Dict("Operator" => (getindex,),
-#              "params" => (([1:3]),),
-#	      "args"   => ( randn(6)+im*randn(6), randn(3)+im*randn(3) )
-#	      ),
-#	 Dict("Operator" => (getindex,),
-#              "params" => (([1:3,:]),),
-#	      "args"   => ( randn(4,2)+im*randn(4,2), randn(3,2)+im*randn(3,2) )
-#	      ),
-#	 Dict("Operator" => (getindex,),
-#              "params" => (([1:3]),),
-#	      "args"   => ( randn(4,2)+im*randn(4,2), randn(3)+im*randn(3) )
-#	      ),
-#	 Dict("Operator" => (fft,),
-#              "params" => ((), ),
-#	      "args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
-#	      ),
-#	 Dict("Operator" => (fft,),
-#              "params" => ((),),
-#	      "args"   => ( randn(64,64), fft(randn(64,64)) )
-#	      ),
-#	 Dict("Operator" => (ifft,),
-#              "params" => ((), ),
-#	      "args"   => ( randn(64,64), fft(randn(64,64)) )
-#	      ),
-#	 Dict("Operator" => (ifft,),
-#              "params" => ((), ),
-#	      "args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
-#	      ),
-#	 Dict("Operator" => (dct,),
-#	      "params" => ((), ),
-#	      "args"   => ( randn(64,64), randn(64,64) )
-#	      ),
-#	 Dict("Operator" => (idct,),
-#              "params" => ((), ),
-#	      "args"   => ( randn(64)+im*randn(64), randn(64)+im*randn(64) )
-#	      ),
-#
-#	 Dict("Operator" => (reshape,),
-#              "params" => ((10,10), ),
-#	      "args"   => ( randn(100), randn(10,10) )
-#	      ),
-#	 Dict("Operator" => (conv,),
-#              "params" => (([randn(100)]),),
-#	      "args"   => ( randn(400), randn(400+100-1) )
-#	     ),
-#	 Dict("Operator" => (xcorr,),
-#              "params" => (([ones(100)]),),
-#	      "args"   => ( ones(30), ones(2*100-1) )
-#	     ),
-#	 Dict("Operator" => (finiteDiff,),
-#              "params" => ((),),
-#	      "args"   => ( randn(4), randn(4) )
-#	     ),
-#	 Dict("Operator" => (finiteDiff,),
-#              "params" => ((),),
-#	      "args"   => ( randn(4), randn(4) )
-#	     ),
-#	 Dict("Operator" => (finiteDiff,),
-#              "params" => ((1),),
-#	      "args"   => ( randn(4,6), randn(4,6) )
-#	     ),
-#	 Dict("Operator" => (finiteDiff,),
-#              "params" => ((2),),
-#	      "args"   => ( randn(4,6), randn(4,6) )
-#	     ),
-#	 Dict("Operator" => (finiteDiff,),
-#              "params" => ((1),),
-#	      "args"   => ( randn(4,6,3), randn(4,6,3) )
-#	     ),
-#	 Dict("Operator" => (finiteDiff,),
-#              "params" => ((2),),
-#	      "args"   => ( randn(4,6,3), randn(4,6,3) )
-#	     ),
-#	 Dict("Operator" => (finiteDiff,),
-#              "params" => ((3),),
-#	      "args"   => ( randn(4,6,3), randn(4,6,3) )
-#	     ),
-#	 Dict("Operator" => (tv,),
-#              "params" => ((),),
-#	      "args"   => ( randn(4,6), randn(4*6,2) )
-#	     ),
-#	 Dict("Operator" => (tv,),
-#              "params" => ((),),
-#	      "args"   => ( randn(4,6,5), randn(4*6*5,3) )
-#	     ),
-#	 #####some tests on nested operators###
-#	 Dict("Operator" => (*, dct),
-#              "params" => ((randn(32,64)) ,() ),
-#	      "args"   => ( randn(64), randn(32) )
-#	      ),
-#	 Dict("Operator" => (ifft, reshape, dct),
-#              "params" => ((),(10,10),() ),
-#	      "args"   => ( randn(100), dct(reshape(ifft(randn(100)),10,10)) )
-#	      ),
-#	 Dict("Operator" => (dct, getindex, reshape, dct),
-#              "params" => ((),([1:100]),(10,10),() ),
-#	      "args"   => ( randn(120), randn(10,10) )
-#	      ),
-#	 Dict("Operator" => (ifft, getindex),
-#              "params" => ((),([1:20]) ),
-#	      "args"   => ( randn(200)+im*randn(200), randn(20)+im*randn(20) )
-#	      ),
-#	 Dict("Operator" => (ifft, getindex),
-#              "params" => ((),([1:20]) ),
-#	      "args"   => ( randn(10,10)+im*randn(10,10), randn(20)+im*randn(20) )
-#	      ),
-#	 Dict("Operator" => (fft, getindex),
-#              "params" => ((),([1:5]) ),
-#	      "args"   => ( randn(12)+im*randn(12), randn(5)+im*randn(5) )
-#	      ),
-#	 Dict("Operator" => (dct, getindex),
-#              "params" => ((),([1:2,:,2:5]) ),
-#	      "args"   => ( randn(5,5,5)+im*randn(5,5,5), randn(2,5,4)+im*randn(2,5,4) )
-#	      ),
+	 Dict(
+       "Operator" => (Eye,),
+       "params"   => ((Complex{Float64}, (4,4),),),
+       "args"     => ( randn(4,4)+im, randn(4,4)+im )
+	     ),
+	 Dict(
+       "Operator" => (Eye,),
+       "params"   => ((randn(4,4),),),
+       "args"     => ( randn(4,4), randn(4,4) )
+	     ),
+	 Dict(
+       "Operator" => (MatrixOp,),
+       "params"   => ((randn(4,6),),),
+       "args"     => ( randn(6), randn(4) )
+	     ),
+	 Dict(
+       "Operator" => (MatrixOp,),
+       "params"   => ((randn(4,6)+im*randn(4,6),),),
+       "args"     => ( randn(6)+im, randn(4)+im )
+	     ),
+	 Dict(
+       "Operator" => (MatrixOp,),
+       "params"   => ((randn(4,6)+im*randn(4,6),),),
+       "args"     => ( randn(6)+im, randn(4)+im )
+	     ),
+	 Dict(
+       "Operator" => (MatrixOp,),
+       "params"   => (((3,2), randn(4,3)),),
+       "args"     => ( randn(3,2), randn(4,2) )
+	     ),
+	 Dict(
+       "Operator" => (MatrixOp,),
+       "params"   => ((Complex{Float64}, (3,2), randn(4,3), ),),
+       "args"     => ( randn(3,2)+im, randn(4,2)+im )
+	     ),
+	 Dict(
+       "Operator" => (MatrixOp,),
+       "params"   => ((randn(3,2)+im, randn(4,3)),),
+       "args"     => ( randn(3,2)+im, randn(4,2)+im )
+	     ),
 	 ]
 
 
