@@ -2,12 +2,12 @@ export Eye
 
 immutable Eye <: IdentityOperator
 	domainType::Type
-	dim::Tuple
+	dim_in::Tuple
 end
 
-size(L::Eye) = (L.dim, L.dim)
+size(L::Eye) = (L.dim_in, L.dim_in)
 
-Eye(dim::Tuple)             = Eye(Float64,dim)
+Eye(dim_in::Tuple)             = Eye(Float64,dim_in)
 Eye{T}(x::AbstractArray{T}) = Eye(T,size(x))
 
 A_mul_B!{T}(y::AbstractArray{T}, L::Eye, b::AbstractArray{T}) = y .= b

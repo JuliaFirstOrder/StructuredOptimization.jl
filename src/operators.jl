@@ -35,7 +35,7 @@ end
 include("operators/Transpose.jl")
 include("operators/Eye.jl")
 include("operators/MatrixOp.jl")
-#include("operators/DFT.jl")
+include("operators/DFT.jl")
 #include("operators/Reshape.jl")
 #include("operators/Compose.jl")
 #include("operators/FiniteDiff.jl")

@@ -46,6 +46,26 @@ stuff = [
        "params"   => ((randn(3,2)+im, randn(4,3)),),
        "args"     => ( randn(3,2)+im, randn(4,2)+im )
 	     ),
+	 Dict(
+       "Operator" => (DFT,),
+       "params"   => ((randn(3,2)+im,),),
+       "args"     => ( randn(3,2)+im, randn(3,2)+im )
+	     ),
+	 Dict(
+       "Operator" => (DFT,),
+       "params"   => ((randn(3,2),),),
+       "args"     => ( randn(3,2), fft(randn(3,2)) )
+	     ),
+	 Dict(
+       "Operator" => (IDFT,),
+       "params"   => ((randn(3,2)+im,),),
+       "args"     => ( randn(3,2)+im, randn(3,2)+im )
+	     ),
+	 Dict(
+       "Operator" => (IDFT,),
+       "params"   => ((randn(3,2),),),
+       "args"     => ( randn(3,2), fft(randn(3,2)) )
+	     ),
 	 ]
 
 
