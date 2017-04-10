@@ -1,35 +1,30 @@
 export Reshape
 
-immutable Reshape{D1,D2} <: LinearOperator{D1,D2}
-	sign::Bool
-	dim::Tuple
-	Reshape(sign,dim) = new(sign,dim)
-	Reshape(dim)      = new(true,dim)
+immutable Reshape <: LinearOperator
+	dim_out::Tuple
+	dim_in::Tuple
+	A::LinearOperator
 end
 
-size(A::Reshape) = (A.dim[1],A.dim[2])
--{D1,D2}(A::Reshape{D1,D2}) = Reshape{D1,D2}(false == sign(A), A.dim)
+size(L::Reshape) = (L.dim_out, L.dim_in)
 
-Reshape{D1}(x::AbstractArray{D1}, dim...) = Reshape{D1,D1}((size(x),dim))
+Reshape(A::LinearOperator, dim_out...) = Reshape( dim_out, size(A,2), A)
 
-function uA_mul_B!(y::AbstractArray,A::Reshape,b::AbstractArray)
-	y .= reshape(b,A.dim[2]...)
+  domainType(  L::Reshape) =   domainType(L.A)
+codomainType(  L::Reshape) = codomainType(L.A)
+isEye(         L::Reshape) = isEye(L.A) 
+isDiagonal(    L::Reshape) = isDiagonal(L.A) 
+isGramDiagonal(L::Reshape) = isGramDiagonal(L.A)
+isInvertible(  L::Reshape) = isInvertible(L.A)
+
+
+function A_mul_B!(y::AbstractArray,L::Reshape,b::AbstractArray)
+	y_res = reshape(y,size(L.A,1))
+	b_res = reshape(b,size(L.A,2))
+	A_mul_B!(y_res, L.A, b_res)
 end
 
-transpose{D1}(A::Reshape{D1,D1}) = Reshape{D1,D1}(sign(A),(A.dim[2],A.dim[1]))
+transpose(L::Reshape) = Reshape(L.dim_in,L.dim_out, L.A')
 
-fun_name(A::Reshape) = "Reshape Operator"
+fun_name(L::Reshape) = "Reshaped "*fun_name(L.A)
 
-################################################################################
-# FROM HERE ON IT IS USERS' SYNTAX
-################################################################################
-
-import Base: reshape
-
-function reshape{D1}(x::Variable{D1}, dim::Vararg{Int64})
-	A = Reshape(x.x, dim...)
-	Affine([x], A, A',Nullable{Vector{AbstractArray}}() )
-end
-
-#nested Operations
-reshape(B::AffineOperator,args...) = NestedLinearOperator(reshape,B, args...)

@@ -1,25 +1,59 @@
 ##test linear operators
 
 stuff = [
+### testing constructors ###
+	 Dict(
+       "Operator" => (Zeros,),
+       "params"   => (((4,4),),),
+       "args"     => ( randn(4,4), randn(4,4) ),
+       "in_out"   => ( ones(4,4), zeros(4,4) )
+	     ),
+	 Dict(
+       "Operator" => (Zeros,),
+       "params"   => ((randn(4,4),),),
+       "args"     => ( randn(4,4), randn(4,4) ),
+       "in_out"   => ( ones(4,4), zeros(4,4) )
+	     ),
+	 Dict(
+       "Operator" => (Zeros,),
+       "params"   => ((MatrixOp(randn(4,3)),),),
+       "args"     => ( randn(3), randn(4) ),
+	     ),
 	 Dict(
        "Operator" => (Eye,),
        "params"   => (((4,4),),),
-       "args"     => ( randn(4,4), randn(4,4) )
+       "args"     => ( randn(4,4), randn(4,4) ),
+       "in_out"   => ( ones(4,4), ones(4,4) )
 	     ),
 	 Dict(
        "Operator" => (Eye,),
        "params"   => ((Complex{Float64}, (4,4),),),
-       "args"     => ( randn(4,4)+im, randn(4,4)+im )
+       "args"     => ( randn(4,4)+im, randn(4,4)+im ),
+       "in_out"   => ( ones(4,4)+im*ones(4,4), ones(4,4)+im*ones(4,4) )
 	     ),
 	 Dict(
        "Operator" => (Eye,),
        "params"   => ((randn(4,4),),),
-       "args"     => ( randn(4,4), randn(4,4) )
+       "args"     => ( randn(4,4), randn(4,4) ),
+	     ),
+	 Dict(
+       "Operator" => (DiagOp,),
+       "params"   => ((randn(srand(1),4),),),
+       "wrg_pr"   => ((randn(srand(1),4), randn(srand(1),4)+im,),),
+       "args"     => ( randn(4), randn(4) ),
+       "in_out"   => (ones(4),randn(srand(1),4).*ones(4))
+	     ),
+	 Dict(
+       "Operator" => (DiagOp,),
+       "params"   => ((randn(4,4)*im, randn(srand(1),4,4)+im*randn(srand(2),4,4),),),
+       "wrg_pr"   => ((randn(4,4), randn(srand(1),4,4)+im*randn(srand(2),4,4),),),
+       "args"     => ( randn(4,4)+randn(4,4)*im, randn(4,4)+randn(4,4)*im ),
 	     ),
 	 Dict(
        "Operator" => (MatrixOp,),
-       "params"   => ((randn(4,6),),),
-       "args"     => ( randn(6), randn(4) )
+       "params"   => ((randn(srand(1),4,6),),),
+       "args"     => ( randn(6), randn(4) ),
+       "in_out"   => (ones(6),randn(srand(1),4,6)*ones(6))
 	     ),
 	 Dict(
        "Operator" => (MatrixOp,),
@@ -49,22 +83,175 @@ stuff = [
 	 Dict(
        "Operator" => (DFT,),
        "params"   => ((randn(3,2)+im,),),
-       "args"     => ( randn(3,2)+im, randn(3,2)+im )
+       "args"     => ( randn(3,2)+im, randn(3,2)+im ),
+       "in_out"   => ( ones(3,2)+2*im*ones(3,2), fft(ones(3,2)+2*im*ones(3,2)) )
 	     ),
 	 Dict(
        "Operator" => (DFT,),
-       "params"   => ((randn(3,2),),),
-       "args"     => ( randn(3,2), fft(randn(3,2)) )
+       "params"   => (((10,),),),
+       "args"     => ( randn(10), fft(randn(10)) ),
+	     ),
+	 Dict(
+       "Operator" => (DFT,),
+       "params"   => ((Float64,(10,)),),
+       "args"     => ( randn(10), fft(randn(10)) ),
 	     ),
 	 Dict(
        "Operator" => (IDFT,),
        "params"   => ((randn(3,2)+im,),),
-       "args"     => ( randn(3,2)+im, randn(3,2)+im )
+       "args"     => ( randn(3,2)+im, randn(3,2)+im ),
+       "in_out"   => ( ones(3,2)+2*im*ones(3,2), ifft(ones(3,2)+2*im*ones(3,2)) )
 	     ),
 	 Dict(
        "Operator" => (IDFT,),
+       "params"   => (((10,),),),
+       "args"     => ( randn(10), fft(randn(10)) ),
+	     ),
+	 Dict(
+       "Operator" => (IDFT,),
+       "params"   => ((Float64,(10,)),),
+       "args"     => ( randn(10), fft(randn(10)) ),
+	     ),
+	 Dict(
+       "Operator" => (DCT,),
+       "params"   => ((randn(3,2)+im,),),
+       "args"     => ( randn(3,2)+im, randn(3,2)+im ),
+       "in_out"   => ( ones(3,2)+2*im*ones(3,2), dct(ones(3,2)+2*im*ones(3,2)) )
+	     ),
+	 Dict(
+       "Operator" => (IDCT,),
        "params"   => ((randn(3,2),),),
-       "args"     => ( randn(3,2), fft(randn(3,2)) )
+       "args"     => ( randn(3,2), randn(3,2) ),
+       "in_out"   => ( ones(3,2), idct(ones(3,2)) )
+	     ),
+	 Dict(
+       "Operator" => (FiniteDiff,),
+       "params"   => ((randn(10),),),
+       "args"     => ( randn(10), randn(10) ),
+       "in_out"   => ( collect(linspace(0,1,10)), 1/9*ones(10) )
+	     ),
+	 Dict(
+       "Operator" => (FiniteDiff,),
+       "params"   => (((10,),),),
+       "args"     => ( randn(10), randn(10) ),
+       "in_out"   => ( collect(linspace(0,1,10)), 1/9*ones(10) )
+	     ),
+	 Dict(
+       "Operator" => (FiniteDiff,),
+       "params"   => ((Complex{Float64},(10,),),),
+       "args"     => ( randn(10)+im, randn(10)+im ),
+       "in_out"   => ( collect(linspace(0,1,10))+im*collect(linspace(0,1,10)), 
+		      1/9*(ones(10)+im*ones(10)) )
+	     ),
+	 Dict(
+       "Operator" => (FiniteDiff,),
+       "params"   => ((randn(10,5),),),
+       "args"     => ( randn(10,5), randn(10,5) ),
+       "in_out"   => ( repmat(collect(linspace(0,1,10)),1,5), 1/9*ones(10,5) )
+	     ),
+	 Dict(
+       "Operator" => (FiniteDiff,),
+       "params"   => ((randn(10,5),2,),),
+       "args"     => ( randn(10,5), randn(10,5) ),
+       "in_out"   => ( repmat(collect(linspace(0,1,10)),1,5), zeros(10,5) )
+	     ),
+	 Dict(
+       "Operator" => (FiniteDiff,),
+       "params"   => ((randn(10,5,6),1,),),
+       "args"     => ( randn(10,5,6), randn(10,5,6) ),
+	     ),
+	 Dict(
+       "Operator" => (FiniteDiff,),
+       "params"   => ((randn(10,5,6),2,),),
+       "args"     => ( randn(10,5,6), randn(10,5,6) ),
+	     ),
+	 Dict(
+       "Operator" => (FiniteDiff,),
+       "params"   => ((randn(10,5,6),3,),),
+       "args"     => ( randn(10,5,6), randn(10,5,6) ),
+	     ),
+	 Dict(
+       "Operator" => (Variation,),
+       "params"   => ((randn(10,5),),),
+       "args"     => ( randn(10,5), randn(10*5,2) ),
+       "in_out"   => ( repmat(collect(linspace(0,1,10)),1,5), [1/9*ones(10*5) zeros(10*5)] )
+	     ),
+	 Dict(
+       "Operator" => (Variation,),
+       "params"   => (((10,5),),),
+       "args"     => ( randn(10,5), randn(10*5,2) ),
+	     ),
+	 Dict(
+       "Operator" => (Variation,),
+       "params"   => ((randn(10,5,4),),),
+       "args"     => ( randn(10,5,4), randn(10*5*4,3) ),
+	     ),
+### testing Reshape ####
+	 Dict(
+       "Operator" => (Reshape,),
+       "params"   => ((MatrixOp(2*ones(4,8)),2,2),),
+       "args"     => ( randn(8), randn(2,2) ),
+       "in_out"   => ( ones(8), 16*ones(2,2) )
+	     ),
+	 Dict(
+       "Operator" => (Reshape,),
+       "params"   => ((Variation(ones(5,4)),5*4*2),),
+       "args"     => ( randn(5,4), randn(5*4*2) ),
+	     ),
+#### testing Scale ####
+	 Dict(
+       "Operator" => ((*),),
+       "params"   => ((2, MatrixOp(randn(srand(1),4,8))),),
+       "wrg_pr"   => ((2+im, MatrixOp(randn(4,8))),),
+       "args"     => ( randn(8), randn(4) ),
+       "in_out"   => ( randn(srand(3),8), 2*randn(srand(1),4,8)*randn(srand(3),8) )
+	     ),
+	 Dict(
+       "Operator" => ((*),),
+       "params"   => ((1+pi*im, DFT(randn(4)+im )),),
+       "args"     => ( randn(4)+im, randn(4)+im ),
+       "in_out"   => ( randn(srand(4),4)+im*randn(srand(5),4), 
+		      (1+pi*im)*fft( randn(srand(4),4)+im*randn(srand(5),4)) )
+	     ),
+	 Dict(
+       "Operator" => ((*),),
+       "params"   => ((5, DFT(randn(4)+im )),),
+       "args"     => ( randn(4)+im, randn(4)+im ),
+       "in_out"   => ( randn(srand(4),4)+im*randn(srand(5),4), 
+		      5*fft( randn(srand(4),4)+im*randn(srand(5),4)) )
+	     ),
+	 Dict(
+       "Operator" => ((-),),
+       "params"   => ((MatrixOp(randn(4,8)),),),
+       "args"     => ( randn(8), randn(4) ),
+	     ),
+### testing Sum ####
+	 Dict(
+       "Operator" => ((+),),
+       "params"   => ((MatrixOp(randn(srand(1),4,8)), MatrixOp(randn(srand(2),4,8))),),
+       "wrg_pr"   => ((MatrixOp(randn(4,7)), MatrixOp(randn(4,8))),),
+       "args"     => ( randn(8), randn(4) ),
+       "in_out"   => ( randn(srand(3),8), 
+		     (randn(srand(1),4,8)+randn(srand(2),4,8))*randn(srand(3),8) )
+	     ),
+	 Dict(
+       "Operator" => ((-),),
+       "params"   => ((2*DFT(randn(4)), DFT(randn(4)),),),
+       "wrg_pr"   => ((DFT(randn(4)), MatrixOp(randn(4,4)),),),
+       "args"     => ( randn(4), fft(randn(4)) ),
+       "in_out"   => ( randn(srand(3),4), fft(randn(srand(3),4)))
+	     ),
+	 Dict(
+       "Operator" => ((-),),
+       "params"   => ((DFT(randn(4))+DFT(randn(4)),DFT(randn(4))),),
+       "args"     => ( randn(4), fft(randn(4)) ),
+       "in_out"   => ( randn(srand(3),4), fft(randn(srand(3),4)))
+	     ),
+	 Dict(
+       "Operator" => ((-),),
+       "params"   => ((DFT(randn(4)),DFT(randn(4))-DFT(randn(4)) ),),
+       "args"     => ( randn(4), fft(randn(4)) ),
+       "in_out"   => ( randn(srand(3),4), fft(randn(srand(3),4)))
 	     ),
 	 ]
 
@@ -76,47 +263,85 @@ for i in eachindex(stuff)
 	params = stuff[i]["params"][1]
 	Op     = stuff[i]["Operator"][1]
 	A = Op(params...)
-	# Aminus = -operator(A)
-	# @test vecnorm(operator(A)*x + Aminus*x) <= 1e-8 #test sign
+
 	test1,test2 = RegLS.test_FwAdj(A, x, y)
 	@test test1 < 1e-8
 	@test test2 < 1e-8
 	test3 = RegLS.test_Op(A, x, y)
 	@test test3 < 1e-8
 
+	if "in_out" in keys(stuff[i]) 
+		println("testing output")
+		x0,y0 = stuff[i]["in_out"]
+		test4 = norm(A*x0-y0)
+		@test test4 < 1e-8
+	end
+
+	if "wrg_pr" in keys(stuff[i]) 
+		params = stuff[i]["wrg_pr"][1]
+		Op     = stuff[i]["Operator"][1]
+		@test_throws Exception Op(params...)
+	end
+
 end
 
-
-##### test sum of linear operators
-
-#test SumSameVar
+#### test sum of linear operators
 #
-#x1 = randn(3)
-#y1 = randn(3)
-#b1 = randn(3)
-#M = randn(3,3)
-#X1 = Variable(x1)
-#x = x1
-#y = y1
+#println("test Sum")
 #
-#A = -M*X1
-#@test norm(A(x1)-(-M*x1)) <= 1e-8
-#A = b1-M*X1
-#@test norm(A(x1)-(b1-M*x1)) <= 1e-8
-#A = X1+b1
-#@test norm(A(x1)-(b1+x1)) <= 1e-8
-#A = X1-b1
-#@test norm(A(x1)-(-b1+x1)) <= 1e-8
-#A = -X1+b1
-#@test norm(A(x1)-(b1-x1)) <= 1e-8
+#x,y = randn(3),randn(3)
 #
-#A = -M*X1
+#A1 = MatrixOp(randn(4,3))
+#A2 = DCT(randn(3))
+#@test_throws DimensionMismatch A1+A2
+#
+#A1 = MatrixOp(randn(3,3))
+#A2 = DFT(randn(3))
+#@test_throws DomainError A1+A2
+#
+#A1 = MatrixOp(randn(3,3))
+#A2 = DCT(randn(3))
+#
+#A = A1+A2 
 #
 #test1,test2 = RegLS.test_FwAdj(A, x, y)
 #@test test1 < 1e-8
 #@test test2 < 1e-8
 #test3 = RegLS.test_Op(A, x, y)
 #@test test3 < 1e-8
+#
+#@test norm(A*x-(A1.A*x+dct(x))) < 1e-8
+#
+#A = A1-A2 
+#
+#test1,test2 = RegLS.test_FwAdj(A, x, y)
+#@test test1 < 1e-8
+#@test test2 < 1e-8
+#test3 = RegLS.test_Op(A, x, y)
+#@test test3 < 1e-8
+#
+#@test norm(A*x-(A1.A*x-dct(x))) < 1e-8
+#
+#A1 = MatrixOp(randn(3,3))
+#A2 = DCT(randn(3))
+#A3 = MatrixOp(randn(3,3))
+#
+#A = A1-A2+A3
+#
+#test1,test2 = RegLS.test_FwAdj(A, x, y)
+#@test test1 < 1e-8
+#@test test2 < 1e-8
+#test3 = RegLS.test_Op(A, x, y)
+#@test test3 < 1e-8
+#
+#@test norm(A*x-(A1.A*x-dct(x)+A3.A*x   )) < 1e-8
+#
+#A = A1-A2-A3
+#@test norm(A*x-(A1.A*x-dct(x)-A3.A*x   )) < 1e-8
+#A = A1-(A2+A3)
+#@test norm(A*x-(A1.A*x-dct(x)-A3.A*x   )) < 1e-8
+#A = (A1-A2)-A3
+#@test norm(A*x-(A1.A*x-dct(x)-A3.A*x   )) < 1e-8
 #
 #x1 = randn(3)
 #X1 = Variable(x1)
