@@ -9,14 +9,18 @@ end
 
 size(L::Variation) = (L.dim_out, L.dim_in)
 
+# Constructors
+
 Variation(domainType::Type, dim_in::Tuple) = Variation{length(dim_in),dir}(domainType, dim_in)
+Variation(domainType::Type, dim_in::Vararg{Int}) = Variation(domainType, dim_in)
 
 Variation(dim_in::Tuple) = Variation{length(dim_in)}(Float64, dim_in)
+Variation(dim_in::Vararg{Int}) = Variation(dim_in)
 
 Variation{T,N}(x::AbstractArray{T,N})  = Variation{N}(eltype(x), size(x) ) 
 
 
-fun_name(L::Variation)  = "Variation Operator"
+# Operators
 
 function A_mul_B!{T}(y::AbstractArray{T,2}, A::Variation{2}, b::AbstractArray{T,2})
 	cnt = 0
@@ -75,3 +79,7 @@ function Ac_mul_B!{T}(y::AbstractArray{T,3},A::Variation{3},b::AbstractArray{T,2
 	end
 
 end
+
+# Properties
+
+fun_name(L::Variation)  = "Variation Operator"

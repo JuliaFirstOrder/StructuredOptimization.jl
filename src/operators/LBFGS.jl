@@ -1,6 +1,7 @@
 export LBFGS, update!
 
-immutable LBFGS{D1,D2} <:LinearOperator{D1,D2}
+immutable LBFGS <:LinearOperator
+	domainType::Type
 	dim::Tuple
 	mem::Int64
 	currmem::Array{Int64,1}
@@ -14,7 +15,6 @@ immutable LBFGS{D1,D2} <:LinearOperator{D1,D2}
 	H::Array{Float64,1}
 end
 size(A::LBFGS) = (A.dim,A.dim)
-fun_name(A::LBFGS)  = "LBFGS Operator"
 
 function LBFGS{D1}(x::AbstractArray{D1}, 
 		   mem::Int64,
@@ -32,7 +32,7 @@ function LBFGS{D1}(x::AbstractArray{D1},
 	end
 	s = similar(x)
 	y = similar(x)
-	return LBFGS{D1,D1}(size(x), mem, currmem, curridx, s, y, s_m, y_m, ys_m, alphas, H)
+	return LBFGS(D1,size(x), mem, currmem, curridx, s, y, s_m, y_m, ys_m, alphas, H)
 end
 
 function LBFGS{D1}(x::AbstractArray{D1}, mem::Int64)
@@ -56,7 +56,7 @@ function LBFGS{T<:AbstractArray}(x::Array{T,1},mem::Int64)
 	return LBFGS_col
 end
 
-function update!{D1,D2}(A::LBFGS{D1,D2}, x::Array, x_prev::Array, gradx::Array, gradx_prev::Array)
+function update!(A::LBFGS, x::Array, x_prev::Array, gradx::Array, gradx_prev::Array)
 
 	A.s .= (-).(x, x_prev)
 	A.y .= (-).(gradx, gradx_prev)
@@ -169,3 +169,5 @@ function reset(A::Array{LBFGS,1})
 	A[1].currmem[1] = 0
 	A[1].curridx[1] = 0
 end
+
+fun_name(A::LBFGS)  = "LBFGS Operator"

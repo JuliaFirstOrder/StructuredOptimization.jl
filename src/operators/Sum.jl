@@ -1,3 +1,5 @@
+import Base: +, -
+
 immutable Sum <: LinearOperator
 	A::Vector{LinearOperator}
 	mid::AbstractArray
@@ -13,12 +15,9 @@ immutable Sum <: LinearOperator
 	end
 end
 
-import Base: +, -
-
 size(L::Sum) = size(L.A[1])
-domainType(L::Sum) =     domainType(L.A[1])
-codomainType(L::Sum) = codomainType(L.A[1])
 
+# Constructors
 -(L::Sum) = Sum((-).(L.A), L.mid)
 
 +(L1::LinearOperator, L2::LinearOperator) = Sum([L1,  L2 ], Array{codomainType(L1)}(size(L1,1)))
@@ -30,11 +29,7 @@ codomainType(L::Sum) = codomainType(L.A[1])
 +(L1::Sum, L2::LinearOperator) = L2+L1
 -(L1::Sum, L2::LinearOperator) = Sum([L1.A...,(-L2)],L1.mid)
 
-fun_name(S::Sum) = 
-length(S.A) == 2 ? fun_name(S.A[1])" + "fun_name(S.A[2]) : "Sum of linear operators"
-
-transpose(S::Sum) = Sum((S.A.')[:],Array{domainType(S.A[1])}(size(S,2)))
-
+# Operators
 function A_mul_B!(y::AbstractArray,S::Sum,b::AbstractArray)
 	A_mul_B!(y,S.A[1],b)
 	for i = 2:length(S.A)
@@ -42,6 +37,17 @@ function A_mul_B!(y::AbstractArray,S::Sum,b::AbstractArray)
 		y .= (+).(y,S.mid)
 	end
 end
+
+# Transformations
+transpose(S::Sum) = Sum((S.A.')[:],Array{domainType(S.A[1])}(size(S,2)))
+
+# Properties
+
+domainType(L::Sum) =     domainType(L.A[1])
+codomainType(L::Sum) = codomainType(L.A[1])
+
+fun_name(S::Sum) = 
+length(S.A) == 2 ? fun_name(S.A[1])" + "fun_name(S.A[2]) : "Sum of linear operators"
 
 ################################################################################
 # FROM HERE ON IT IS USERS' SYNTAX

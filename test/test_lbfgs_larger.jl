@@ -14,6 +14,7 @@ mem = 5;
 x = zeros(n)
 A = LBFGS(x,mem)
 show(A)
+println()
 nh = round(Int64,n/2)
 x2 = [zeros(nh),zeros(nh)]
 

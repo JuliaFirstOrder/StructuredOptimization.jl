@@ -19,15 +19,21 @@ end
 
 size(L::FourierTransform) = (L.dim_in,L.dim_in)
 
-  domainType(L::FourierTransform) = L.domainType
-codomainType(L::FourierTransform) = L.codomainType
+# Constructors
 
 DFT(dim_in::Tuple) = DFT(zeros(dim_in))
 DFT(T::Type,dim_in::Tuple) = DFT(zeros(T,dim_in))
+DFT(dim_in::Vararg{Int}) = DFT(dim_in)
+DFT(T::Type,dim_in::Vararg{Int}) = DFT(T,dim_in)
 DFT(x::AbstractArray)  =  DFT(size(x),eltype(x),Complex{Float64}, plan_fft(x),  plan_bfft(fft(x))) 
+
 IDFT(dim_in::Tuple) = IDFT(zeros(dim_in))
 IDFT(T::Type,dim_in::Tuple) = IDFT(zeros(T,dim_in))
+IDFT(dim_in::Vararg{Int}) = IDFT(dim_in)
+IDFT(T::Type,dim_in::Vararg{Int}) = IDFT(T,dim_in)
 IDFT(x::AbstractArray) = IDFT(size(x),eltype(x),Complex{Float64}, plan_ifft(x), plan_fft(ifft(x))) 
+
+# Operators
 
 function A_mul_B!(y::AbstractArray,L::DFT,b::AbstractArray)
 	if domainType(L) == codomainType(L)
@@ -66,6 +72,10 @@ function Ac_mul_B!(y::AbstractArray,L::IDFT,b::AbstractArray)
 	end
 end
 
+# Properties
+
 fun_name(A::DFT) = "Discrete Fourier Transform"
 fun_name(A::IDFT) = "Inverse Discrete Fourier Transform"
 
+  domainType(L::FourierTransform) = L.domainType
+codomainType(L::FourierTransform) = L.codomainType

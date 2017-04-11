@@ -1,31 +1,34 @@
+import Base: hcat
+
 immutable HCAT <: LinearOperator
 	A::AbstractArray{LinearOperator}
 	mid::AbstractArray
-	function HCAT(A::AbstractArray{LinearOperator}, mid::AbstractArray)
+	function HCAT{T<:LinearOperator}(A::AbstractArray{T}, mid::AbstractArray)
 		if any(size.(A[2:end], 1) .!= size(A[1], 1))
 			throw(DimensionMismatch("operators must have the same codomain dimension!"))
 		end
-		if size(mid) != size(A[1], 1)
-			throw(DimensionMismatch("buffer must have the correct dimension!"))
+		if any(codomainType.(A[2:end]) .!= codomainType(A[1]))
+			throw(DomainError())
 		end
 		new(A, mid)
 	end
 end
+size(L::HCAT) = size(L.A[1],1), tuple(size.(L.A, 2)...)
 
-# So we avoid useless nesting
+# Constructors
 HCAT(A::LinearOperator) = A
 
 function HCAT(A::Vararg{LinearOperator})
-	# we should be able to simplify this
-	H = Vector{LinearOperator}()
-	mid = zeros(size(A[1],1))
-	for a in A push!(H, a) end
-	return HCAT(H, mid)
+	mid = zeros(codomainType(A[1]),size(A[1],1))
+	return HCAT([A...], mid)
 end
 
-size(A::HCAT) = size(A.A[1],1), tuple(size.(A.A, 2)...)
+## define `hcat` for convenience
+hcat(L::Vararg{LinearOperator}) = HCAT(L...)
+hcat(L::LinearOperator) = L
 
-function A_mul_B!(y, S::HCAT, b)
+# Operators
+function A_mul_B!{T1,T2<:AbstractArray}(y::AbstractArray{T1}, S::HCAT, b::AbstractArray{T2})
 	A_mul_B!(y, S.A[1], b[1])
 	for i = 2:length(S.A)
 		A_mul_B!(S.mid, S.A[i], b[i])
@@ -33,52 +36,29 @@ function A_mul_B!(y, S::HCAT, b)
 	end
 end
 
-function At_mul_B!(y, S::HCAT, b)
-	for i = 1:length(S.A)
-		At_mul_B!(y[i], S.A[i], b)
+# Transformations
+transpose(L::HCAT) = VCAT((L.A.')[:],L.mid)
+
+# Properties
+fun_name(L::HCAT) = length(L.A) == 2 ? "["fun_name(L.A[1])*", "*fun_name(L.A[2])*"]"  : "HCAT operator"
+
+# Utils
+
+(+)(L1::HCAT, L2::HCAT) = HCAT(L1.A.+ L2.A, L1.mid)
+(-)(L1::HCAT, L2::HCAT) = HCAT(L1.A.-L2.A, L1.mid)
+
+function fun_domain(L::HCAT)
+	str = ""
+	for i in eachindex(L.A) 
+		str *= fun_domain(L.A[i])
+		i != length(L.A) && (str *= ", ")
 	end
+	return str
 end
 
-# function *{T<:AbstractArray}(A::HCAT, b::AbstractArray{T, 1})
-# 	C = codomainType(A);
-# 	y = Array{C}(size(A, 1))
-# 	A_mul_B!(y, A, b)
-# 	return y
-# end
+  domainType(L::HCAT) = domainType.(L.A)
+codomainType(L::HCAT) = codomainType(L.A[1])
 
-# what is this?
-# function .*{T<:AbstractArray}(A::HCAT,b::Array{T,1})
-# 	y = Array{AbstractArray,1}(length(A.A))
-# 	for i = 1:length(A.A)
-# 		y[i] = A.A[i]*b[i]
-# 	end
-# 	return y
-# end
-
-# this is nice, but I don't know if it's needed and correct
-# .*(A::HCAT,B::HCAT) = HCAT(A.A.*B.A, A.mid)
-
-import Base: hcat
-
-# define `hcat` for convenience
-hcat(A::Vararg{LinearOperator}) = HCAT(A...)
-
-fun_name(S::HCAT) = "Horizontally concatenated operators"
-
-# function fun_dom{D3<:Real}(A::HCAT{D3})
-# 	str = ""
-# 	for a in A.A str *= fun_D1(a,1) end
-# 	str *= "→  ℝ^$(size(A,2))"
-# end
-#
-# function fun_dom{D3<:Complex}(A::HCAT{D3})
-# 	str = ""
-# 	for a in A.A str *= fun_D1(a,1) end
-# 	str *= "→  ℂ^$(size(A,2))"
-# end
-
-# fun_D1{D1<:Real, D2}(A::LinearOperator{D1,D2},dim::Int64)    =  " ℝ^$(size(A,dim)) "
-# fun_D1{D1<:Complex, D2}(A::LinearOperator{D1,D2},dim::Int64) =  " ℂ^$(size(A,dim)) "
 
 # import Base: copy, sort
 #

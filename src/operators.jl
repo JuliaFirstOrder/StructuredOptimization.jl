@@ -15,7 +15,6 @@ import Base:
   ndims,
   +,
   -,
-  sign,
   ==
 
 
@@ -28,25 +27,26 @@ function *(L::LinearOperator,b::AbstractArray)
 end
 
 #calcolus
-include("operators/Transpose.jl")
 include("operators/Scale.jl")
+include("operators/Transpose.jl")
 include("operators/Sum.jl")
 include("operators/Reshape.jl")
+include("operators/Compose.jl")
+include("operators/HCAT.jl")
+include("operators/VCAT.jl")
 
 include("operators/Zeros.jl")
 include("operators/Eye.jl")
 include("operators/DiagOp.jl")
+include("operators/GetIndex.jl")
 include("operators/MatrixOp.jl")
 include("operators/DFT.jl")
 include("operators/DCT.jl")
 include("operators/FiniteDiff.jl")
 include("operators/Variation.jl")
-#include("operators/Compose.jl")
-#include("operators/Conv.jl")
-#include("operators/GetIndex.jl")
-#include("operators/HCAT.jl")
-#include("operators/VCAT.jl")
-#include("operators/LBFGS.jl")
+include("operators/Conv.jl")
+include("operators/Xcorr.jl")
+include("operators/LBFGS.jl")
 include("operators/utils.jl")
 
 size(L::LinearOperator, i) = size(L)[i]

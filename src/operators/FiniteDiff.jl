@@ -7,6 +7,8 @@ end
 
 size(L::FiniteDiff) = (L.dim_in, L.dim_in)
 
+# Constructors
+
 FiniteDiff(domainType::Type, dim_in::Tuple, dir::Int64 = 1) = 
 FiniteDiff{length(dim_in),dir}(domainType, dim_in)
 
@@ -15,7 +17,7 @@ FiniteDiff{length(dim_in),dir}(Float64, dim_in)
 
 FiniteDiff{T,N}(x::AbstractArray{T,N}, dir::Int64 = 1)  = FiniteDiff{N,dir}(eltype(x), size(x))
 
-fun_name{N,D}(L::FiniteDiff{N,D})  = "Finite Diff. Op. dir = $D"
+# Operators
 
 function A_mul_B!{T}(y::AbstractArray{T,1},L::FiniteDiff{1,1},b::AbstractArray{T,1})
 	for l = 1:length(b)
@@ -108,4 +110,6 @@ function Ac_mul_B!{T}(y::AbstractArray{T,3},L::FiniteDiff{3,3},b::AbstractArray{
 	end
 end
 
+# Properties
 
+fun_name{N,D}(L::FiniteDiff{N,D})  = "Finite Diff. Op. dir = $D"

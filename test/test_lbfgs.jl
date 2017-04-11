@@ -43,6 +43,7 @@ x = zeros(10)
 
 A = LBFGS(x,mem)
 show(A)
+println()
 x_old = 0;
 grad_old = 0;
 
