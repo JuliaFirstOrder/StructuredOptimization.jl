@@ -24,28 +24,28 @@ function optArray!{T<:AffineOperator,B <:AbstractArray}(A::T,x::Array{B,1})
 end
 
 #testing utils
-function test_FwAdj(A::LinearOperator, x, y)
-	println(); show(A); println()
+function test_FwAdj(A::LinearOperator, x, y, verb::Bool = false)
+	verb && (println(); show(A); println())
 
-	println("forward")
+	verb && println("forward")
 	y = A*x          #verify linear operator works
-	@time y = A*x
+	verb && @time y = A*x
 
 	y2 = 0*copy(y)
-	println("forward preallocated")
+	verb && println("forward preallocated")
 	A_mul_B!(y2,A,x) #verify in-place linear operator works
-	@time A_mul_B!(y2,A,x)
+	verb && @time A_mul_B!(y2,A,x)
 	test1 =  vecnorm(y-y2) #verify equivalence
 
-	println(); show(A'); println()
-	println("adjoint")
+	verb && (println(); show(A'); println())
+	verb && println("adjoint")
 	x = A'*y          #verify adjoint operator inside Affine is the same
-	@time x = A'*y
+	verb && @time x = A'*y
 
-	println("adjoint preallocated")
+	verb && println("adjoint preallocated")
 	x2 = 0*copy(x)
 	A_mul_B!(x2,A',y) #verify in-place linear operator works
-	@time A_mul_B!(x2,A',y)
+	verb && @time A_mul_B!(x2,A',y)
 
 	test2 = vecnorm(x-x2) #verify equivalence
 

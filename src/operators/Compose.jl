@@ -60,11 +60,3 @@ fun_name(L::Compose) = length(L.A) == 2 ? fun_name(L.A[2])*" * "*fun_name(L.A[1]
 domainType(L::Compose)   = domainType(L.A[1])
 codomainType(L::Compose) = codomainType(L.A[end])
 
-#function Compose(f::Function,B::AffineOperator, args...)
-#	mid = Array{codomainType(operator(B))}(size(operator(B),2))
-#	(f == *) ? A = f(args[1], Variable(mid)) : A = f(Variable(mid), args...)
-#	N = Compose(operator(A),operator(B),mid)
-#	b = Nullable{AbstractArray}()
-#	isnull(B.b) ? nothing : b = adjoint(A)*get(B.b)
-#	Affine(variable(B),N,N',b)
-#end

@@ -49,21 +49,3 @@ function get_dim_out(dim,args...)
 		return tuple(length(args[1]))
 	end
 end
-
-#################################################################################
-## FROM HERE ON IT IS USERS' SYNTAX
-#################################################################################
-#
-#function getindex(x::Variable, args...)
-#	A = GetIndex(args, false, get_size(size(x),args...))
-#	Affine([x], A, A', Nullable{AbstractArray}() )
-#end
-#
-#function getindex(B::AffineOperator, args...)
-#	A = GetIndex{domainType(B),codomainType(B)}(args, false,
-#					     get_size(size(operator(B),2),args...))
-#	N = NestedLinearOperator(A,operator(B))
-#	b = Nullable{AbstractArray}()
-#	isnull(B.b) ? nothing : b = adjoint(A)*get(B.b)
-#	Affine(variable(B),N,N',b)
-#end

@@ -69,4 +69,3 @@ codomainType(L::HCAT) = codomainType(L.A[1])
 # 	return HCAT(H,A.mid)
 # end
 #
-# extract_operator(A::HCAT, idx::Int64) = A.A[idx]

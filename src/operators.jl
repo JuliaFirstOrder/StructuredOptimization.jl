@@ -35,6 +35,7 @@ include("operators/Compose.jl")
 include("operators/HCAT.jl")
 include("operators/VCAT.jl")
 
+include("operators/MyOperator.jl")
 include("operators/Zeros.jl")
 include("operators/Eye.jl")
 include("operators/DiagOp.jl")
