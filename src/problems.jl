@@ -1,7 +1,5 @@
 export problem, minimize
 
-include("problems/split.jl")
-include("problems/mergeProx.jl")
 include("problems/primal.jl")
 include("problems/dual.jl")
 include("problems/smoothed.jl")
@@ -41,13 +39,6 @@ function minimize{T<:CostFunction}(cf::CostFunction, cstr::Array{T,1}, slv::Solv
 	return solve(P,slv)
 end
 
-function sort_and_expand(x_sorted::Array{Variable,1}, cf::CostFunction)
-	sA = Vector{AffineOperator}(length(affine(cf)))
-	for i in eachindex(affine(cf)) 
-		sA[i] = sort_and_expand(x_sorted,affine(cf)[i])
-	end
-	return CostFunction(x_sorted,cf.f,sA)
-end
 		
 
 

@@ -18,7 +18,7 @@ operator(cf::CostFunction) = operator.(cf.A)
 tilt(    cf::CostFunction) = tilt.(cf.A)
 
 isempty( cf::CostFunction) = length(cf.f) == 0 ? true : false
-isLeastSquares( cf::CostFunction) =  all([typeof(t) <: LinearLeastSquares for t in terms(cf) ])
+isLeastSquares( cf::CostFunction) =  all([typeof(t) <: LeastSquares for t in terms(cf) ])
 
 function +(h::CostFunction, g::CostFunction) 
 	x = addVar(h.x,g.x)
@@ -113,16 +113,26 @@ function addVar(x::Vector,y::Vector)
 	return z
 end
 
+function sort_and_expand(x_sorted::Array{Variable,1}, cf::CostFunction)
+	sA = Vector{AffineOperator}(length(affine(cf)))
+	for i in eachindex(affine(cf)) 
+		sA[i] = sort_and_expand(x_sorted,affine(cf)[i])
+	end
+	return CostFunction(x_sorted,cf.f,sA)
+end
+
 function Base.show(io::IO, cf::CostFunction)
 	if isempty(cf)
 		println(io, "Empty Cost Function") 
 	else
 		description = fun_name(cf.f[1],1)
-		operator    = "\n A1 = "*fun_name(RegLS.operator(cf.A[1]))
+		operator    = 
+		"\n A1 = "*fun_name(RegLS.operator(cf.A[1]))*" : "*fun_type(RegLS.operator(cf.A[1]))
 		parameter   = fun_par(cf.f[1],1)
 		for i = 2:length(cf.f)
 			description = description*"+ "fun_name(cf.f[i],i)
-			operator    = operator*",\n A$i = "*fun_name(RegLS.operator(cf.A[i]))
+			operator    *= 
+		"\n A$i = "*fun_name(RegLS.operator(cf.A[i]))*" : "*fun_type(RegLS.operator(cf.A[i]))
 			parameter = parameter*", "fun_par(cf.f[i],i)
 		end
 		

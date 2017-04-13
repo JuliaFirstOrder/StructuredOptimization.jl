@@ -26,14 +26,6 @@ function *(L::LinearOperator,b::AbstractArray)
 	return y 
 end
 
-#calcolus
-include("operators/Scale.jl")
-include("operators/Transpose.jl")
-include("operators/Sum.jl")
-include("operators/Reshape.jl")
-include("operators/Compose.jl")
-include("operators/HCAT.jl")
-include("operators/VCAT.jl")
 
 include("operators/MyOperator.jl")
 include("operators/Zeros.jl")
@@ -50,6 +42,15 @@ include("operators/Xcorr.jl")
 include("operators/LBFGS.jl")
 include("operators/utils.jl")
 
+#calcolus
+include("operators/Scale.jl")
+include("operators/Transpose.jl")
+include("operators/Sum.jl")
+include("operators/Reshape.jl")
+include("operators/Compose.jl")
+include("operators/HCAT.jl")
+include("operators/VCAT.jl")
+
 size(L::LinearOperator, i) = size(L)[i]
 
 #usually domain is preserved, if not one has to redefine these functions
@@ -62,6 +63,7 @@ isDiagonal(L::LinearOperator) = typeof(L) <: DiagonalOperator
 isGramDiagonal(L::LinearOperator) = typeof(L) <: DiagonalOperator
 
 isInvertible(L::LinearOperator) = false
+isScaled(L::LinearOperator) = false
 
 function Base.show(io::IO, L::LinearOperator)
   println(io, "description : ", fun_name(L))

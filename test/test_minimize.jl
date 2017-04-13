@@ -1,42 +1,6 @@
 verb = 1
 slv = ZeroFPR(verbose = verb)
 
-x,y,z,u = Variable(randn(4)), Variable(randn(4)), Variable(randn(2,2)), Variable(randn(4))
-cf = ls(x+y-randn(4))+ls(y+reshape(z,4)+u)+1*norm(randn(4).*u,1)+2*norm(z-randn(2,2),2)+3*norm(y,1)
-@test length(variable(cf)) == 4
-show(cf)
-
-x_sorted = sort(variable(cf),by = object_id)
-
-println("\n test split \n")
-smooth, proximable, nonsmooth = RegLS.split(cf)
-println("\n Smooth:")
-show(smooth)
-println("\n Proximable:")
-show(proximable)
-println("\n NonSmooth:")
-show(nonsmooth)
-
-
-println("\n test merge prox \n")
-p = RegLS.mergeProx(x_sorted, proximable)
-show(x_sorted)
-show(p.fs)
-
-println("\n sort_and_expand \n")
-smooth_exp = RegLS.sort_and_expand(x_sorted, smooth)
-show(RegLS.affine(smooth))
-show(RegLS.affine(smooth_exp))
-
-out1 = RegLS.affine(smooth_exp)[1](~x_sorted)
-out2 = RegLS.affine(smooth)[1]([~x,~y])
-@test norm(out1-out2) <= 1e-8
-
-out1 = RegLS.affine(smooth_exp)[2](~x_sorted)
-out2 = RegLS.affine(smooth)[2](~[y,z,u])
-@test norm(out1-out2) <= 1e-8
-
-
 ####test single block of variable
 println("testing single variable primal")
 M = randn(5,5)

@@ -1,5 +1,3 @@
-import Base: norm, sum 
-
 abstract NormFunction <: NonSmoothFunction
 
 type NormL0  <: NormFunction
@@ -76,43 +74,11 @@ end
 fun_name(T::IndBallLinf, i::Int64) = " Ind{‖A$(i)x‖∞ ≤ r$(i)}(x) "
 fun_par( T::IndBallLinf, i::Int64) = " r$(i) = $(round(T.r,3)) "
 
-norm(x::Variable)    = norm(eye(x))
-norm(x::Variable, p) = norm(eye(x), p)
-
-function norm(A::AffineOperator, p::Int64=2)
-	if p == 0
-		return CostFunction(variable(A), [NormL0(1.)], [A])
-	elseif p == 1
-		return CostFunction(variable(A), [NormL1(1.)], [A])
-	elseif p == 2
-		return CostFunction(variable(A), [NormL2(1.)], [A])
-	else
-		error("function not implemented")
-	end
-end
-
-function norm(A::AffineOperator, p::Float64)
-	if p == Inf
-		return CostFunction(variable(A), [NormLinf(1.)], [A])
-	else
-		error("function not implemented")
-	end
-end
-
 *(lambda::Real,  T::NormL0)   = NormL0(  T.lambda*lambda)
 *(lambda::Real,  T::NormL1)   = NormL1(  T.lambda*lambda)
 *(lambda::Real,  T::NormL2)   = NormL2(  T.lambda*lambda)
 *(lambda::Real,  T::NormL21)  = NormL21( T.lambda*lambda, T.dim)
 *(lambda::Real,  T::NormLinf) = NormLinf(T.lambda*lambda)
- 
-<=(T::NormL0,   r::Integer) = IndBallL0(r) 
-<=(T::NormL1,   r::Real)    = IndBallL1(r/T.lambda) 
-<=(T::NormL2,   r::Real)    = IndBallL2(r/T.lambda) 
-<=(T::NormLinf, r::Real)  = IndBallLinf(r/T.lambda) 
-
-==(T::NormL2, r::Real)    = IndSphereL2(r/T.lambda) 
-
-sum(T::NormL2,   d::Int)  = NormL21(T.lambda,d) 
 
 get_prox(T::NormL0)   = ProximalOperators.NormL0(T.lambda)
 get_prox(T::NormL1)   = ProximalOperators.NormL1(T.lambda)
@@ -125,8 +91,4 @@ get_prox(T::IndBallL1)   = ProximalOperators.IndBallL1(T.r)
 get_prox(T::IndBallL2)   = ProximalOperators.IndBallL2(T.r)
 get_prox(T::IndBallLinf) = ProximalOperators.IndBallLinf(T.r)
 get_prox(T::IndSphereL2) = ProximalOperators.IndSphereL2(T.r)
-
-
-
-
 

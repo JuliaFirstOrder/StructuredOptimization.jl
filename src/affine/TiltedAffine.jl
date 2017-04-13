@@ -44,6 +44,13 @@ size(A::TiltedAffine, args...) = size(A.A, args...)
 (+)(b::AbstractArray,x::Variable) = b+eye(x)
 (-)(b::AbstractArray,x::Variable) = b-eye(x)
 
+#special cases
+
+(+)(x::Variable,b::Number) = b == 0 ? eye(x) : error("cannot sum $(typeof(x)) with $(typeof(b))") 
+(-)(x::Variable,b::Number) = b == 0 ? eye(x) : error("cannot sum $(typeof(x)) with $(typeof(b))") 
+(+)(A::AffineOperator,b::Number) = b == 0 ? A : error("cannot sum $(typeof(A)) with $(typeof(b))") 
+(-)(A::AffineOperator,b::Number) = b == 0 ? A : error("cannot sum $(typeof(A)) with $(typeof(b))") 
+
 # Operators
 
 function evaluate!(y::AbstractArray, A::TiltedAffine, x::AbstractArray)

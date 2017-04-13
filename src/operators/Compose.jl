@@ -31,14 +31,19 @@ size(L::Compose) = ( size(L.A[end],1), size(L.A[1],2) )
 # Constructors
 
 *(L1::LinearOperator, L2::LinearOperator) = Compose(L1,L2)
+
+# Special cases
+
 *{E<:IdentityOperator}(L1::E, L2::LinearOperator) = L2
 *{E<:IdentityOperator}(L1::LinearOperator, L2::E) = L1
+*{E1<:IdentityOperator,E2<:IdentityOperator}(L1::E1, L2::E2) = L1
 
 *{S<:Scale}(L1::S, L2::LinearOperator) = L1.coeff*(L1.A*L2)
 *{S<:Scale}(L1::LinearOperator, L2::S) = L2.coeff*(L1*L2.A)
-*{S<:Scale}(L1::S, L2::S) = (L1.coeff*L2.coeff)*(L1.A*L2.A)
+*{S1<:Scale,S2<:Scale}(L1::S1, L2::S2) = (L1.coeff*L2.coeff)*(L1.A*L2.A)
 
 .*(d::AbstractArray, L2::LinearOperator) = DiagOp(codomainType(L2), d)*L2
+.*(d::AbstractArray, L2::Scale         ) = DiagOp(L2.coeff*d)
 
 # Operators
 function A_mul_B!(y::AbstractArray,L::Compose,b::AbstractArray)

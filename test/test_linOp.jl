@@ -394,6 +394,13 @@ stuff = [
        "args"     => ( randn(3), randn(3) ),
        "in_out"   => ( randn(srand(3),3), randn(srand(1),3).*dct( randn(srand(3),3) )  )
 	     ),
+### testing Compose special cases ####
+	 Dict(
+       "Operator" => ((*),),
+       "params"   => (( DFT((10*5,)), Reshape(-DCT((10,10))[:,1:5],10*5)   ,),),
+       "args"     => (  randn(10,10), fft(randn(10*5)) ),
+       "in_out"   => ( randn(srand(3),10,10), fft(reshape(-dct(randn(srand(3),10,10))[:,1:5],10*5) )  )
+	     ),
 ### testing HCAT ####
 	 Dict(
        "Operator" => ((hcat),),
@@ -502,3 +509,32 @@ for i in eachindex(stuff)
 	end
 
 end
+
+#testing some special cases...
+
+L = 3*DiagOp(3*ones(3))
+@test typeof(L) <: DiagOp
+@test norm(L.d-9)<1e-9
+
+L = (3+3*im)*DiagOp(3*ones(3))
+@test typeof(L) <: DiagOp
+@test norm(L.d-(9+im*9))<1e-9
+
+L = (3*ones(3)).*(3*Eye(3))
+@test typeof(L) <: DiagOp
+@test norm(L.d-(9))<1e-9
+
+L = DiagOp(3*ones(3))*(3*Eye(3))
+@test typeof(L) <: DiagOp
+@test norm(L.d-(9))<1e-9
+
+
+
+
+
+
+
+
+
+
+

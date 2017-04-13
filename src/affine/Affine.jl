@@ -1,8 +1,6 @@
 import Base: +, -
 export operator, adjoint, variable, Affine
 
-abstract AffineOperator
-
 immutable Affine <: AffineOperator
 	x::Vector{AbstractVariable}
 	L::LinearOperator
@@ -67,7 +65,7 @@ function sort_and_expand{T<:AbstractVariable}(x::Vector{T}, A::Affine)
 		dim = size(operator(A),1)
 
 		H = Vector{LinearOperator}(length(x))
-		[H[i] = Zeros(size(x[i]),dim)  for i in eachindex(H) ]
+		[H[i] = Zeros(dim,size(x[i]))  for i in eachindex(H) ]
 		for i in eachindex(x)
 			if any(A.x .== x[i])
 				idx = find(A.x .== x[i])[1]

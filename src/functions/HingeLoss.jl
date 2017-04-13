@@ -1,16 +1,9 @@
-export hingeloss
-
 immutable HingeLoss{R1 <: Real, R2 <: Real}   <: NonSmoothFunction
 	b::Array{R1,1}
 	mu::R2
 end
 
 lambda(f::HingeLoss) = f.mu
-
-hingeloss(x::Variable, args...) = hingeloss(eye(x), args...)
-
-hingeloss{R <: Real}(A::AffineOperator, b::Array{R,1}) = 
-CostFunction(variable(A), [HingeLoss(b, 1.0)], [A])
 
 *(mu::Real,T::HingeLoss) = HingeLoss(T.b,mu)
 

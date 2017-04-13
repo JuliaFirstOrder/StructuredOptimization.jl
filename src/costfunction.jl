@@ -1,0 +1,10 @@
+
+include("costfunction/CostFunction.jl")
+include("costfunction/LeastSquares.jl")
+include("costfunction/smooth.jl")
+include("costfunction/split.jl")
+include("costfunction/absorb_merge.jl")
+include("costfunction/Norm.jl")
+include("costfunction/Box.jl")
+include("costfunction/HingeLoss.jl")
+include("costfunction/IndBallRank.jl")
