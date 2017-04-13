@@ -15,7 +15,7 @@ function gradient!(grad::AbstractArray, s::MoreauEnvelope, x::AbstractArray)
 	prox!(grad, s.p, x, s.gamma)
 	fgamma = s.p(grad)
 	grad .=  x - grad 
-	fx = fgamma+1/(2*s.gamma)*vecnorm(grad)^2
+	fx = fgamma+1/(2*s.gamma)*deepvecnorm(grad)^2
 	grad .*= 1/s.gamma
 	return fx
 end

@@ -44,3 +44,4 @@ end
 include("variables/Affine.jl")
 include("variables/TiltedAffine.jl")
 include("variables/AffineConstructors.jl")
+include("variables/ComposeAffine.jl")

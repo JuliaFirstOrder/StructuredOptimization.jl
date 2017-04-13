@@ -1,4 +1,4 @@
-import Base: *, +, -
+import Base: +, -
 export operator, adjoint, variable, Affine
 
 abstract AffineOperator
@@ -27,15 +27,13 @@ size(A::Affine, args...) = size(operator(A), args...)
 
 Affine(x::Variable,L::LinearOperator) = Affine([x],L)
 
-*(L::LinearOperator, x::Variable) = Affine(x,L)
-
 +(A::Affine) = A
 -(A::Affine) = Affine(variable(A),-operator(A))
 
 +(A::Affine, B::Affine) =  all(variable(A) == variable(B)) ? Affine(variable(A), A.L+B.L) :
 Affine(unsigned_sum(variable(A),operator(A),variable(B),operator(B), true)...)
 #see utils down here for unsigned_sum
-# other constructors (using Functions and Composition can be found in AffineConstructors
+# other constructors in AffineConstructors and ComposeAffine
 
 -(A::Affine, B::Affine) =  all(variable(A) == variable(B)) ? Affine(variable(A), A.L-B.L) :
 Affine(unsigned_sum(variable(A),operator(A),variable(B),operator(B), false)...)

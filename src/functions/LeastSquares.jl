@@ -15,6 +15,16 @@ function gradient!(grad::AbstractArray, f::LinearLeastSquares, x::AbstractArray)
 	return f(x)
 end
 
+function gradstep!(x1::AbstractArray, f::LinearLeastSquares, x0::AbstractArray, gamma::Real)
+	fx1 = 0.0
+	s = (1-gamma*f.lambda)
+	for i in eachidex(x)
+		x1[i] = s*x0[i]  
+		fx1 += x1[i]^2
+	end
+	return 0.5*f.lambda*fx1
+end
+
 function get_prox(T::LinearLeastSquares)
 	return ProximalOperators.SqrNormL2(T.lambda)
 end
