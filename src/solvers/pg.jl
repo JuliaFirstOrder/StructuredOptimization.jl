@@ -76,7 +76,7 @@ FPG(; tol::Float64 = 1e-8,
       gamma::Float64 = Inf) =
 PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
-function solve(f::CostFunction, g::ProximableFunction, slv0::PG)
+function solve(f::CompositeFunction, g::ProximableFunction, slv0::PG)
 
 	tic()
 

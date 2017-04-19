@@ -1,4 +1,4 @@
-abstract AffineOperator
+abstract AbstractAffineTerm
 abstract LinearOperator
 abstract DiagonalOperator <:   LinearOperator
 abstract IdentityOperator <: DiagonalOperator

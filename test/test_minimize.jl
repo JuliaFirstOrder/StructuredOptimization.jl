@@ -8,10 +8,10 @@ b = randn(5)
 x = Variable(zeros(5))
 
 P = problem(ls(M*x-b), norm(x,1)<=10)
-show(P)
+println(P)
 
 slv1 = solve(P)
-show(slv1)
+println(slv1)
 @test norm(~x,1)-10 <= 1e-5
 slv1 = minimize(ls(M*x-b), norm(x,1)<=10)
 
@@ -103,7 +103,7 @@ d = rand(n)+2
 
 x = Variable(n)
 D = problem(1e5*ls(x-b1)+norm(A*x-b2,1))
-show(D)
+println(D)
 solve(D)
 @test norm(~x-b1) <= 1e-4
 
@@ -152,14 +152,6 @@ d = rand(n)+2
 
 x = Variable(n)
 D = problem(norm(x-b1,2)+10*norm(A*x-b2,1))
-show(D)
+println(D)
 solve(D,slv)
 @test norm(A*~x-b2,1)<1e-3
-
-
-
-
-
-
-
-

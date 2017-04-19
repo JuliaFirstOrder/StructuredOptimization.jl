@@ -1,64 +1,64 @@
 import Base: +, -
-export operator, adjoint, variable, Affine
+export operator, adjoint, variable, LinearTerm
 
-immutable Affine <: AffineOperator
+immutable LinearTerm <: AbstractAffineTerm
 	x::Vector{AbstractVariable}
 	L::LinearOperator
 	Lt::LinearOperator
-	function Affine(x,L)
+	function LinearTerm(x,L)
 		(length(x) == 1 ? size(x[1]) != size(L,2) :
                  any(size.(x) != [size(L,2)...]) ) && throw(DimensionMismatch())
 		new(x,L,L')
 	end
 end
 
-variable(A::Affine) = A.x
-operator(A::Affine) = A.L
-adjoint(A::Affine)  = A.Lt
-tilt(A::Affine)     =  0. 
+variable(A::LinearTerm) = A.x
+operator(A::LinearTerm) = A.L
+adjoint(A::LinearTerm)  = A.Lt
+tilt(A::LinearTerm)     =  0.
 
-domainType(A::Affine) =   domainType(operator(A))
-codomainType(A::Affine) = codomainType(operator(A))
-size(A::Affine, args...) = size(operator(A), args...)
+domainType(A::LinearTerm) =   domainType(operator(A))
+codomainType(A::LinearTerm) = codomainType(operator(A))
+size(A::LinearTerm, args...) = size(operator(A), args...)
 
 # Constructors
 
-Affine(x::Variable,L::LinearOperator) = Affine([x],L)
+LinearTerm(x::Variable,L::LinearOperator) = LinearTerm([x],L)
 
-+(A::Affine) = A
--(A::Affine) = Affine(variable(A),-operator(A))
++(A::LinearTerm) = A
+-(A::LinearTerm) = LinearTerm(variable(A),-operator(A))
 
-+(A::Affine, B::Affine) =  all(variable(A) == variable(B)) ? Affine(variable(A), A.L+B.L) :
-Affine(unsigned_sum(variable(A),operator(A),variable(B),operator(B), true)...)
++(A::LinearTerm, B::LinearTerm) =  all(variable(A) == variable(B)) ? LinearTerm(variable(A), A.L+B.L) :
+LinearTerm(unsigned_sum(variable(A),operator(A),variable(B),operator(B), true)...)
 #see utils down here for unsigned_sum
 # other constructors in AffineConstructors and ComposeAffine
 
--(A::Affine, B::Affine) =  all(variable(A) == variable(B)) ? Affine(variable(A), A.L-B.L) :
-Affine(unsigned_sum(variable(A),operator(A),variable(B),operator(B), false)...)
+-(A::LinearTerm, B::LinearTerm) =  all(variable(A) == variable(B)) ? LinearTerm(variable(A), A.L-B.L) :
+LinearTerm(unsigned_sum(variable(A),operator(A),variable(B),operator(B), false)...)
 
 -(x::Variable) = -eye(x)
-+(x::Variable,A::Affine) = eye(x)+A
--(x::Variable,A::Affine) = eye(x)-A
-+(A::Affine,x::Variable) = A+eye(x)
--(A::Affine,x::Variable) = A-eye(x)
++(x::Variable,A::LinearTerm) = eye(x)+A
+-(x::Variable,A::LinearTerm) = eye(x)-A
++(A::LinearTerm,x::Variable) = A+eye(x)
+-(A::LinearTerm,x::Variable) = A-eye(x)
 
 +(x::Variable,y::Variable) = eye(x)+eye(y)
 -(x::Variable,y::Variable) = eye(x)-eye(y)
 
 # Operators
 
-function evaluate!(y::AbstractArray, A::Affine, x::AbstractArray)
+function evaluate!(y::AbstractArray, A::LinearTerm, x::AbstractArray)
 	A_mul_B!(y,operator(A),x)
 end
 
-function (A::Affine)(x::AbstractArray)
+function (A::LinearTerm)(x::AbstractArray)
 	y = operator(A)*x
 	return y
 end
 
 #sorting operators
 
-function sort_and_expand{T<:AbstractVariable}(x::Vector{T}, A::Affine)
+function sort_and_expand{T<:AbstractVariable}(x::Vector{T}, A::LinearTerm)
 	if all(x == A.x)
 		return A
 	else
@@ -73,7 +73,7 @@ function sort_and_expand{T<:AbstractVariable}(x::Vector{T}, A::Affine)
 			end
 		end
 		H = hcat(H...)
-		return Affine(x,H)
+		return LinearTerm(x,H)
 	end
 end
 
@@ -83,13 +83,13 @@ extract_operator(L::HCAT, idx::Int64) = L.A[idx]
 
 # Printing stuff
 
-fun_name(A::Affine) = fun_name(operator(A))
-fun_type(A::Affine) = fun_type(operator(A))
+fun_name(A::LinearTerm) = fun_name(operator(A))
+fun_type(A::LinearTerm) = fun_type(operator(A))
 
-function Base.show(io::IO, f::Affine)
-  println(io, "description : Affine")
+function Base.show(io::IO, f::LinearTerm)
+  println(io, "description : LinearTerm")
   println(io, "operator    : ", fun_name(operator(f)))
-  println(io, "type        : ", fun_type(operator(f)))
+  print(  io, "type        : ", fun_type(operator(f)))
 end
 
 # utils
@@ -126,18 +126,3 @@ function unsigned_sum(xa::Vector{AbstractVariable}, A::HCAT,
 	end
 	return x,H
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

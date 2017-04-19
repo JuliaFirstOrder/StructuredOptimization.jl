@@ -1,6 +1,6 @@
 export smooth
 
-function smooth(cf::CostFunction, gamma0::Real=1.)
+function smooth(cf::CompositeFunction, gamma0::Real=1.)
 	f = Vector{ExtendedRealValuedFunction}(0)
 	for fi in terms(cf)
 		if typeof(fi)<:SmoothFunction
@@ -11,6 +11,6 @@ function smooth(cf::CostFunction, gamma0::Real=1.)
 			push!(f,fs)
 		end
 	end
-	CostFunction(variable(cf),f,affine(cf))
+	CompositeFunction(variable(cf),f,affine(cf))
 end
 

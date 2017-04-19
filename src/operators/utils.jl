@@ -1,4 +1,4 @@
-function optArray{T<:AffineOperator}(A::T) 
+function optArray{T<:AbstractAffineTerm}(A::T) 
 	if typeof(variable(A)) <: Variable 
 		return variable(A).x 
 	else
@@ -9,7 +9,7 @@ function optArray{T<:AffineOperator}(A::T)
 		end
 	end
 end
-function optArray!{T<:AffineOperator,B <:AbstractArray}(A::T,x::B)  
+function optArray!{T<:AbstractAffineTerm,B <:AbstractArray}(A::T,x::B)  
 	if typeof(variable(A)) <: Variable 
 		copy!(variable(A).x, x)  
 	else
@@ -17,7 +17,7 @@ function optArray!{T<:AffineOperator,B <:AbstractArray}(A::T,x::B)
 		copy!(variable(A)[1].x, x)  
 	end
 end
-function optArray!{T<:AffineOperator,B <:AbstractArray}(A::T,x::Array{B,1}) 
+function optArray!{T<:AbstractAffineTerm,B <:AbstractArray}(A::T,x::Array{B,1}) 
 	for i in eachindex(variable(A))
 		copy!(variable(A)[i].x, x[i])  
 	end
@@ -39,7 +39,7 @@ function test_FwAdj(A::LinearOperator, x, y, verb::Bool = false)
 
 	verb && (println(); show(A'); println())
 	verb && println("adjoint")
-	x = A'*y          #verify adjoint operator inside Affine is the same
+	x = A'*y          #verify adjoint operator inside LinearTerm is the same
 	verb && @time x = A'*y
 
 	verb && println("adjoint preallocated")
