@@ -1,7 +1,7 @@
 ##test linear operators
 
 stuff = [
-## testing constructors ###
+### testing constructors ###
 	 Dict(
        "Operator" => (Zeros,),
        "params"   => ((4,4,),),
@@ -168,6 +168,42 @@ stuff = [
        "Operator" => (Xcorr,),
        "params"   => ((30,randn(100),),),
        "args"     => ( randn(30), randn(199) ),
+	     ),
+	 Dict(
+       "Operator" => (Filt,),
+       "params"   => ((300, [1.;0.;1.;0.;0.], [1.;1.;1.]),),
+       "args"     => ( randn(300), randn(300) ),
+       "in_out"   => ( randn(srand(1),300), filt([1.;0.;1.], [1.;1.;1.],randn(srand(1),300)) )
+	     ),
+	 Dict(
+       "Operator" => (Filt,),
+       "params"   => (((300,2), [1.;0.;1.;0.;0.], [1.;1.;1.]),),
+       "args"     => ( randn(300,2), randn(300,2) ),
+       "in_out"   => ( randn(srand(1),300,2), filt([1.;0.;1.], [1.;1.;1.],randn(srand(1),300,2)) )
+	     ),
+	 Dict(
+       "Operator" => (Filt,),
+       "params"   => ((300, [1.;0.;1.;0.;0.], [10.]),),
+       "args"     => ( randn(300), randn(300) ),
+       "in_out"   => ( randn(srand(1),300), filt([1.;0.;1.], [10.],randn(srand(1),300)) )
+	     ),
+	 Dict(
+       "Operator" => (Filt,),
+       "params"   => (((300,2), [1.;0.;1.;0.;0.], [10.]),),
+       "args"     => ( randn(300,2), randn(300,2) ),
+       "in_out"   => ( randn(srand(1),300,2), filt([1.;0.;1.], [10.],randn(srand(1),300,2)) )
+	     ),
+	 Dict(
+       "Operator" => (MIMOFilt,),
+       "params"   => (((10,3), [randn(10),randn(10),randn(10),randn(10),randn(10),randn(10)]),),
+       "args"     => ( randn(10,3), randn(10,2) ),
+	     ),
+
+	 Dict(
+       "Operator" => (MIMOFilt,),
+       "params"   => (((10,2), [[1.;0.;1.;0.;0.],[1.;0.;1.;0.;0.]], 
+		       [[1.;1.;1.],[2.;2.;2.]]),),
+       "args"     => ( randn(10,2), randn(10,1) ),
 	     ),
 	 Dict(
        "Operator" => (FiniteDiff,),
@@ -527,6 +563,20 @@ L = (3*ones(3)).*(3*Eye(3))
 L = DiagOp(3*ones(3))*(3*Eye(3))
 @test typeof(L) <: DiagOp
 @test norm(L.d-(9))<1e-9
+
+
+
+#TODO move this up
+
+B = [randn(10),randn(5),randn(10),randn(2),randn(10),randn(10)]
+A = [[1.],[1.],[1.],[1.],[1.],[1.]]
+
+x = randn(100,3)
+L = MIMOFilt((100,3), B )
+y = L*x
+
+@test norm(y[:,1]-(filt(B[1],A[1],x[:,1])+filt(B[2],A[2],x[:,2])+filt(B[3],A[3],x[:,3])   )) <1e-8
+@test norm(y[:,2]-(filt(B[4],A[4],x[:,1])+filt(B[5],A[5],x[:,2])+filt(B[6],A[6],x[:,3])   )) <1e-8
 
 
 
