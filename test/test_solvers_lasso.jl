@@ -5,7 +5,7 @@ solvers = [ZeroFPR(verbose = verb, maxit = maxit),
 	   FPG(    verbose = verb, maxit = maxit),
 	   PG(     verbose = verb, maxit = maxit)]
 
-	
+
 m, n, l = 10, 50, 30
 A1 = randn(m, n)
 A2 = randn(m, l)
@@ -22,7 +22,7 @@ for slv in solvers
 	sol = minimize(ls(A1*x-b) + lam*norm(x,1), slv)
 	x = Variable(n)
 	@time sol = minimize(ls(A1*x-b) + lam*norm(x,1), slv)
-	show(sol)
+	println(sol)
 	# compute proximal-gradient step manually, check fixed-point residual
 	gstep = ~x - sol.gamma*(A1'*(A1*(~x)-b))
 	pgstep = sign(gstep).*max(0, abs.(gstep)-lam*sol.gamma)
@@ -46,7 +46,7 @@ for slv in solvers
 	sol = minimize(ls(A1*x+A2*y-b) + lam1*norm(x,1)+ lam2*norm(y,1), slv)
 	x,y = Variable(n), Variable(l)
 	@time sol = minimize(ls(A1*x+A2*y-b) + lam1*norm(x,1)+ lam2*norm(y,1), slv)
-	show(sol)
+	println(sol)
 	# compute proximal-gradient step manually, check fixed-point residual
 	gxstep = ~x - sol.gamma*(A1'*(A1*~x+A2*~y-b))
 	pxgstep = sign(gxstep).*max(0, abs.(gxstep)-lam1*sol.gamma)
@@ -84,7 +84,7 @@ for slv in solvers
 	sol = minimize(ls(A1*x-b) + lam*norm(x,1), slv)
 	x = Variable(Complex{Float64},n)
 	@time sol = minimize(ls(A1*x-b) + lam*norm(x,1), slv)
-	show(sol)
+	println(sol)
 	# compute proximal-gradient step manually, check fixed-point residual
 	gstep = ~x - sol.gamma*(A1'*(A1*(~x)-b))
 	pgstep = sign(gstep).*max(0, abs.(gstep)-lam*sol.gamma)
@@ -109,7 +109,7 @@ for slv in solvers
 	x = Variable(Complex{Float64},n)
 	y = Variable(Complex{Float64},l)
 	@time sol = minimize(ls(A1*x+A2*y-b) + lam1*norm(x,1) + lam2*norm(y,1), slv)
-	show(sol)
+	println(sol)
 	# compute proximal-gradient step manually, check fixed-point residual
 	gstep = ~x - sol.gamma*(A1'*(A1*~x+A2*~y-b))
 	pgstep = sign(gstep).*max(0, abs.(gstep)-lam1*sol.gamma)

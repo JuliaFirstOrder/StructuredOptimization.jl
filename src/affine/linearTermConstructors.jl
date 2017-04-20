@@ -14,24 +14,24 @@ import Base: zeros,
 export       finitediff,
 	     variation
        
-(*)(L::LinearOperator, x::Variable) = Affine(x,L)
+(*)(L::LinearOperator, x::Variable) = LinearTerm(x,L)
 
-(*)(L::LinearOperator,A::Affine)         = Affine(variable(A),L*operator(A))
-(*)(L::LinearOperator,A::TiltedAffine)   = Affine(variable(A),L*operator(A))+L*tilt(A)
+(*)(L::LinearOperator,A::LinearTerm)         = LinearTerm(variable(A),L*operator(A))
+(*)(L::LinearOperator,A::AffineTerm)   = LinearTerm(variable(A),L*operator(A))+L*tilt(A)
 
-(*){T<:Number}(coeff::T,A::Affine)       = Affine(variable(A),coeff*operator(A))
-(*){T<:Number}(coeff::T,A::TiltedAffine) = Affine(variable(A),coeff*operator(A))+coeff.*tilt(A)
+(*){T<:Number}(coeff::T,A::LinearTerm)       = LinearTerm(variable(A),coeff*operator(A))
+(*){T<:Number}(coeff::T,A::AffineTerm) = LinearTerm(variable(A),coeff*operator(A))+coeff.*tilt(A)
 
-(*){T<:Number}(coeff::T,x::Variable)     = Affine(x,coeff*Eye(size(x)))
+(*){T<:Number}(coeff::T,x::Variable)     = LinearTerm(x,coeff*Eye(size(x)))
 	     
 zeros(x::AbstractVariable) = Zeros(~x)*x
 
 eye(x::AbstractVariable) = Eye(~x)*x
 
 reshape(x::AbstractVariable, args...) = Reshape(Eye(~x), args...)*x
-reshape(A::Affine          , args...) = Affine(variable(A), Reshape(operator(A), args...))
-reshape(A::TiltedAffine    , args...) = 
-Affine(variable(A), Reshape(operator(A), args...))+reshape(tilt(A), args...)
+reshape(A::LinearTerm          , args...) = LinearTerm(variable(A), Reshape(operator(A), args...))
+reshape(A::AffineTerm    , args...) = 
+LinearTerm(variable(A), Reshape(operator(A), args...))+reshape(tilt(A), args...)
 
 (.*)(d::AbstractVector,x::AbstractVariable) =   DiagOp(~x, d)*x
 

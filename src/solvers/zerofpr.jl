@@ -15,7 +15,7 @@ type ZeroFPR <: ForwardBackwardSolver
 	cnt_prox::Int
 end
 
-fun_name(S::ZeroFPR) = "ZeroFPR" 
+fun_name(S::ZeroFPR) = "ZeroFPR"
 
 """
 # Zero Fixed Point Residual Solver
@@ -69,12 +69,12 @@ ZeroFPR(tol,
 	gamma,
         0, Inf, Inf, NaN, linesearch, 0, 0)
 
-(z::ZeroFPR)(;tol::Float64    =z.tol, 
-	     maxit::Int64     =z.maxit, 
-	     mem::Int64       =z.mem, 
-	     verbose::Int64   =z.verbose, 
-	     halt::Function   =z.halt, 
-	     gamma::Float64   =z.gamma, 
+(z::ZeroFPR)(;tol::Float64    =z.tol,
+	     maxit::Int64     =z.maxit,
+	     mem::Int64       =z.mem,
+	     verbose::Int64   =z.verbose,
+	     halt::Function   =z.halt,
+	     gamma::Float64   =z.gamma,
 	     linesearch::Bool =z.linesearch) =
 ZeroFPR(tol,
 	maxit,
@@ -85,7 +85,7 @@ ZeroFPR(tol,
         0, Inf, Inf, NaN, linesearch, 0, 0)
 
 
-function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
+function solve(f::CompositeFunction, g::ProximableFunction, slv0::ZeroFPR)
 
 	tic()
 	q, s = split_Quadratic(f)
@@ -172,7 +172,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 		print_status(slv)
 
 		# compute rbar
-	
+
 		gradient!(gradfi,f,resxbar)
 		At_mul_B!(gradxbar,f,gradfi)
 
@@ -199,7 +199,7 @@ function solve(f::CostFunction, g::ProximableFunction, slv0::ZeroFPR)
 		level = FBEx - sigma*slv.normfpr^2
 		tau = 1.0
 
-		A_mul_B!(Ad, f,  d) 
+		A_mul_B!(Ad, f,  d)
 		gradient!(gradfi,f,Ad)
 		At_mul_B!(ATAd,f,gradfi)
 

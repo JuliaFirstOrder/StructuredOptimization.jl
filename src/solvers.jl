@@ -23,7 +23,7 @@ function Base.show(io::IO, slv::ForwardBackwardSolver)
 	println(io, "γ          : $(slv.gamma)")
 	println(io, "time       : $(slv.time)")
 	println(io, "prox   eval: $(slv.cnt_prox)")
-	println(io, "matvec eval: $(slv.cnt_matvec)")
+	print(  io, "matvec eval: $(slv.cnt_matvec)")
 end
 
 export solve
@@ -31,10 +31,10 @@ export solve
 solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction) =
 solve(A, b, g, zeros(eltype(b), size(A,2)))
 
-solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction, x0::AbstractArray) = 
+solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction, x0::AbstractArray) =
 solve(A, b, g, x0, ZeroFPR() )
 
-function solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction, x0::AbstractArray, args...) 
+function solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction, x0::AbstractArray, args...)
 	x = Variable(deepcopy(x0))
 	slv = solve(ls(A*x+b), g, args...)
 	return ~x, slv
@@ -49,4 +49,3 @@ function solve(b::AbstractArray, g::ProximableFunction, A::AbstractArray, args..
 	y, slv = solve(A', b, Conjugate(g), args...)
 	return -A'*y+b, slv, y
 end
-
