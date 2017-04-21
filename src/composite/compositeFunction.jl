@@ -1,5 +1,5 @@
 import Base: *, <=, ==, sum, isempty
-export affine, terms, tilt
+export affine, terms, tilt, emptycostfun
 
 immutable CompositeFunction
 	x::Vector{Variable}
@@ -120,6 +120,8 @@ function sort_and_expand(x_sorted::Array{Variable,1}, cf::CompositeFunction)
 	end
 	return CompositeFunction(x_sorted,cf.f,sA)
 end
+
+emptycostfun() = CompositeFunction()
 
 function Base.show(io::IO, cf::CompositeFunction)
 	if isempty(cf)

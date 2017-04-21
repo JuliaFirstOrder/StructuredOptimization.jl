@@ -60,6 +60,12 @@ MIMOFilt(eltype(b[1]), dim_in, b, a)
 MIMOFilt{D1<:AbstractVector}(dim_in::Tuple,  b::Vector{D1}) = 
 MIMOFilt(eltype(b[1]), dim_in, b, [[1.0] for i in eachindex(b)])
 
+MIMOFilt{D1<:AbstractVector}(x::AbstractMatrix,  b::Vector{D1}, a::Vector{D1}) = 
+MIMOFilt(eltype(x), size(x), b, a)
+
+MIMOFilt{D1<:AbstractVector}(x::AbstractMatrix,  b::Vector{D1}) = 
+MIMOFilt(eltype(x), size(x), b, [[1.0] for i in eachindex(b)])
+
 
 # Operators
 

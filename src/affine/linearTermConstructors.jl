@@ -9,10 +9,13 @@ import Base: zeros,
 	     dct,
 	     idct,
 	     conv,
-	     xcorr
+	     xcorr,
+	     filt
 
 export       finitediff,
-	     variation
+	     variation,
+	     mimofilt,
+	     zeropad
        
 (*)(L::LinearOperator, x::Variable) = LinearTerm(x,L)
 
@@ -54,5 +57,11 @@ variation(x::AbstractVariable, args...) = Variation(~x, args...)*x
 conv(x::AbstractVariable, args...)  = Conv(~x, args...)*x
 
 xcorr(x::AbstractVariable, args...) = Xcorr(~x, args...)*x
+
+filt(x::AbstractVariable, args...) = Filt(~x, args...)*x
+
+mimofilt(x::AbstractVariable, args...) = MIMOFilt(~x, args...)*x
+
+zeropad(x::AbstractVariable, args...) = ZeroPad(~x, args...)*x
 
 

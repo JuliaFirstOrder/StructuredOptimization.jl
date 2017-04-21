@@ -39,3 +39,9 @@ variation( A::AbstractAffineTerm, args...) = compose(Variation,  A, args...)
 conv(      A::AbstractAffineTerm, args...) = compose(Conv,       A, args...)
 
 xcorr(     A::AbstractAffineTerm, args...) = compose(Xcorr,      A, args...)
+
+filt(     A::AbstractAffineTerm, args...) = compose(Filt,      A, args...)
+
+mimofilt( A::AbstractAffineTerm, args...) = compose(MIMOFilt,      A, args...)
+
+zeropad(  A::AbstractAffineTerm, args...) = compose(ZeroPad,      A, args...)

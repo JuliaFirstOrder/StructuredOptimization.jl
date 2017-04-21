@@ -40,8 +40,17 @@ Filt(eltype(b),(dim_in,), b, a)
 Filt{D1}(dim_in::Tuple,  b::AbstractVector{D1}, a::AbstractVector{D1}) = 
 Filt(eltype(b), dim_in, b, a)
 
+Filt{D1}(dim_in::Int,  b::AbstractVector{D1}) = 
+Filt(eltype(b),(dim_in,), b, [1.0])
+
+Filt{D1}(dim_in::Tuple,  b::AbstractVector{D1}) = 
+Filt(eltype(b), dim_in, b, [1.0])
+
 Filt{D1}(x::AbstractArray{D1}, b::AbstractVector{D1}, a::AbstractVector{D1}) = 
-Filt(eltype(x),size(x), h)
+Filt(eltype(x),size(x), b, a)
+
+Filt{D1}(x::AbstractArray{D1}, b::AbstractVector{D1}) = 
+Filt(x, b, [1.])
 
 # Operators
 

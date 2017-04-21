@@ -31,7 +31,7 @@ slv = FPG()
 slv = slv(verbose = 1, tol = 1e-3, linesearch = false, gamma = 0.5)
 
 @time slv = minimize(ls(reshape(X,N,3*n*m)+Y-F)+0.1*sum(norm(X),2), [rank(Y) <= 1], slv)
-show(slv)
+println(slv)
 
 Frg = copy(~X)
 Frg[Frg.!=0] = Frg[Frg.!=0]+reshape(~Y,N*m*n*3)[Frg.!=0]

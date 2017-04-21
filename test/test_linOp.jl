@@ -32,6 +32,31 @@ stuff = [
        "in_out"   => ( ones(4,4)+im*ones(4,4), ones(4,4)+im*ones(4,4) )
 	     ),
 	 Dict(
+       "Operator" => (ZeroPad,),
+       "params"   => (((4,),3),),
+       "wrg_pr"   => (((4,),-3),),
+       "args"     => ( randn(4), randn(7) ),
+       "in_out"     => ( ones(4), [ones(4);zeros(3)] ),
+	     ),
+	 Dict(
+       "Operator" => (ZeroPad,),
+       "params"   => (((4,4),3),),
+       "args"     => ( randn(4,4), randn(7,4) ),
+       "in_out"     => ( ones(4,4), [ones(4,4);zeros(3,4)] ),
+	     ),
+	 Dict(
+       "Operator" => (ZeroPad,),
+       "params"   => (((4,4),3,3),),
+       "args"     => ( randn(4,4), randn(7,7) ),
+       "in_out"     => ( ones(4,4), [[ones(4,4);zeros(3,4)] zeros(7,3)] ),
+	     ),
+	 Dict(
+       "Operator" => (ZeroPad,),
+       "params"   => (((4,4,4),3,3),),
+       "args"     => ( randn(4,4,4), randn(7,7,4) ),
+       "in_out"     => ( ones(4,4,4), [[ones(4,4,4);zeros(3,4,4)] zeros(7,3,4)] ),
+	     ),
+	 Dict(
        "Operator" => (GetIndex,),
        "params"   => (( zeros(4,4), (1:2,:)  ,),),
        "args"     => ( randn(4,4), randn(2,4) ),
@@ -534,7 +559,7 @@ for i in eachindex(stuff)
 	if "in_out" in keys(stuff[i]) 
 		verb && println("testing output")
 		x0,y0 = stuff[i]["in_out"]
-		test4 = norm(A*x0-y0)
+		test4 = vecnorm(A*x0-y0)
 		@test test4 < 1e-8
 	end
 

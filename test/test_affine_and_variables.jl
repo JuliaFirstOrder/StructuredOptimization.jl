@@ -129,6 +129,12 @@ println(finitediff(Z,2))
 println(variation(Z))
 println(conv(z,randn(10)))
 println(xcorr(z,randn(10)))
+println(filt(z,randn(10)))
+println(filt(z,randn(10),randn(10)))
+println(mimofilt(Z,[randn(10),randn(10),randn(10),randn(10)]))
+println(mimofilt(Z,[randn(10),randn(10),randn(10),randn(10)],
+		   [randn(10),randn(10),randn(10),randn(10)] ))
+println(zeropad(z,2))
 
 println("\n testing function composition \n")
 A = zeros(M*x-b)
@@ -136,6 +142,9 @@ A = zeros(M*x-b)
 
 A = eye(M*x)
 @test norm(A(~x)-(M*~x)) <1e-9
+
+A = zeropad(M*x,4)
+@test norm(A(~x)-([M*~x;zeros(4)])) <1e-9
 
 A = reshape(M*x,2,2)
 @test norm(A(~x)-reshape(M*~x,2,2)) <1e-9
@@ -177,6 +186,14 @@ A =  conv(M*x-b,b)
 
 A =  xcorr(M*x-b,b)
 @test norm(A(~x)-xcorr(M*~x-b,b)) <1e-9
+
+A =  filt(M*x-b,b)
+@test norm(A(~x)-filt(b,[1.0],M*~x-b)) <1e-9
+
+X = Variable(randn(3,2))
+B = randn(4,2)
+A =  mimofilt(M*X-B,[b,b])
+@test norm(A(~X)-sum(filt(b,[1.0],M*~X-B),2)) <1e-9
 
 
 println("\n testing sort_and_expand LinearTerm \n")

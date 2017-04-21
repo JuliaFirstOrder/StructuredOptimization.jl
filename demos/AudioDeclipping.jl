@@ -26,70 +26,57 @@ y_df = [zeros(Nl) for i = 1:length(y_f) ] #declipped frames
 wa = sqrt(hamming(Nl))    #analysis window
 ws = sqrt(hamming(Nl))    #synthesis window
 
-s = 1 #redundancy
+x, y = Variable(Nl), Variable(Nl)
 
-Lidct = plan_idct(ones(s*Nl))
-Ldct  = plan_dct(ones(s*Nl))
+cf = ls( idct(x) -y )
 
-L    = x-> (Lidct*x[1])[1:Nl] - x[2]
-Ladj = x-> [Ldct*[x;zeros((s-1)*Nl)],-x]
-
-#test operators
-XX = [randn(s*Nl),randn(Nl)]
-YY = randn(Nl)
-norm(vecdot(L(XX),YY)-vecdot(XX,Ladj(YY))) #verify adjoint operator
 fit_tol = 1e-5
 greedy = true
 reg = IndBallL0
 #reg = NormL1
+slv = ZeroFPR(tol = 1e-6, verbose = 0)
 
 tic()
 for f = 1:length(y_f)
-	Irp = find(y_f[f].>=C)  #positive clipping indices
-	Irn = find(y_f[f].<=-C) #negative clipping indices 
+	Irp = find(    y_f[f]  .>=  C)  #positive clipping indices
+	Irn = find(    y_f[f]  .<= -C) #negative clipping indices 
+	Im  = find(abs(y_f[f]) .<   C) #non clipped indices
 
 	if countnz(Irp)+countnz(Irn)!=0 #check the frame is clipped
-		Im = find(abs(y_f[f]).<C) #non clipped indices
 		yw = y_f[f].*wa           #windowed frame
-		y = yw[Im]                #non clipped samples
 
-		gg = SlicedSeparableSum([Precomposition(IndBallL2(fit_tol),1,-y),
-													IndBox(yw[Irp],wa[Irp]),
-													IndBox(-wa[Irn],yw[Irn])],
-													   [Im,Irp,Irn])
-		X = [1e0*ones([yw;zeros((s-1)*Nl)]),yw] #initial guess 
-		#X = 0*X
+		~x .= ones(~x)
+		~y .= yw
 
 		k = 0
 		if greedy == true
 			if reg == IndBallL0
-				for k=20:20:20*div(s*Nl,20)
-					g = SeparableSum( [reg(k),gg] )
-					X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-6,verbose = 0))
+				for k=20:20:20*div(Nl,20)
+					cstr = [
+	     					norm(x,0)<= k, 
+						norm(y[Im]-yw[Im])<=fit_tol, 
+						y[Irp] in [ yw[Irp], wa[Irp]], 
+						y[Irn] in [-wa[Irn], yw[Irn]] 
+					       ]
+					slv = minimize(cf, cstr, slv)
+
 					if slv.cost <= fit_tol break; end
 				end
 			elseif reg == NormL1
 				for k in logspace(-1,-5,40)
-					g = SeparableSum( [reg(k),gg] )
-					X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-6,verbose = 0))
-					if slv.cost <= fit_tol break; end
+					#TODO ?
 				end
 				##
 			end
 		else
 			if reg == IndBallL0
-				k = 400
-				g = SeparableSum( [reg(k),gg] )
-				X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-6,verbose = 0))
+				#TODO ?
 			elseif reg == NormL1
-			  k = 1e-3
-				g = SeparableSum( [reg(k),gg] )
-				X,slv = solve(L,Ladj, zeros(Nl), g, X, ZeroFPR(tol=1e-6,verbose = 0))
+				#TODO ?
 			end
 		end
 		@printf("frame: %3d / %3d | nnz: %3d \n ", f, length(y_f), k)
-
-		y_df[f] = idct(X[1])[1:Nl]
+		y_df[f] = idct(~x)
 
 	else #do not process frame
 		y_df[f] = y_f[f].*wa  
