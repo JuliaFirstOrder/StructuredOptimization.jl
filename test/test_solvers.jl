@@ -208,3 +208,72 @@ println(sol)
 
 @test norm(~x - max(lb, min(ub, ~x)), Inf) <= 1e-12
 @test norm(~x - max(lb, min(ub, ~x - A'*(A*~x - b))), Inf)/(1+norm(~x, Inf)) <= 1e-8
+
+################################################################################
+################################################################################
+################################################################################
+### Non-negative least-squares from a known solution
+################################################################################
+println("Testing: non-negative least-squares from a known solution")
+
+# Lagrangian:
+#
+#   0.5||Ax-b||^2 + y'(x-z) + [z >= 0]
+#
+# Optimality conditions:
+#
+#   A'(Ax-b) + y = 0, or A'b = A'Ax + y
+#   x = z
+#   z >= 0
+#   y <= 0
+#   y'z = 0
+
+m, n, nnz_x_star = 500, 200, 100
+A = randn(m, n)
+x_star = rand(n)
+x_star[nnz_x_star+1:end] = 0.0
+y_star = -rand(n)
+y_star[1:nnz_x_star] = 0.0
+b = A*x_star + A'\y_star
+
+# Solve with PG
+
+x_pg = Variable(n)
+expr = ls(A*x_pg - b)
+prob = problem(expr, x_pg >= 0.0)
+@time sol = solve(prob, PG(tol=1e-8,verbose=0))
+println(sol)
+
+@test all(~x_pg .>= 0.0)
+@test norm(~x_pg - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
+
+# Solve with FPG
+
+x_fpg = Variable(n)
+expr = ls(A*x_fpg - b)
+prob = problem(expr, x_fpg >= 0.0)
+@time sol = solve(prob, FPG(tol=1e-8,verbose=0))
+println(sol)
+
+@test all(~x_fpg .>= 0.0)
+@test norm(~x_fpg - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
+
+# Solve with ZeroFPR
+
+x_zerofpr = Variable(n)
+expr = ls(A*x_zerofpr - b)
+prob = problem(expr, x_zerofpr >= 0.0)
+@time sol = solve(prob, ZeroFPR(tol=1e-8,verbose=0))
+println(sol)
+
+@test all(~x_zerofpr .>= 0.0)
+@test norm(~x_zerofpr - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
+
+# Solve with minimize, default solver/options
+
+x = Variable(n)
+@time sol = minimize(ls(A*x - b), x >= 0.0)
+println(sol)
+
+@test all(~x .>= 0.0)
+@test norm(~x - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
