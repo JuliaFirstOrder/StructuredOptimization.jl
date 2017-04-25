@@ -19,12 +19,12 @@ slv = slv(tol = tol, verbose = verb , gamma = 1/Lf, linesearch = false)
 lambda = 0.07
 
 X1 = Variable(size(R))
-slv = minimize(ls(X1-R_w) +lambda*norm(tv(X1),1),       slv)
-show(slv)
+slv = minimize(ls(X1-R_w) +lambda*norm(variation(X1),1),       slv)
+println(slv)
 
 X21 = Variable(size(R))
-slv = minimize(ls(X21-R_w)+lambda*sum(norm(tv(X21)),2), slv)
-show(slv)
+slv = minimize(ls(X21-R_w)+lambda*sum(norm(variation(X21)),2), slv)
+println(slv)
 
 
 imshow(R)

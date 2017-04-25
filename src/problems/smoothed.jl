@@ -1,14 +1,14 @@
 immutable SmoothedPrimal
-	s::CostFunction          #smooth cost function
-	n::CostFunction          #nonsmooth cost function
+	s::CompositeFunction          #smooth cost function
+	n::CompositeFunction          #nonsmooth cost function
 	p::ProximableFunction
 	gamma0::AbstractArray
 end
 
-SmoothedPrimal(s::CostFunction, n::CostFunction, p::ProximableFunction) =
+SmoothedPrimal(s::CompositeFunction, n::CompositeFunction, p::ProximableFunction) =
 SmoothedPrimal(s,n,p,logspace(1, -6, 10))
 
-function solve(P::SmoothedPrimal, slv::Solver = default_slv())  
+function solve(P::SmoothedPrimal, slv::Solver = default_slv())
 	slv0 = []
 	for gamma in P.gamma0
 		slv.verbose != 0 && println("solving for γ₀ = $(gamma) ")
@@ -19,18 +19,17 @@ function solve(P::SmoothedPrimal, slv::Solver = default_slv())
 end
 
 function Base.show(io::IO, P::SmoothedPrimal)
-	println("Smoothed Primal Problem")
-	println()
-	println("Smooth Cost Function:")
-	println()
-	show(P.s)
-	println()
-	println("Smoothed Cost Function:")
-	println()
-	show(P.n)
-	println()
-	println("Proximable operators:")
-	println()
+	println(io, "Smoothed Primal Problem")
+	println(io)
+	println(io, "Smooth Cost Function:")
+	println(io)
+	show(io, P.s)
+	println(io)
+	println(io, "Smoothed Cost Function:")
+	println(io)
+	show(io, P.n)
+	println(io)
+	println(io, "Proximable operators:")
+	println(io)
 	show(P.p)
-	println()
 end

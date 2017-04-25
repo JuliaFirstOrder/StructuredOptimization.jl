@@ -1,7 +1,7 @@
-abstract AffineOperator
-abstract LinearOperator{D1,D2} 
-abstract DiagonalOperator{D1,D2} <: LinearOperator{D1,D2}
-abstract IdentityOperator{D1,D2} <: DiagonalOperator{D1,D2}
+abstract AbstractAffineTerm
+abstract LinearOperator
+abstract DiagonalOperator <:   LinearOperator
+abstract IdentityOperator <: DiagonalOperator
 #abstract DiagonalOp <: DiagGramOp
 
 import Base:
@@ -15,78 +15,65 @@ import Base:
   ndims,
   +,
   -,
-  sign,
   ==
 
-size(A::LinearOperator, i::Int64) = size(A)[i]
-ndims(A::LinearOperator) = (length(size(A,1)),length(size(A,2)))
-ndims(A::LinearOperator, i::Int64) = length(size(A,i))
 
-  domainType{D1,D2}(A::LinearOperator{D1,D2}) = D1
-codomainType{D1,D2}(A::LinearOperator{D1,D2}) = D2
++(L::LinearOperator) = L
 
-Ac_mul_B!(y::AbstractArray,A::LinearOperator,b::AbstractArray)  = A_mul_B!(y, A',b)
- A_mul_B!(y::AbstractArray,A::LinearOperator,b::AbstractArray) = 
-sign(A) ? uA_mul_B!(y,A,b) : uA_mul_B!(y,A,-b)
-
-function *{D1,D2}(A::LinearOperator{D1,D2},b::AbstractArray)
-	y = zeros(D2,size(A,2))
-	A_mul_B!(y,A,b)
-	return y
+function *(L::LinearOperator,b::AbstractArray)
+	y = zeros(codomainType(L),size(L,1))        
+	A_mul_B!(y,L,b)        
+	return y 
 end
 
-.*(A::LinearOperator,b) = A*b
 
-+(A::LinearOperator) = A
-sign(A::LinearOperator) = A.sign ? true : false
-
-include("operators/Affine.jl")
+include("operators/MyOperator.jl")
+include("operators/Zeros.jl")
 include("operators/Eye.jl")
-include("operators/MatrixOp.jl")
-include("operators/Reshape.jl")
-include("operators/NestedLinearOp.jl")
-include("operators/DFT.jl")
-include("operators/FiniteDiff.jl")
-include("operators/TV.jl")
-include("operators/DCT.jl")
-include("operators/Conv.jl")
 include("operators/DiagOp.jl")
 include("operators/GetIndex.jl")
-include("operators/Empty.jl")
-include("operators/HCAT.jl")
-include("operators/VCAT.jl")
-include("operators/Plus.jl")
+include("operators/MatrixOp.jl")
+include("operators/DFT.jl")
+include("operators/DCT.jl")
+include("operators/FiniteDiff.jl")
+include("operators/Variation.jl")
+include("operators/Conv.jl")
+include("operators/Filt.jl")
+include("operators/MIMOFilt.jl")
+include("operators/ZeroPad.jl")
+include("operators/Xcorr.jl")
 include("operators/LBFGS.jl")
-include("operators/Zeros.jl")
 include("operators/utils.jl")
 
-function Base.show{Op <: LinearOperator }(io::IO, f::Op)
-  println(io, "description : ", fun_name(f))
-  println(io, "domain      : ", fun_dom(f))
+#calcolus
+include("operators/Scale.jl")
+include("operators/Transpose.jl")
+include("operators/Sum.jl")
+include("operators/Reshape.jl")
+include("operators/Compose.jl")
+include("operators/HCAT.jl")
+include("operators/VCAT.jl")
+
+size(L::LinearOperator, i) = size(L)[i]
+
+#usually domain is preserved, if not one has to redefine these functions
+  domainType(L::LinearOperator) = L.domainType
+codomainType(L::LinearOperator) = L.domainType
+
+isEye(L::LinearOperator) = typeof(L) <: IdentityOperator
+isDiagonal(L::LinearOperator) = typeof(L) <: DiagonalOperator
+# this will be changed with typeof(L) <: GramDiagonal
+isGramDiagonal(L::LinearOperator) = typeof(L) <: DiagonalOperator
+
+isInvertible(L::LinearOperator) = false
+isScaled(L::LinearOperator) = false
+
+function Base.show(io::IO, L::LinearOperator)
+  println(io, "description : ", fun_name(L))
+  print(  io, "type        : ", fun_type(L))
 end
 
-fun_name(  f) = "n/a"
-fun_dom(   f) = "n/a"
-fun_par(   f) = "n/a"
+fun_type(  L) = fun_domain(L)*" → "*fun_codomain(L)
 
-fun_dom{D1<:Complex, D2<:Real   }(A::LinearOperator{D1,D2}) = "ℂ^$(size(A,1)) →  ℝ^$(size(A,2))"
-fun_dom{D1<:Complex, D2<:Complex}(A::LinearOperator{D1,D2}) = "ℂ^$(size(A,1)) →  ℂ^$(size(A,2))"
-fun_dom{D1<:Real,    D2<:Complex}(A::LinearOperator{D1,D2}) = "ℝ^$(size(A,1)) →  ℂ^$(size(A,2))"
-fun_dom{D1<:Real,    D2<:Real   }(A::LinearOperator{D1,D2}) = "ℝ^$(size(A,1)) →  ℝ^$(size(A,2))"
-
-isEye(A::LinearOperator) = typeof(A) <: IdentityOperator 
-
-isDiagonal(A::LinearOperator) = typeof(A) <: DiagonalOperator 
-
-isAbsorbable(A::LinearOperator) = typeof(A) <: DiagonalOperator 
-#this will be changed with typeof(A) <: GramDiagonal 
-
-isInvertable(A::LinearOperator) = false
-
-
-
-
-
-
-
-
+fun_domain(L::LinearOperator)   =   domainType(L) <: Complex ? "ℂ^$(size(L,2))" : "ℝ^$(size(L,2))"
+fun_codomain(L::LinearOperator) = codomainType(L) <: Complex ? "ℂ^$(size(L,1))" : "ℝ^$(size(L,1))"

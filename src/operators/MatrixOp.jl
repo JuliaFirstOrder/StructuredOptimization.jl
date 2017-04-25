@@ -1,25 +1,33 @@
 export MatrixOp
 
-#TODO add matrix *matrix 
-immutable MatrixOp{D1,D2} <: LinearOperator{D1,D2}
-	sign::Bool
+immutable MatrixOp <: LinearOperator
+	domainType::Type
+	dim_in::Tuple
 	A::AbstractMatrix
 
-	MatrixOp(sign,A) = new(sign,A)
-	MatrixOp(A) = new(true,A)
+	MatrixOp(domainType,dim_in,A) = 
+	new(domainType, dim_in, domainType <: Complex ? complex(A) : A)
 end
-size(A::MatrixOp) = ((size(A.A,2),),(size(A.A,1),))
--{D1,D2}(A::MatrixOp{D1,D2}) = MatrixOp{D1,D2}(false == sign(A),A.A) 
 
-MatrixOp{D2}(T::Type, A::AbstractMatrix{D2}) = MatrixOp{T,D2}(A)
-MatrixOp(A::AbstractMatrix) = MatrixOp(Float64, A)
+size(L::MatrixOp) = length(L.dim_in) == 1 ? ((size(L.A,1),), L.dim_in) : 
+((size(L.A,1), L.dim_in[2]), L.dim_in)
 
-fun_name(A::MatrixOp)  = "Matrix Operator"
-*{D1,D2}(A::AbstractMatrix{D2}, x::Variable{D1}) = Affine([x], MatrixOp(D1,A), MatrixOp(D2,A'),
-							Nullable{AbstractArray}() )
+#Constructors
 
-transpose{D1,D2}(A::MatrixOp{D1,D2}) = MatrixOp{D2,D1}(sign(A),A.A')
+MatrixOp(A::AbstractMatrix) = MatrixOp(eltype(A), (size(A, 2),), A)
 
-uA_mul_B!(y::AbstractArray,A::MatrixOp,b::AbstractArray) = A_mul_B!(y,A.A,b) 
-#nested Operations
-*(A::AbstractMatrix,B::AffineOperator) = NestedLinearOperator(*, B, A)
+MatrixOp(A::AbstractMatrix, dim_in::Tuple) = MatrixOp(eltype(A), dim_in, A)
+
+MatrixOp(A::AbstractMatrix, dim_in::Vararg{Int} ) = MatrixOp(A,dim_in) 
+
+MatrixOp(domainType::Type, A::AbstractMatrix, dim_in::Vararg{Int} ) = MatrixOp(domainType,dim_in,A) 
+
+MatrixOp(x::AbstractArray, A::AbstractMatrix) = MatrixOp(eltype(x),size(x),A)
+
+# Operators
+A_mul_B!{T}(y::AbstractArray{T},  A::MatrixOp, b::AbstractArray{T}) = A_mul_B!(y, A.A, b)
+Ac_mul_B!{T}(y::AbstractArray{T}, A::MatrixOp, b::AbstractArray{T}) = Ac_mul_B!(y, A.A, b)
+
+# Properties
+fun_name(A::MatrixOp)  = "Matrix operator"
+

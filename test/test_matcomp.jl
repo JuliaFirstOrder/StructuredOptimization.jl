@@ -20,8 +20,8 @@ tol = 1e-6
 
 @time x_ista, slv = solve(A, g, PG(verbose = verb, tol = tol))
 @test slv.it < slv.maxit
-show(slv)
+println(slv)
 
 @time x_zerofpr, slv = solve(A, g, ZeroFPR(verbose = verb, tol = tol))
 @test slv.it < slv.maxit
-show(slv)
+println(slv)

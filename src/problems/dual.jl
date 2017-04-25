@@ -1,14 +1,14 @@
 
 immutable Dual
 	x::Vector{Variable} #primal variables
-	cf::CostFunction
+	cf::CompositeFunction
 	p::ProximableFunction
 	Ainv::Vector{LinearOperator}
 end
 
-function Dual(smooth::CostFunction, nonsmooth::CostFunction)
+function Dual(smooth::CompositeFunction, nonsmooth::CompositeFunction)
 
-	length(terms(smooth)) != length(variable(smooth)) && error("not enough terms smooth for dual") 
+	length(terms(smooth)) != length(variable(smooth)) && error("not enough terms smooth for dual")
 	!(isLeastSquares(smooth)) && error("terms in smooth must all be least squares")
 
 	y = Variable(affine(nonsmooth)[1](~variable(nonsmooth)))     #create dual variables
@@ -20,11 +20,11 @@ function Dual(smooth::CostFunction, nonsmooth::CostFunction)
 	for i in eachindex(variable(smooth))
 		A = operator(affine(smooth)[i])
 		typeof(A)<: HCAT ? A = A.A[i] : nothing
-		isInvertable(A) == true ? nothing : error("operator not easily invertable")
+		isInvertible(A) == true ? nothing : error("operator not easily invertable")
 		Ainv[i] = inv(A)
 	end
-		
-	cf = CostFunction() #new dual cost function
+
+	cf = CompositeFunction() #new dual cost function
 	for i in eachindex(variable(smooth))
 		lambda = (terms(smooth)[i].lambda)
 		if lambda == 1.0
@@ -34,10 +34,10 @@ function Dual(smooth::CostFunction, nonsmooth::CostFunction)
 		end
 	end
 
-	p = get_cjprox(terms(nonsmooth)[1],-tilt(affine(nonsmooth)[1])) 
-	 
+	p = get_cjprox(terms(nonsmooth)[1],-tilt(affine(nonsmooth)[1]))
+
 	Dual(variable(smooth),cf, p, Ainv)
-	
+
 end
 
 function get_cjprox{T<:NonSmoothFunction}(g::T, b2::AbstractArray)
@@ -50,9 +50,9 @@ function get_cjprox{T<:NonSmoothFunction}(g::T, b2::Float64)
 	PrecomposeDiagonal(Conjugate(get_prox(g)),-1,0)
 end
 
-function solve(P::Dual, slv::Solver = default_slv()) 
+function solve(P::Dual, slv::Solver = default_slv())
 	slv = solve(P.cf, P.p, slv)
-	resy, = residual(P.cf,~variable(P.cf)) 
+	resy, = residual(P.cf,~variable(P.cf))
 	~P.x[1] .= -(P.Ainv[1]'*resy[1])
 	for i = 2:length(resy)
 		~P.x[i] .= -(P.Ainv[i]'*resy[i])
@@ -62,15 +62,12 @@ end
 
 
 function Base.show(io::IO, P::Dual)
-	println("Dual Problem")
-	println()
-	println("Smooth Cost Function:")
-	println()
-	show(P.cf)
-	println()
-	println("Proximable operators:")
-	println()
-	show(P.p)
-	println()
+	println(io, "Dual Problem")
+	println(io)
+	println(io, "Smooth Cost Function:")
+	show(io, P.cf)
+	println(io)
+	println(io, "Proximable operators:")
+	println(io)
+	show(io, P.p)
 end
-

@@ -13,12 +13,13 @@ mem = 5;
 
 x = zeros(n)
 A = LBFGS(x,mem)
-show(A)
+println(A)
+println()
 nh = round(Int64,n/2)
 x2 = [zeros(nh),zeros(nh)]
 
 A2 = LBFGS(x2,mem)
-#show(A2)
+#println(A2)
 
 x_old = 0;
 x_old2 = 0;
@@ -50,4 +51,3 @@ end
 
 @test norm(dir[1:nh]-dir2[1])<1e-8
 @test norm(dir[nh+1:end]-dir2[2])<1e-8
-

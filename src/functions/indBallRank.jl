@@ -1,14 +1,6 @@
-import Base: rank
-
 immutable IndBallRank{I <: Integer}   <: NonSmoothFunction
 	r::I
 end
-
-rank(x::Variable, args...) = rank(eye(x), args...)
-
-rank(A::AffineOperator) = CostFunction(variable(A), [IndBallRank(0)], [A])
-
-<=(T::IndBallRank,   r::Integer) = IndBallRank(r) 
 
 get_prox(T::IndBallRank) = ProximalOperators.IndBallRank(T.r)
 
