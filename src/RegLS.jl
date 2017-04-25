@@ -4,6 +4,9 @@ module RegLS
 
 using ProximalOperators
 
+import Base: in, *, <=, ==, sum, isempty, rank, norm
+import ProximalOperators: is_convex
+
 include("utils.jl")
 include("operators.jl")
 include("variables.jl")

@@ -1,21 +1,14 @@
-immutable SeparableSum <: ExtendedRealValuedFunction
-	fs::ExtendedRealValuedFunction
-end
+is_smooth(f::SeparableSum) = all(is_smooth.(f.fs))
+is_quadratic(f::SeparableSum) = all(is_quadratic.(f.fs))
+is_strconvex(f::SeparableSum) = all(is_strconvex.(f.fs))
 
-function (fs::AbstractArray{ExtendedRealValuedFunction})(x::AbstractArray)
-  val = 0.0
-  for k in eachindex fs
-    val += fs[k](x[k])
-  end
-  return val
-end
-
-(f::SeparableSum)(x::AbstractArray) = f.fs(x)
-
-function gradient!(grad::AbstractArray, fs::AbstractArray{ExtendedRealValuedFunction}, x::AbstractArray)
+function gradient!(grad::AbstractArray, fs::AbstractArray, x::AbstractArray)
   val = 0.0
   for k in eachindex fs
     val += gradient!(grad[k], fs[k], x[k])
   end
   return val
 end
+
+gradient!(grad::AbstractArray, f::SeparableSum, x::AbstractArray) =
+  gradient!(grad, f.fs, x)

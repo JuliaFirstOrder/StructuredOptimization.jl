@@ -1,15 +1,16 @@
-import Base: *, <=, ==, sum, isempty
 export affine, terms, tilt, emptycostfun
 
 immutable CompositeFunction
 	x::Vector{Variable}
-	f::Vector{ExtendedRealValuedFunction}
+	f::Vector{ProximableFunction}
 	A::Vector{AbstractAffineTerm}
 end
 
-CompositeFunction() = CompositeFunction(Vector{Variable}(0),
-			      Vector{ExtendedRealValuedFunction}(0),
-			      Vector{AbstractAffineTerm}(0))
+CompositeFunction() = CompositeFunction(
+	Vector{Variable}(0),
+  Vector{ProximableFunction}(0),
+  Vector{AbstractAffineTerm}(0)
+)
 
 variable(cf::CompositeFunction) = cf.x
 affine(  cf::CompositeFunction) = cf.A
@@ -18,18 +19,26 @@ operator(cf::CompositeFunction) = operator.(cf.A)
 tilt(    cf::CompositeFunction) = tilt.(cf.A)
 
 isempty( cf::CompositeFunction) = length(cf.f) == 0 ? true : false
-isLeastSquares( cf::CompositeFunction) =  all([typeof(t) <: LeastSquares for t in terms(cf) ])
+# isLeastSquares( cf::CompositeFunction) =  all([typeof(t) <: LeastSquares for t in terms(cf) ])
 
 function +(h::CompositeFunction, g::CompositeFunction)
-	x = addVar(h.x,g.x)
-	CompositeFunction(x,[h.f...,g.f...], [h.A...,g.A...])
+	x = addVar(h.x, g.x)
+	CompositeFunction(x, [h.f..., g.f...], [h.A..., g.A...])
 end
 
-*(lambda::Real, h::CompositeFunction)   = CompositeFunction(h.x,(*).(lambda, h.f),h.A)
+*(lambda::Real, h::CompositeFunction) = CompositeFunction(h.x, (*).(lambda, h.f), h.A)
 
-<=(h::CompositeFunction, lambda::Real)  = CompositeFunction(h.x,(<=).(h.f,lambda),h.A)
-==(h::CompositeFunction, lambda::Real)  = CompositeFunction(h.x,(==).(h.f,lambda),h.A)
-sum(h::CompositeFunction,  dim::Int  ) = CompositeFunction(h.x,(sum).(h.f,dim   ),h.A)
+function (<=)(h::CompositeFunction, lambda::Real)
+	if length(h.f) > 1 error("cannot constrain the sum of functions") end
+	return CompositeFunction(h.x, (<=).(h.f, lambda), h.A)
+end
+
+function (==)(h::CompositeFunction, lambda::Real)
+	if length(h.f) > 1 error("cannot constrain the sum of functions") end
+	return CompositeFunction(h.x, (==).(h.f, lambda), h.A)
+end
+
+sum(h::CompositeFunction, dim::Int) = CompositeFunction(h.x, (sum).(h.f, dim), h.A)
 
 function cost{T}(cf::CompositeFunction,resx::Vector{T})
 	f = 0.0
@@ -41,23 +50,23 @@ end
 
 #this function must be used only with sorted and expanded affine operators!
 function residual!{T}(resx::Vector{T}, cf::CompositeFunction, x::AbstractArray)
-	f = 0.0
+	# f = 0.0
 	for i in eachindex(terms(cf))
 		evaluate!(resx[i],affine(cf)[i],x)
-		f += terms(cf)[i](resx[i])
+		# f += terms(cf)[i](resx[i])
 	end
-	return f
+	# return f
 end
 
 #this function must be used only with sorted and expanded affine operators!
 function residual(cf::CompositeFunction, x::AbstractArray)
-	f = 0.0
+	# f = 0.0
 	resx = Vector(length(terms(cf)))
 	for i in eachindex(terms(cf))
 		resx[i] = affine(cf)[i](x)
-		f += terms(cf)[i](resx[i])
+		# f += terms(cf)[i](resx[i])
 	end
-	return [resx...], f
+	return [resx...] #, f
 end
 
 #this function must be used only with sorted and expanded affine operators!
@@ -121,25 +130,26 @@ function sort_and_expand(x_sorted::Array{Variable,1}, cf::CompositeFunction)
 	return CompositeFunction(x_sorted,cf.f,sA)
 end
 
-emptycostfun() = CompositeFunction()
+# emptycostfun() = CompositeFunction()
 
 function Base.show(io::IO, cf::CompositeFunction)
-	if isempty(cf)
-		print(io, "Empty Cost Function")
-	else
-		description = fun_name(cf.f[1],1)
-		operator    =
-		"\n A1 = "*fun_name(RegLS.operator(cf.A[1]))*" : "*fun_type(RegLS.operator(cf.A[1]))
-		parameter   = fun_par(cf.f[1],1)
-		for i = 2:length(cf.f)
-			description = description*"+ "fun_name(cf.f[i],i)
-			operator    *=
-		"\n A$i = "*fun_name(RegLS.operator(cf.A[i]))*" : "*fun_type(RegLS.operator(cf.A[i]))
-			parameter = parameter*", "fun_par(cf.f[i],i)
-		end
-
-		println(io, "description : ", description)
-		println(io, "operators   : ", operator   )
-		print(  io, "parameters  : ", parameter  )
-	end
+	print(io, "CompositeFunction")
+	# if isempty(cf)
+	# 	print(io, "Empty Cost Function")
+	# else
+	# 	description = fun_name(cf.f[1],1)
+	# 	operator    =
+	# 	"\n A1 = "*fun_name(RegLS.operator(cf.A[1]))*" : "*fun_type(RegLS.operator(cf.A[1]))
+	# 	parameter   = fun_par(cf.f[1],1)
+	# 	for i = 2:length(cf.f)
+	# 		description = description*"+ "fun_name(cf.f[i],i)
+	# 		operator    *=
+	# 	"\n A$i = "*fun_name(RegLS.operator(cf.A[i]))*" : "*fun_type(RegLS.operator(cf.A[i]))
+	# 		parameter = parameter*", "fun_par(cf.f[i],i)
+	# 	end
+	#
+	# 	println(io, "description : ", description)
+	# 	println(io, "operators   : ", operator   )
+	# 	print(  io, "parameters  : ", parameter  )
+	# end
 end

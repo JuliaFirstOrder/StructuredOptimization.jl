@@ -11,8 +11,10 @@ function Dual(smooth::CompositeFunction, nonsmooth::CompositeFunction)
 	length(terms(smooth)) != length(variable(smooth)) && error("not enough terms smooth for dual")
 	!(isLeastSquares(smooth)) && error("terms in smooth must all be least squares")
 
-	y = Variable(affine(nonsmooth)[1](~variable(nonsmooth)))     #create dual variables
-	B = [operator(affine(nonsmooth)[1])]     #extract operator form nonsmooth
+	# create dual variables
+	y = Variable(affine(nonsmooth)[1](~variable(nonsmooth)))
+	# extract operator form nonsmooth
+	B = [operator(affine(nonsmooth)[1])]
 	typeof(B[1]) <: HCAT ? B = B[1].A : nothing
 
 	Ainv = Array{LinearOperator,1}(length(terms(smooth)))

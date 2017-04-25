@@ -7,12 +7,12 @@ M2  = randn(3,4)
 
 T = 0.1*ls(x1)
 println(T)
-y = RegLS.get_prox(T.f[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = 0.1*ls(x1+M2*x2)
 println(T)
-y = RegLS.get_prox(T.f[1])
+# y = RegLS.get_prox(T.f[1])
 resx = affine(T)[1]([X1,X2])
 println()
 
@@ -22,105 +22,105 @@ println()
 
 T = norm(x1,0)
 println(T)
-RegLS.lambda(terms(T)[1])
-y = RegLS.get_prox(T.f[1])
+# RegLS.lambda(terms(T)[1])
+# y = RegLS.get_prox(T.f[1])
 
 println()
 T = 0.1*norm(x1,1)
 println(T)
-RegLS.lambda(terms(T)[1])
-y = RegLS.get_prox(T.f[1])
+# RegLS.lambda(terms(T)[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = 0.1*norm(x1,2)
 T = 0.1*norm(x1)
 println(T)
-RegLS.lambda(terms(T)[1])
-y = RegLS.get_prox(T.f[1])
+# RegLS.lambda(terms(T)[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = 0.1*norm(x1,Inf)
 println(T)
-RegLS.lambda(terms(T)[1])
-y = RegLS.get_prox(T.f[1])
+# RegLS.lambda(terms(T)[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = norm(x1,0) <= 2
 println(T)
-RegLS.lambda(terms(T)[1])
-y = RegLS.get_prox(T.f[1])
+# RegLS.lambda(terms(T)[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = 3*norm(x1,1) <= 2
 println(T)
-RegLS.lambda(terms(T)[1])
-y = RegLS.get_prox(T.f[1])
+# RegLS.lambda(terms(T)[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = norm(x1) <= 2
 println(T)
-RegLS.lambda(terms(T)[1])
-y = RegLS.get_prox(T.f[1])
+# RegLS.lambda(terms(T)[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = sum(norm(X),1)
-RegLS.lambda(terms(T)[1])
+# RegLS.lambda(terms(T)[1])
 println(T)
-y = RegLS.get_prox(T.f[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = 0.5*sum(norm(X),2)
-RegLS.lambda(terms(T)[1])
+# RegLS.lambda(terms(T)[1])
 println(T)
-y = RegLS.get_prox(T.f[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
-T = norm(x1,Inf) <= 2
+T = norm(x1,Inf) <= 2.0
 println(T)
-RegLS.lambda(terms(T)[1])
-y = RegLS.get_prox(T.f[1])
+# RegLS.lambda(terms(T)[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
-T = norm(x1) == 2
+T = norm(x1) == 2.0
 println(T)
-RegLS.lambda(terms(T)[1])
-y = RegLS.get_prox(T.f[1])
+# RegLS.lambda(terms(T)[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = x1 <= 2.0
 println(T)
-RegLS.lambda(terms(T)[1])
-y = RegLS.get_prox(T.f[1])
+# RegLS.lambda(terms(T)[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = 3.0 <= x1
 println(T)
-RegLS.lambda(terms(T)[1])
-y = RegLS.get_prox(T.f[1])
+# RegLS.lambda(terms(T)[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = x1 >= randn(3)
-RegLS.lambda(terms(T)[1])
+# RegLS.lambda(terms(T)[1])
 println(T)
-y = RegLS.get_prox(T.f[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = x1 in [zeros(3), ones(3)]
-RegLS.lambda(terms(T)[1])
+# RegLS.lambda(terms(T)[1])
 println(T)
-y = RegLS.get_prox(T.f[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T =1.2* hingeloss(x1,randn(3))
-RegLS.lambda(terms(T)[1])
+# RegLS.lambda(terms(T)[1])
 println(T)
-y = RegLS.get_prox(T.f[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 T = rank(X) <= 2
-RegLS.lambda(terms(T)[1])
+# RegLS.lambda(terms(T)[1])
 println(T)
-y = RegLS.get_prox(T.f[1])
+# y = RegLS.get_prox(T.f[1])
 println()
 
 
@@ -141,73 +141,71 @@ cf = 10*(4*ls(x)+ls(x+y)+2*ls(z))
 println(cf)
 
 println("\n testing gradient \n")
+
 T = 0.1*ls(x1)
 println(T)
-resx, fx = RegLS.residual(T,X1)
-fx = RegLS.residual!(resx, T, X1)
+resx = RegLS.residual(T, X1)
+RegLS.residual!(resx, T, X1)
 gradfi, fx = RegLS.gradient(T, resx)
-@test norm(fx-(0.1/2*vecnorm(X1)^2))<1e-8
-@test norm(gradfi[1]-0.1*resx[1])<1e-8
-grad   = RegLS.At_mul_B(T, gradfi)
-@test norm(grad-(0.1*(X1)))<1e-8
+@test norm(fx-(0.1/2*vecnorm(X1)^2)) <= 1e-8
+@test norm(gradfi[1]-0.1*resx[1]) <= 1e-8
+grad = RegLS.At_mul_B(T, gradfi)
+@test norm(grad-(0.1*(X1))) <= 1e-8
 println()
 
 T = 0.1*ls(x1)+ls(M1*x1)
 println(T)
-resx, fx = RegLS.residual(T,X1)
-fx = RegLS.residual!(resx, T, X1)
+resx = RegLS.residual(T,X1)
+RegLS.residual!(resx, T, X1)
 gradfi, fx = RegLS.gradient(T, resx)
-@test norm(fx-(0.1/2*vecnorm(X1)^2+1/2*vecnorm(M1*X1)^2))<1e-8
-grad   = RegLS.At_mul_B(T, gradfi)
-@test norm(grad-(0.1*(X1)+M1'*(M1*X1)))<1e-8
+@test norm(fx-(0.1/2*vecnorm(X1)^2+1/2*vecnorm(M1*X1)^2)) <= 1e-8
+grad = RegLS.At_mul_B(T, gradfi)
+@test norm(grad-(0.1*(X1)+M1'*(M1*X1))) <= 1e-8
 println()
 
 T = 0.1*ls(x1+M2*x2-b1)+ls(M1*x1-x2-b2)
 println(T)
-resx, fx = RegLS.residual(T,[X1,X2])
-fx = RegLS.residual!(resx, T, [X1,X2])
+resx = RegLS.residual(T,[X1,X2])
+RegLS.residual!(resx, T, [X1,X2])
 gradfi, fx = RegLS.gradient(T, resx)
-@test norm(fx-(0.1/2*vecnorm(X1+M2*X2-b1)^2+1/2*vecnorm(M1*X1-X2-b2)^2))<1e-8
-grad   = RegLS.At_mul_B(T, gradfi)
-@test norm(grad-([0.1*(X1+M2*X2-b1)+M1'*(M1*X1-X2-b2), 0.1*M2'*(X1+M2*X2-b1)-(M1*X1-X2-b2)]))<1e-8
-
+@test norm(fx-(0.1/2*vecnorm(X1+M2*X2-b1)^2+1/2*vecnorm(M1*X1-X2-b2)^2)) <= 1e-8
+grad = RegLS.At_mul_B(T, gradfi)
+@test norm(grad-([0.1*(X1+M2*X2-b1)+M1'*(M1*X1-X2-b2), 0.1*M2'*(X1+M2*X2-b1)-(M1*X1-X2-b2)])) <= 1e-8
 
 println("\n testing gradient Moreau \n")
-gamma0  = 0.5
+
+gamma0 = 0.5
 lambda = 0.1
 T = lambda*norm(M1*x1-b2,1)
 T = smooth(T, gamma0)
 println(T)
-resx, fx = RegLS.residual(T,X1)
-fx2 = RegLS.cost(T, resx)
-@test norm(resx[1]-(M1*X1-b2))<=1e-8
-@test norm(fx2-fx)<1e-8
-p, = prox(NormL1(lambda), resx[1],lambda*gamma0)
-@test norm(fx-( lambda*norm(p,1)+1/(2*gamma0*lambda)*vecnorm(resx[1]-p)^2  ) )<1e-8
+resx = RegLS.residual(T, X1)
+fx = RegLS.cost(T, resx)
+@test norm(resx[1]-(M1*X1-b2)) <= 1e-8
+p, = prox(NormL1(lambda), resx[1], gamma0)
+@test norm(fx-( lambda*norm(p,1)+1/(2*gamma0)*vecnorm(resx[1]-p)^2  ) ) <= 1e-8
 gradfi, fx3 = RegLS.gradient(T, resx)
 @test norm(fx-fx3) <= 1e-8
-grad   = RegLS.At_mul_B(T, gradfi)
-grad2 = 1/(gamma0*lambda)*M1'*(resx[1]-p)
-@test norm(grad-grad2)<=1e-8
+grad = RegLS.At_mul_B(T, gradfi)
+grad2 = 1/(gamma0)*M1'*(resx[1]-p)
+@test norm(grad-grad2) <= 1e-8
 
 gamma0 = 0.5
 T = lambda*norm(M1*x1+x2-b2,1)
 T = smooth(T, gamma0)
 println(T)
-resx, fx = RegLS.residual(T,[X1,X2])
-fx2 = RegLS.cost(T, resx)
-@test norm(resx[1]-(M1*X1+X2-b2))<=1e-8
-@test norm(fx2-fx)<1e-8
-p, = prox(NormL1(lambda), resx[1],lambda*gamma0)
-@test norm(fx-( lambda*norm(p,1)+1/(2*gamma0*lambda)*vecnorm(resx[1]-p)^2  ) )<1e-8
+resx = RegLS.residual(T,[X1,X2])
+fx = RegLS.cost(T, resx)
+@test norm(resx[1]-(M1*X1+X2-b2)) <= 1e-8
+p, = prox(NormL1(lambda), resx[1], gamma0)
+@test norm(fx-( lambda*norm(p,1)+1/(2*gamma0)*vecnorm(resx[1]-p)^2  ) ) <= 1e-8
 gradfi, fx3 = RegLS.gradient(T, resx)
 @test norm(fx-fx3) <= 1e-8
-grad   = RegLS.At_mul_B(T, gradfi)
-gradX1 = 1/(gamma0*lambda)*M1'*(resx[1]-p)
-gradX2 = 1/(gamma0*lambda)*(resx[1]-p)
-@test norm(grad[1]-gradX1)<=1e-8
-@test norm(grad[2]-gradX2)<=1e-8
-
+grad = RegLS.At_mul_B(T, gradfi)
+gradX1 = 1/(gamma0)*M1'*(resx[1]-p)
+gradX2 = 1/(gamma0)*(resx[1]-p)
+@test norm(grad[1]-gradX1) <= 1e-8
+@test norm(grad[2]-gradX2) <= 1e-8
 
 println("\n test split \n")
 
@@ -218,9 +216,9 @@ println(cf)
 
 x_sorted = sort(variable(cf),by = object_id)
 
-smooth, proximable, nonsmooth = RegLS.split(cf)
+smooth_terms, proximable, nonsmooth = RegLS.split(cf)
 println("\n Smooth: \n")
-println(smooth)
+println(smooth_terms)
 println("\n Proximable: \n")
 println(proximable)
 println("\n NonSmooth: \n")
@@ -233,14 +231,14 @@ println(x_sorted)
 println(p.fs)
 
 println("\n sort_and_expand \n")
-smooth_exp = RegLS.sort_and_expand(x_sorted, smooth)
-println(RegLS.affine(smooth))
+smooth_exp = RegLS.sort_and_expand(x_sorted, smooth_terms)
+println(RegLS.affine(smooth_terms))
 println(RegLS.affine(smooth_exp))
 
 out1 = RegLS.affine(smooth_exp)[1](~x_sorted)
-out2 = RegLS.affine(smooth)[1]([~x,~y])
+out2 = RegLS.affine(smooth_terms)[1]([~x,~y])
 @test norm(out1-out2) <= 1e-8
 
 out1 = RegLS.affine(smooth_exp)[2](~x_sorted)
-out2 = RegLS.affine(smooth)[2](~[y,z,u])
+out2 = RegLS.affine(smooth_terms)[2](~[y,z,u])
 @test norm(out1-out2) <= 1e-8

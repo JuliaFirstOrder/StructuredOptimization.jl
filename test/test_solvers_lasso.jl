@@ -1,10 +1,12 @@
 srand(123)
 verb = 0
 maxit = 50000
-solvers = [ZeroFPR(verbose = verb, maxit = maxit),
-	   FPG(    verbose = verb, maxit = maxit),
-	   PG(     verbose = verb, maxit = maxit)]
-
+tol = 1e-10
+solvers = [
+	ZeroFPR(verbose = verb, maxit = maxit, tol=tol),
+	FPG(    verbose = verb, maxit = maxit, tol=tol),
+	PG(     verbose = verb, maxit = maxit, tol=tol)
+]
 
 m, n, l = 10, 50, 30
 A1 = randn(m, n)
@@ -102,7 +104,7 @@ println("testing lasso double variable complex (checking optimality condition) \
 for slv in solvers
 
 	####test lasso single variable
-	lam1, lam2 = 0.5,0.7
+	lam1, lam2 = 0.5, 0.7
 	x = Variable(Complex{Float64},n)
 	y = Variable(Complex{Float64},l)
 	sol = minimize(ls(A1*x+A2*y-b) + lam1*norm(x,1) + lam2*norm(y,1), slv)

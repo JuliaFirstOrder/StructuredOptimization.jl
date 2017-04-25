@@ -49,43 +49,60 @@ fun_name(S::PG) = S.fast ? "Fast Proximal Gradient" : "Proximal Gradient"
 * `linesearch::Bool=true`: activates linesearch on stepsize γ
 * `fast::Bool=true`: switches between proximal gradient and fast proximal gradient
 """
-PG(; tol::Float64 = 1e-8,
-      maxit::Int64 = 10000,
-      verbose::Int64 = 1,
-      halt::Function = halt_default,
-      linesearch::Bool = true,
-      fast::Bool = false,
-      gamma::Float64 = Inf) =
+
+PG(;
+	tol::Float64 = 1e-8,
+	maxit::Int64 = 10000,
+	verbose::Int64 = 1,
+	halt::Function = halt_default,
+	linesearch::Bool = true,
+	fast::Bool = false,
+	gamma::Float64 = Inf) =
 PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, fast, 0, 0)
 
-	
-(p::PG)(; tol::Float64   = p.tol, 
-	maxit::Int64     = p.maxit,
-	verbose::Int64   = p.verbose,
-	halt::Function   = p.halt,
-	linesearch::Bool = p.linesearch,
-	gamma::Float64   = p.gamma        ) =
-PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, p.fast, 0, 0)
-
 # alias for fast = true
-FPG(; tol::Float64 = 1e-8,
-      maxit::Int64 = 10000,
-      verbose::Int64 = 1,
-      halt::Function = halt_default,
-      linesearch::Bool = true,
-      gamma::Float64 = Inf) =
+FPG(;
+	tol::Float64 = 1e-8,
+	maxit::Int64 = 10000,
+	verbose::Int64 = 1,
+	halt::Function = halt_default,
+	linesearch::Bool = true,
+	gamma::Float64 = Inf) =
 PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
-function solve(f::CompositeFunction, g::ProximableFunction, slv0::PG)
+# (p::PG)(; tol::Float64   = p.tol,
+# 	maxit::Int64     = p.maxit,
+# 	verbose::Int64   = p.verbose,
+# 	halt::Function   = p.halt,
+# 	linesearch::Bool = p.linesearch,
+# 	gamma::Float64   = p.gamma        ) =
+# PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, p.fast, 0, 0)
+#
+# import Base: copy
+#
+# copy(slv::PG) = PG(copy(slv.tol),
+# 	           copy(slv.maxit),
+# 	           copy(slv.verbose),
+# 	           slv.halt,
+# 	           copy(slv.gamma),
+# 	           copy(slv.it),
+# 	           copy(slv.normfpr),
+# 	           copy(slv.cost),
+# 	           copy(slv.time),
+# 	           copy(slv.linesearch),
+# 	           copy(slv.fast),
+# 	           copy(slv.cnt_matvec),
+# 	           copy(slv.cnt_prox))
+
+function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
 
 	tic()
 
-	slv = copy(slv0)
 	x = deepcopy(~variable(f))
 
-	resx, fx = residual(f,x)
-	gradfi,   =      gradient(f,resx)
-	gradx     = At_mul_B(f,gradfi)
+	resx = residual(f, x)
+	gradfi, fx = gradient(f, resx)
+	gradx = At_mul_B(f, gradfi)
 	slv.cnt_matvec += 2
 	fz = fx
 	gz = Inf
@@ -93,13 +110,12 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv0::PG)
 	normfpr0 = Inf
 
 	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps, = residual(f,x+sqrt(eps()))
-		gradfi_eps,= gradient(f,resx_eps)
-		gradx_eps  = At_mul_B(f,gradfi_eps)
+		resx_eps = residual(f, x+sqrt(eps()))
+		gradfi_eps, = gradient(f, resx_eps)
+		gradx_eps = At_mul_B(f, gradfi_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
-		slv.gamma = 1/Lf
-		gradfi_eps = gradx_eps = []
+		slv.gamma = 1.0/Lf
 	end
 
 	# initialize variables
@@ -124,10 +140,11 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv0::PG)
 			slv.cnt_prox += 1
 			fpr = y-x
 			slv.normfpr = deepvecnorm(fpr)
-			fz = residual!(resx, f, x)
+			residual!(resx, f, x)
+			fz = cost(f, resx)
 			slv.cnt_matvec += 1
 			if slv.linesearch == false break end
-			uppbnd = fy - real(deepvecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
+			uppbnd = fy - real(deepvecdot(grady, fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
 			if fz <= uppbnd break end
 			slv.gamma = 0.5*slv.gamma
 		end
@@ -149,9 +166,9 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv0::PG)
 		end
 
 		# compute gradient and f(y)
-		fy = gradient!(gradfi,f,resy)
-		At_mul_B!(grady,f,gradfi)
-	
+		fy = gradient!(gradfi, f, resy)
+		At_mul_B!(grady, f, gradfi)
+
 		slv.cnt_matvec += 1
 
 		# update iterates
@@ -162,25 +179,10 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv0::PG)
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
+	deepcopy!(~variable(f), x)
 
-	deepcopy!(~variable(f),x)
 	slv.time = toq()
 
 	return slv
 
 end
-
-import Base: copy
-copy(slv::PG) = PG(copy(slv.tol),
-	           copy(slv.maxit),
-	           copy(slv.verbose),
-	           slv.halt,
-	           copy(slv.gamma),
-	           copy(slv.it),
-	           copy(slv.normfpr),
-	           copy(slv.cost),
-	           copy(slv.time),
-	           copy(slv.linesearch),
-	           copy(slv.fast),
-	           copy(slv.cnt_matvec),
-	           copy(slv.cnt_prox))

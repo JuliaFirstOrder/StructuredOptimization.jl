@@ -6,22 +6,22 @@ function print_status(slv::ForwardBackwardSolver)
     @printf("-------|------------|------------|---------------\n")
   end
   if slv.verbose == 2 || (slv.verbose == 1 && (slv.it == 1 || slv.it%100 == 0))
-    @printf("%6d | %7.4e | %7.4e | %11.8e\n", slv.it, slv.gamma, slv.normfpr, slv.cost)
+    @printf("%6d | %7.4e | %7.4e | %11.8e\n", slv.it, slv.gamma, slv.normfpr/slv.gamma, slv.cost)
   end
 end
 
 function print_status(slv::ForwardBackwardSolver, verbose::Int)
   if verbose == 2 || (verbose == 1 && (slv.it == 1 || slv.it%100 == 0))
-    @printf("%6d | %7.4e | %7.4e | %11.8e\n", slv.it, slv.gamma, slv.normfpr, slv.cost)
+    @printf("%6d | %7.4e | %7.4e | %11.8e\n", slv.it, slv.gamma, slv.normfpr/slv.gamma, slv.cost)
   end
 end
 
 # Stopping criteria
 
 function halt_default(slv::ForwardBackwardSolver, normfpr0::Float64, cost_prev::Float64)
-	conv_fpr = slv.normfpr <= (1+normfpr0)*slv.tol
-	conv_fun = abs(slv.cost-cost_prev) <= (1+abs(slv.cost))*slv.tol
-	return conv_fpr && conv_fun
+	conv_fpr = slv.normfpr/slv.gamma <= slv.tol
+	# conv_fun = abs(slv.cost-cost_prev) <= (1+abs(slv.cost))*slv.tol
+	return conv_fpr # && conv_fun
 end
 
 function halt_default(slv::ZeroFPR, normfpr0::Float64, FBEx::Float64, FBEprev::Float64)
@@ -29,4 +29,3 @@ function halt_default(slv::ZeroFPR, normfpr0::Float64, FBEx::Float64, FBEprev::F
 	conv_fun = abs(FBEx-FBEprev) <= (1+abs(FBEx))*slv.tol
 	return conv_fpr && conv_fun
 end
-

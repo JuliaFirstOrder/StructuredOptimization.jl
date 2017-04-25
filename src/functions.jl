@@ -1,37 +1,32 @@
-abstract ExtendedRealValuedFunction
-# should we remove these and keep only predicates?
-abstract SmoothFunction    <: ExtendedRealValuedFunction
-abstract QuadraticFunction <: SmoothFunction
-abstract NonSmoothFunction <: ExtendedRealValuedFunction
+is_smooth(f::ProximableFunction) = false
+is_quadratic(f::ProximableFunction) = false
+is_strconvex(f::ProximableFunction) = false
 
-include("functions/leastSquares.jl")
+include("functions/sqrNormL2.jl")
 include("functions/moreauEnvelope.jl")
-
+include("functions/separableSum.jl")
 include("functions/norm.jl")
-include("functions/box.jl")
-include("functions/hingeLoss.jl")
-include("functions/indBallRank.jl")
+include("functions/rank.jl")
 
-gradient!(f::ExtendedRealValuedFunction, args...) = error("gradient not implemented for $f")
+function gradient!(f::ProximableFunction, args...)
+	error("gradient not implemented for $f")
+end
 
-function gradient(f::ExtendedRealValuedFunction, x::AbstractArray)
+function gradient(f::ProximableFunction, x::AbstractArray)
 	y = similar(x)
 	fx = gradient!(y,f,x)
 	return y, fx
 end
 
-gradstep!(f::ExtendedRealValuedFunction, args...) = error("gradstep not implemented for $f")
-
-function gradstep(f::ExtendedRealValuedFunction, x0::AbstractArray, gamma)
-	x1 = similar(x0)
-	fx1 = gradstep!(x1, f, x0, gamma)
-	return x1, fx1
+function gradstep!(y::AbstractArray, f::ProximableFunction, x::AbstractArray, gamma)
+	fx = gradient!(y, f, x)
+	y .*= -gamma
+	y .+= x
+	return fx
 end
 
-lambda(f::ExtendedRealValuedFunction) = 1.0
-
-isQuadratic(f::ExtendedRealValuedFunction) = false
-isQuadratic(f::QuadraticFunction) = true
-
-isSmooth(f::ExtendedRealValuedFunction) = false
-isSmooth(f::SmoothFunction) = true
+function gradstep(f::ProximableFunction, x::AbstractArray, gamma)
+	y = similar(x)
+	fx = gradstep!(y, f, x, gamma)
+	return y, fx
+end
