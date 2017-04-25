@@ -7,6 +7,7 @@ type ZeroFPR <: ForwardBackwardSolver
 	halt::Function
 	gamma::Float64
 	it::Int
+	fpr::AbstractArray
 	normfpr::Float64
 	cost::Float64
 	time::Float64
@@ -64,7 +65,7 @@ ZeroFPR(;
 	halt::Function = halt_default,
 	gamma::Float64 = Inf,
 	linesearch::Bool = true) =
-ZeroFPR(tol, maxit, verbose, mem, halt, gamma, 0, Inf, Inf, NaN, linesearch, 0, 0, 0, 0)
+ZeroFPR(tol, maxit, verbose, mem, halt, gamma, 0, [], Inf, Inf, NaN, linesearch, 0, 0, 0, 0)
 
 # (z::ZeroFPR)(;
 # 	tol::Float64 = z.tol,
@@ -131,9 +132,8 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::ZeroFPR)
 	f_x = q_x + s_x
 	grad_f_x = grad_q_x + grad_s_x
 
-	# compute upper bound for Lipschitz constant
-
 	if slv.gamma == Inf
+		# compute upper bound for Lipschitz constant
 		res_f_eps = residual(f, x+sqrt(eps()))
 		grad_f_res_eps, = gradient(f, res_f_eps)
 		grad_f_eps = At_mul_B(f, grad_f_res_eps)
@@ -147,6 +147,7 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::ZeroFPR)
 	gradstep = x - slv.gamma*grad_f_x
 	xbar, g_xbar = prox(g, gradstep, slv.gamma)
 	fpr_x = x - xbar
+	slv.fpr = fpr_x
 	slv.normfpr = deepvecnorm(fpr_x)
 	uppbnd = f_x - real(deepvecdot(grad_f_x, fpr_x)) + 1/(2*slv.gamma)*slv.normfpr^2
 	FBE_x = uppbnd + g_xbar
@@ -176,7 +177,8 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::ZeroFPR)
 
 		# stopping criterion
 
-		if slv.halt(slv, normfpr0, FBE_x, FBE_prev) break end
+		if slv.halt(slv) break end
+
 		FBE_prev = FBE_x
 
 		if !isempty(q)
@@ -199,7 +201,7 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::ZeroFPR)
 
 		if slv.linesearch == true
 			for j = 1:32
-				if f_xbar <= uppbnd break end
+				if f_xbar <= uppbnd + 1e-6*abs(f_xbar) break end
 				slv.gamma = 0.5*slv.gamma
 				sigma = 2*sigma
 				gradstep .= x .- (*).(slv.gamma, grad_f_x)
@@ -219,7 +221,7 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::ZeroFPR)
 					s_xbar = 0.0
 				end
 				f_xbar = q_xbar + s_xbar
-				uppbnd = f_x - real(deepvecdot(grad_f_x, fpr_x)) + 1/(2*slv.gamma)*slv.normfpr^2
+				uppbnd = f_x - real(deepvecdot(grad_f_x, fpr_x)) + (1-beta)/(2*slv.gamma)*slv.normfpr^2
 			end
 		end
 

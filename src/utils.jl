@@ -43,3 +43,14 @@ deepvecnorm(x::AbstractArray) = sqrt(deepvecdot(x, x))
 
 deepvecnorm{T <: Number}(x::AbstractArray{T}) = vecnorm(x)
 
+function deepmaxabs(x::AbstractArray)
+	out = 0.0
+	for k in eachindex(x)
+		out = max(out, deepmaxabs(x[k]))
+	end
+	return out
+end
+
+deepmaxabs{T <: Number}(x::AbstractArray{T}) = maxabs(x)
+
+deepmaxabs{T <: Number}(x::T) = abs(x)

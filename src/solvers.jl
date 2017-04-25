@@ -18,7 +18,7 @@ default_slv = ZeroFPR
 function Base.show(io::IO, slv::ForwardBackwardSolver)
 	println(io, fun_name(slv) )
 	println(io, "iterations : $(slv.it) / $(slv.maxit)")
-	println(io, "fpr        : $(slv.normfpr)")
+	println(io, "fpr        : $(deepmaxabs(slv.normfpr)/slv.gamma)")
 	println(io, "cost       : $(slv.cost)")
 	println(io, "gamma      : $(slv.gamma)")
 	println(io, "time       : $(slv.time)")
