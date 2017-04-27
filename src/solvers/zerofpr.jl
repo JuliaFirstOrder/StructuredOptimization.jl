@@ -116,7 +116,7 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::ZeroFPR)
 	else
 		res_q_x = []
 		q_x = 0.0
-	  grad_q_x = 0.0
+		grad_q_x = 0.0
 	end
 
 	if !isempty(s)

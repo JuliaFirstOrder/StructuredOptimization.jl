@@ -130,7 +130,7 @@ function sort_and_expand(x_sorted::Array{Variable,1}, cf::CompositeFunction)
 	return CompositeFunction(x_sorted,cf.f,sA)
 end
 
-# emptycostfun() = CompositeFunction()
+emptycostfun() = CompositeFunction()
 
 function Base.show(io::IO, cf::CompositeFunction)
 	print(io, "CompositeFunction")
