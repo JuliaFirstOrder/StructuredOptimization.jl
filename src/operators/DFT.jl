@@ -1,16 +1,16 @@
 export DFT, IDFT
 abstract FourierTransform <: LinearOperator
 
-immutable DFT <: FourierTransform
-	dim_in::Tuple
+immutable DFT{N} <: FourierTransform
+	dim_in::NTuple{N,Int}
 	domainType::Type
 	codomainType::Type
 	A::Base.DFT.Plan
 	At::Base.DFT.Plan
 end
 
-immutable IDFT <: FourierTransform
-	dim_in::Tuple
+immutable IDFT{N} <: FourierTransform
+	dim_in::NTuple{N,Int}
 	domainType::Type
 	codomainType::Type
 	A::Base.DFT.Plan
@@ -79,3 +79,8 @@ fun_name(A::IDFT) = "Inverse Discrete Fourier Transform"
 
   domainType(L::FourierTransform) = L.domainType
 codomainType(L::FourierTransform) = L.codomainType
+
+isGramDiagonal(L::FourierTransform) = true
+
+
+

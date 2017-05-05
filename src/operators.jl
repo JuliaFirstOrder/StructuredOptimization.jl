@@ -1,8 +1,4 @@
-abstract AbstractAffineTerm
 abstract LinearOperator
-abstract DiagonalOperator <:   LinearOperator
-abstract IdentityOperator <: DiagonalOperator
-#abstract DiagonalOp <: DiagGramOp
 
 import Base:
   *,
@@ -16,7 +12,6 @@ import Base:
   +,
   -,
   ==
-
 
 +(L::LinearOperator) = L
 
@@ -60,13 +55,15 @@ size(L::LinearOperator, i) = size(L)[i]
   domainType(L::LinearOperator) = L.domainType
 codomainType(L::LinearOperator) = L.domainType
 
-isEye(L::LinearOperator) = typeof(L) <: IdentityOperator
-isDiagonal(L::LinearOperator) = typeof(L) <: DiagonalOperator
-# this will be changed with typeof(L) <: GramDiagonal
-isGramDiagonal(L::LinearOperator) = typeof(L) <: DiagonalOperator
+isScaled(L::LinearOperator)         = false
 
-isInvertible(L::LinearOperator) = false
-isScaled(L::LinearOperator) = false
+isEye(L::LinearOperator)            = false
+isDiagonal(L::LinearOperator)       = false
+isGramDiagonal(L::LinearOperator)   = false
+
+isInvertible(L::LinearOperator)     = false
+isFullRowRank(L::LinearOperator)    = false
+isFullColumnRank(L::LinearOperator) = false
 
 function Base.show(io::IO, L::LinearOperator)
   println(io, "description : ", fun_name(L))

@@ -1,8 +1,8 @@
 export Conv
 
-immutable Conv <: LinearOperator
+immutable Conv{N} <: LinearOperator
 	domainType::Type
-	dim_in::Tuple
+	dim_in::NTuple{N,Int}
 	h::AbstractVector
 end
 

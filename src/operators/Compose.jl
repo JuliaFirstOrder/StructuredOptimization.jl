@@ -34,9 +34,9 @@ size(L::Compose) = ( size(L.A[end],1), size(L.A[1],2) )
 
 # Special cases
 
-*{E<:IdentityOperator}(L1::E, L2::LinearOperator) = L2
-*{E<:IdentityOperator}(L1::LinearOperator, L2::E) = L1
-*{E1<:IdentityOperator,E2<:IdentityOperator}(L1::E1, L2::E2) = L1
+*{E<:Eye}(L1::E, L2::LinearOperator) = L2
+*{E<:Eye}(L1::LinearOperator, L2::E) = L1
+*{E1<:Eye,E2<:Eye}(L1::E1, L2::E2) = L1
 
 *{S<:Scale}(L1::S, L2::LinearOperator) = L1.coeff*(L1.A*L2)
 *{S<:Scale}(L1::LinearOperator, L2::S) = L2.coeff*(L1*L2.A)

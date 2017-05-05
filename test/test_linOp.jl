@@ -1,7 +1,7 @@
 ##test linear operators
 
 stuff = [
-### testing constructors ###
+#### testing constructors ###
 	 Dict(
        "Operator" => (Zeros,),
        "params"   => ((4,4,),),
@@ -32,6 +32,11 @@ stuff = [
        "in_out"   => ( ones(4,4)+im*ones(4,4), ones(4,4)+im*ones(4,4) )
 	     ),
 	 Dict(
+       "Operator" => (Eye,),
+       "params"   => ((randn(4,4),),),
+       "args"     => ( randn(4,4), randn(4,4) ),
+	     ),
+	 Dict(
        "Operator" => (ZeroPad,),
        "params"   => (((4,),3),),
        "wrg_pr"   => (((4,),-3),),
@@ -58,6 +63,12 @@ stuff = [
 	     ),
 	 Dict(
        "Operator" => (GetIndex,),
+       "params"   => (( zeros(4,4), (1:4,)),),
+       "args"     => ( randn(4,4), randn(4) ),
+       "in_out"   => ( ones(4,4), ones(4) )
+	     ),
+	 Dict(
+       "Operator" => (GetIndex,),
        "params"   => (( zeros(4,4), (1:2,:)  ,),),
        "args"     => ( randn(4,4), randn(2,4) ),
        "in_out"   => ( ones(4,4), ones(2,4) )
@@ -70,14 +81,9 @@ stuff = [
 	     ),
 	 Dict(
        "Operator" => (GetIndex,),
-       "params"   => ((Complex{Float64}, (4,4), (1:2,:)  ,),),
-       "args"     => ( randn(4,4)+im, randn(2,4)+im ),
-       "in_out"   => ( ones(4,4)+im, ones(2,4)+im )
-	     ),
-	 Dict(
-       "Operator" => (Eye,),
-       "params"   => ((randn(4,4),),),
-       "args"     => ( randn(4,4), randn(4,4) ),
+       "params"   => ((Complex{Float64}, (4,4), (1:2,)  ,),),
+       "args"     => ( randn(4,4)+im, randn(2)+im ),
+       "in_out"   => ( ones(4,4)+im, ones(2)+im )
 	     ),
 	 Dict(
        "Operator" => (DiagOp,),
@@ -574,19 +580,19 @@ end
 #testing some special cases...
 
 L = 3*DiagOp(3*ones(3))
-@test typeof(L) <: DiagOp
+@test typeof(L) <: DiagOp{Float64,1}
 @test norm(L.d-9)<1e-9
 
 L = (3+3*im)*DiagOp(3*ones(3))
-@test typeof(L) <: DiagOp
+@test typeof(L) <: DiagOp{Complex{Float64},1}
 @test norm(L.d-(9+im*9))<1e-9
 
 L = (3*ones(3)).*(3*Eye(3))
-@test typeof(L) <: DiagOp
+@test typeof(L) <: DiagOp{Float64,1}
 @test norm(L.d-(9))<1e-9
 
 L = DiagOp(3*ones(3))*(3*Eye(3))
-@test typeof(L) <: DiagOp
+@test typeof(L) <: DiagOp{Float64,1}
 @test norm(L.d-(9))<1e-9
 
 

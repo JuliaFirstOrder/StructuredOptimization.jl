@@ -2,8 +2,8 @@ export Variation
 
 immutable Variation{N} <: LinearOperator
 	domainType::Type
-	dim_in::Tuple
-	dim_out::Tuple
+	dim_in::NTuple{N,Int}
+	dim_out::Tuple{Int,Int}
 	Variation(domainType, dim_in) = new(domainType, dim_in, (prod(dim_in), length(dim_in)) )
 end
 

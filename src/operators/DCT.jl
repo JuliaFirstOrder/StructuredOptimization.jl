@@ -1,14 +1,14 @@
 export DCT, IDCT
 abstract CosineTransform <: LinearOperator
 
-immutable DCT <: CosineTransform
-	dim_in::Tuple
+immutable DCT{N} <: CosineTransform
+	dim_in::NTuple{N,Int}
 	domainType::Type
 	A::Base.DFT.Plan
 end
 
-immutable IDCT <: CosineTransform
-	dim_in::Tuple
+immutable IDCT{N} <: CosineTransform
+	dim_in::NTuple{N,Int}
 	domainType::Type
 	A::Base.DFT.Plan
 end
@@ -49,3 +49,5 @@ transpose(L::IDCT) =  DCT(L.domainType, L.dim_in )
 
 fun_name(A::DCT)  = "Discrete Cosine Transform"
 fun_name(A::IDCT) = "Inverse Discrete Cosine Transform"
+
+isGramDiagonal(L::CosineTransform) = true

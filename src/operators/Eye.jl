@@ -1,8 +1,8 @@
 export Eye
 
-immutable Eye <: IdentityOperator
+immutable Eye{N} <: LinearOperator
 	domainType::Type
-	dim_in::Tuple
+	dim_in::NTuple{N,Int}
 end
 
 size(L::Eye) = (L.dim_in, L.dim_in)
@@ -23,6 +23,12 @@ inv(L::Eye ) = L
 
 #Properties
 fun_name(L::Eye)  = "Identity Operator"
-isInvertible(L::Eye) = true
+
+           isEye(L::Eye) = true 
+      isDiagonal(L::Eye) = true
+  isGramDiagonal(L::Eye) = true
+    isInvertible(L::Eye) = true
+   isFullRowRank(L::Eye) = true
+isFullColumnRank(L::Eye) = true
 
 #utils

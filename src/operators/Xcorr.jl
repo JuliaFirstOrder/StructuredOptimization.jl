@@ -1,8 +1,8 @@
 export Xcorr
 
-immutable Xcorr <: LinearOperator
+immutable Xcorr{N} <: LinearOperator
 	domainType::Type
-	dim_in::Tuple
+	dim_in::NTuple{N,Int}
 	h::AbstractVector
 end
 size(L::Xcorr) = ( 2*max(L.dim_in[1], length(L.h))-1, ), L.dim_in

@@ -1,28 +1,3 @@
-function optArray{T<:AbstractAffineTerm}(A::T) 
-	if typeof(variable(A)) <: Variable 
-		return variable(A).x 
-	else
-		if length(variable(A)) == 1 
-			return variable(A)[1].x
-		else
-			return [variable(A)[i].x for i = 1:length(variable(A))]
-		end
-	end
-end
-function optArray!{T<:AbstractAffineTerm,B <:AbstractArray}(A::T,x::B)  
-	if typeof(variable(A)) <: Variable 
-		copy!(variable(A).x, x)  
-	else
-		length(variable(A)) != 1 ? error("something went wrong!") : 
-		copy!(variable(A)[1].x, x)  
-	end
-end
-function optArray!{T<:AbstractAffineTerm,B <:AbstractArray}(A::T,x::Array{B,1}) 
-	for i in eachindex(variable(A))
-		copy!(variable(A)[i].x, x[i])  
-	end
-end
-
 #testing utils
 function test_FwAdj(A::LinearOperator, x, y, verb::Bool = false)
 	verb && (println(); show(A); println())

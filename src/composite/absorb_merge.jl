@@ -47,11 +47,11 @@ absorbOp(A::AbstractAffineTerm, p::ProximableFunction) = absorbOp(operator(A), p
 absorbOp(A::Vector{AbstractAffineTerm}, p::Vector{ProximableFunction}) =
 absorbOp.(operator(A), p, tilt.(A))
 
-absorbOp{L <:Union{IdentityOperator,GetIndex}}(A::L, p::ProximableFunction, b) =
+absorbOp{L <:Union{Eye,GetIndex}}(A::L, p::ProximableFunction, b) =
 b == 0. ? p : PrecomposeDiagonal(p, 1., b)
 absorbOp{L <: Scale}(A::L, p::ProximableFunction, b) =
 b == 0. ? p : PrecomposeDiagonal(p, A.coeff, b)
-absorbOp{L <:DiagonalOperator}(A::L, p::ProximableFunction, b) = PrecomposeDiagonal(p, A.d, b)
+absorbOp{L <:DiagOp}(A::L, p::ProximableFunction, b) = PrecomposeDiagonal(p, A.d, b)
 
 # merge Proximal operators
 mergeProx{T<:AbstractAffineTerm}(p::ProximableFunction, lambda, A::T) =  Regularize(p, lambda, -tilt(A.b))
