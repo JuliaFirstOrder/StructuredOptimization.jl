@@ -5,7 +5,7 @@ using Base.Profile
 
 srand(0)
 
-#include("test_linOp.jl")
+include("test_linOp.jl")
 #include("test_affine_and_variables.jl")
 #include("test_functions.jl")
 #include("test_costfunction.jl")

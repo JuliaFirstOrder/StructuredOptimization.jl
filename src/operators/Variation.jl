@@ -4,7 +4,8 @@ immutable Variation{N} <: LinearOperator
 	domainType::Type
 	dim_in::NTuple{N,Int}
 	dim_out::Tuple{Int,Int}
-	Variation(domainType, dim_in) = new(domainType, dim_in, (prod(dim_in), length(dim_in)) )
+	Variation{N}(domainType, dim_in) where {N} = 
+	new(domainType, dim_in, (prod(dim_in), length(dim_in)) )
 end
 
 size(L::Variation) = (L.dim_out, L.dim_in)

@@ -56,7 +56,7 @@ end
 
 # Transformations
 function transpose(L::Compose)
-	Compose(flipdim((L.A.')[:],1),flipdim(L.mid,1))
+	Compose(flipdim([(L.A.')...],1),flipdim(L.mid,1))
 end
 
 # Properties

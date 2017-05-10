@@ -4,7 +4,7 @@ immutable MoreauEnvelope{R <: Real, T <: ProximableFunction} <: ProximableFuncti
 	# dirty trick to use in place prox! when evaluating the function
 	# not sure about that!
 	buf::AbstractVector{Nullable{AbstractArray}}
-	function MoreauEnvelope(lambda::R, g::T)
+	function MoreauEnvelope{R,T}(lambda::R, g::T) where {R <: Real, T <: ProximableFunction}
 		if lambda <= 0 error("parameter lambda must be positive") end
 		new(lambda, g, [ Nullable{AbstractArray}() ])
 	end

@@ -1,5 +1,5 @@
 export DFT, IDFT
-abstract FourierTransform <: LinearOperator
+abstract type FourierTransform <: LinearOperator end
 
 immutable DFT{N} <: FourierTransform
 	dim_in::NTuple{N,Int}

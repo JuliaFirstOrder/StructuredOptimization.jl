@@ -1,5 +1,5 @@
 export DCT, IDCT
-abstract CosineTransform <: LinearOperator
+abstract type CosineTransform <: LinearOperator end
 
 immutable DCT{N} <: CosineTransform
 	dim_in::NTuple{N,Int}

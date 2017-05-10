@@ -4,7 +4,7 @@ immutable ZeroPad{N} <: LinearOperator
 	domainType::Type
 	dim_out::NTuple{N,Int}
 	dim_in::NTuple{N,Int}
-	function ZeroPad(domainType, dim_in, zp::Vararg{Int})
+	function ZeroPad{N}(domainType, dim_in, zp::Vararg{Int}) where {N}
 		any([zp...].<0) && throw(ArgumentError("zero padding cannot be negative"))
 		dim_out = tuple(
 		  [i<=length(zp) ? dim_in[i]+zp[i] : dim_in[i] for i in eachindex(dim_in)]...)

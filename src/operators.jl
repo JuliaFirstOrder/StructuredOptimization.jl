@@ -1,4 +1,4 @@
-abstract LinearOperator
+abstract type LinearOperator end
 
 import Base:
   *,
@@ -49,7 +49,9 @@ include("operators/Compose.jl")
 include("operators/HCAT.jl")
 include("operators/VCAT.jl")
 
-size(L::LinearOperator, i) = size(L)[i]
+size(L::LinearOperator, i::Int) = size(L)[i]
+ndims(L::LinearOperator)   = length(size(L,1)),length(size(L,2))
+ndims(L::LinearOperator, i::Int)   = ndims(L)[i]
 
 #usually domain is preserved, if not one has to redefine these functions
   domainType(L::LinearOperator) = L.domainType

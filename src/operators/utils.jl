@@ -14,13 +14,14 @@ function test_FwAdj(A::LinearOperator, x, y, verb::Bool = false)
 
 	verb && (println(); show(A'); println())
 	verb && println("adjoint")
-	x = A'*y          #verify adjoint operator inside LinearTerm is the same
-	verb && @time x = A'*y
+	At = A'
+	x = At*y          #verify adjoint operator inside LinearTerm is the same
+	verb && @time x = At*y
 
 	verb && println("adjoint preallocated")
 	x2 = 0*copy(x)
-	A_mul_B!(x2,A',y) #verify in-place linear operator works
-	verb && @time A_mul_B!(x2,A',y)
+	A_mul_B!(x2,At,y) #verify in-place linear operator works
+	verb && @time A_mul_B!(x2,At,y)
 
 	test2 = vecnorm(x-x2) #verify equivalence
 

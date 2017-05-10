@@ -6,7 +6,7 @@ immutable Filt{N} <: LinearOperator
 	b::AbstractVector
 	a::AbstractVector
 	si::AbstractVector
-	function Filt(domainType,dim_in,b,a)
+	function Filt{N}(domainType,dim_in,b,a) where {N}
 		isempty(b) && throw(ArgumentError("filter vector b must be non-empty"))
 		isempty(a) && throw(ArgumentError("filter vector a must be non-empty"))
 		a[1] == 0  && throw(ArgumentError("filter vector a[1] must be nonzero"))

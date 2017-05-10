@@ -1,7 +1,7 @@
 import Base: size, ~
 export Variable
 
-abstract AbstractVariable
+abstract type AbstractVariable end
 
 immutable Variable{T <: Union{Real,Complex}} <: AbstractVariable
 	x::AbstractArray{T}

@@ -1,5 +1,5 @@
-abstract Solver
-abstract ForwardBackwardSolver <: Solver
+abstract type Solver end
+abstract type ForwardBackwardSolver <: Solver end
 
 export
   PG,

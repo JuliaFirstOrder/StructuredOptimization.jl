@@ -1,17 +1,20 @@
-immutable Scale{T <: Number} <: LinearOperator
-  coeff::T
-  A::LinearOperator
+immutable Scale{T1 <: Number, T2 <: Number, L <: LinearOperator} <: LinearOperator
+  coeff::T1
+  conj_coeff::T2
+  A::L
 end
 
 size(L::Scale) = size(L.A)
 
 # Constructors
-Scale{T <: Number}(coeff::T, L::Scale) = Scale(coeff.*L.coeff, L.A);
+Scale{T1 <: Number, T2<:LinearOperator}(coeff::T1, L::T2) = 
+Scale(convert(codomainType(L),coeff), conj(convert(domainType(L),coeff)), L)
+Scale{T <: Number}(coeff::T, L::Scale) = Scale(coeff.*L.coeff, L.A)
 
 ## redefine scalar multiplication for convenience
-(*){T <: Real   }(c::T, L::LinearOperator) = Scale(c, L)
+(*){T <: Real   }(c::T, L::LinearOperator) = Scale(convert(codomainType(L),c), L)
 (*){T <: Complex}(c::T, L::LinearOperator) = 
-codomainType(L) <: Complex && domainType(L) <: Complex ? Scale(c, L) : 
+codomainType(L) <: Complex && domainType(L) <: Complex ? Scale(convert(codomainType(L),c), L) : 
 error("cannot scale Real operator with Complex scalar")
 
 (*){T<:Real   }(coeff::T, L2::DiagOp) = DiagOp(coeff.*L2.d)
@@ -22,13 +25,21 @@ error("cannot scale Real operator with Complex scalar")
 
 # Operators
 
-function A_mul_B!(y, L::Scale, x)
+function A_mul_B!{T1,T2,T3<:LinearOperator}(y::AbstractArray{T1}, 
+					    L::Scale{T1,T2,T3}, 
+					    x::AbstractArray{T2})
   A_mul_B!(y, L.A, x)
   y .*= L.coeff
 end
 
+function Ac_mul_B!{T1,T2,T3<:LinearOperator}(y::AbstractArray{T2}, 
+					     L::Scale{T1,T2,T3}, 
+					     x::AbstractArray{T1})
+  Ac_mul_B!(y, L.A, x)
+  y .*= L.conj_coeff
+end
+
 # Transformations
-transpose(L::Scale) = Scale(conj(L.coeff),L.A')
 inv(L::Scale) = Scale(1/L.coeff,inv(L.A))
 
 # Properties

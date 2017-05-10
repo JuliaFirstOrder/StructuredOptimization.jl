@@ -1,18 +1,20 @@
 import Base: +, -
 
-immutable Sum <: LinearOperator
-	A::Vector{LinearOperator}
-	mid::AbstractArray
-	function Sum(A, mid)
-		if any(size.(A[2:end]) .!= size(A[1]))
-			throw(DimensionMismatch("cannot sum operator of different sizes"))
-		end
-		if any(codomainType.(A[2:end]) .!= codomainType(A[1])) || 
-		   any(  domainType.(A[2:end]) .!=   domainType(A[1]))
-			throw(DomainError())
-		end
-		new(A, mid)
+immutable Sum{N,C<:AbstractArray,D<:AbstractArray,T<:NTuple{N,Any}} <: LinearOperator
+	A::T
+	mid::C
+end
+	
+function Sum{N}(A::NTuple{N,Any})
+	if any(  [size(a) != size(A[1]) for a in A]   )
+		throw(DimensionMismatch("cannot sum operator of different sizes"))
 	end
+	if any(codomainType.(A) .!= codomainType(A[1])) || 
+		any(  domainType.(A) .!=   domainType(A[1]))
+		throw(DomainError())
+	end
+	mid = Array{codomainType(A[1])}(size(A[1],1))
+	Sum{N,typeof(mid),Array{domainType(A[1]),length(size(A[1],2))},typeof(A)}(A, mid)
 end
 
 size(L::Sum) = size(L.A[1])
@@ -20,26 +22,31 @@ size(L::Sum) = size(L.A[1])
 # Constructors
 -(L::Sum) = Sum((-).(L.A), L.mid)
 
-+(L1::LinearOperator, L2::LinearOperator) = Sum([L1,  L2 ], Array{codomainType(L1)}(size(L1,1)))
--(L1::LinearOperator, L2::LinearOperator) = Sum([L1,(-L2)], Array{codomainType(L1)}(size(L1,1)))
++(L1::LinearOperator, L2::LinearOperator) = Sum((L1,  L2 ))
+-(L1::LinearOperator, L2::LinearOperator) = Sum((L1, -L2 ))
 
-+(L1::LinearOperator, L2::Sum)     = Sum([L1,L2.A...],L2.mid)
--(L1::LinearOperator, L2::Sum)     = Sum([L1,(-L2.A)...],L2.mid)
++(L1::LinearOperator, L2::Sum)     = Sum((L1,L2.A...))
+-(L1::LinearOperator, L2::Sum)     = Sum((L1,((-).(L2.A))...))
 
 +(L1::Sum, L2::LinearOperator) = L2+L1
--(L1::Sum, L2::LinearOperator) = Sum([L1.A...,(-L2)],L1.mid)
+-(L1::Sum, L2::LinearOperator) = Sum((L1.A..., -L2))
 
 # Operators
-function A_mul_B!(y::AbstractArray,S::Sum,b::AbstractArray)
-	A_mul_B!(y,S.A[1],b)
-	for i = 2:length(S.A)
-		A_mul_B!(S.mid,S.A[i],b)
-		y .= (+).(y,S.mid)
+@generated function A_mul_B!{N,C,D}(y::C, S::Sum{N,C,D}, b::D)
+	ex = :(A_mul_B!(y,S.A[1],b))
+	for i = 2:N
+		ex = quote 
+			$ex;
+			A_mul_B!(S.mid,S.A[$i],b)
+			y .+= S.mid
+		end
 	end
+	return ex
 end
 
 # Transformations
-transpose(S::Sum) = Sum((S.A.')[:],Array{domainType(S.A[1])}(size(S,2)))
+transpose{N,C,D,T}(S::Sum{N,C,D,T}) = 
+Sum{N,D,C,typeof(transpose.(S.A))}(transpose.(S.A),Array{domainType(S.A[1])}(size(S,2)))
 
 # Properties
 
