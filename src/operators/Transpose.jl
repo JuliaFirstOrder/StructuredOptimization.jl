@@ -1,5 +1,5 @@
-immutable Transpose <: LinearOperator
-	A::LinearOperator
+immutable Transpose{T<:LinearOperator} <: LinearOperator
+	A::T
 end
 
 size(L::Transpose) = size(L.A,2), size(L.A,1)
@@ -11,8 +11,8 @@ transpose(L::LinearOperator) = Transpose(L)
 Transpose(L::Transpose) = L.A
 
 # Operators
-A_mul_B!(y, L::Transpose, x) = Ac_mul_B!(y, L.A, x)
-Ac_mul_B!(y, L::Transpose, x) = A_mul_B!(y, L.A, x)
+A_mul_B!{T<:LinearOperator}(y, L::Transpose{T}, x) = Ac_mul_B!(y, L.A, x)
+Ac_mul_B!{T<:LinearOperator}(y, L::Transpose{T}, x) = A_mul_B!(y, L.A, x)
 
 # Properties
 

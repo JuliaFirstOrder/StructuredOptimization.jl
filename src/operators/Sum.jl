@@ -36,12 +36,15 @@ size(L::Sum) = size(L.A[1])
 	ex = :(A_mul_B!(y,S.A[1],b))
 	for i = 2:N
 		ex = quote 
-			$ex;
+			$ex
 			A_mul_B!(S.mid,S.A[$i],b)
 			y .+= S.mid
 		end
 	end
-	return ex
+	ex = quote
+		$ex
+		return y
+	end
 end
 
 # Transformations

@@ -3,6 +3,7 @@ __precompile__()
 module RegLS
 
 using ProximalOperators
+import ProximalOperators: RealOrComplex
 
 import Base: in, *, <=, ==, sum, isempty, rank, norm
 import ProximalOperators: is_convex

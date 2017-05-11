@@ -1,29 +1,6 @@
-immutable Compose <: LinearOperator
-	A::Vector{LinearOperator}
-	mid::Vector{AbstractArray}       # memory in the middle of the operators
-
-	function Compose(L1::LinearOperator, L2::LinearOperator)
-		if size(L1,2) != size(L2,1)
-			throw(DimensionMismatch("cannot compose operators"))
-		end
-		if domainType(L1) != codomainType(L2)
-			throw(DomainError())
-		end
-		Compose(L1,L2,Array{domainType(L1)}(size(L2,1)))
-	end
-
-	Compose(L1::LinearOperator,L2::LinearOperator,mid::AbstractArray) = new([L2,L1], [mid])
-
-	Compose(L1::Compose,       L2::LinearOperator,mid::AbstractArray) = 
-	new([L2,L1.A...], [mid,L1.mid...])
-
-	Compose(L1::LinearOperator,L2::Compose,       mid::AbstractArray) = 
-	new([L2.A...,L1], [L2.mid...,mid])
-
-	Compose(L1::Compose,       L2::Compose,       mid::AbstractArray) = 
-	new([L2.A...,L1.A...], [L2.mid...,mid,L1.mid...])
-
-	Compose(A,mid) = new(A,mid)
+immutable Compose{N, M, L<:NTuple{N,Any}, T<:NTuple{M,Any}, C <: AbstractArray, D <: AbstractArray} <: LinearOperator
+	A::L
+	mid::T       # memory in the middle of the operators
 end
 
 size(L::Compose) = ( size(L.A[end],1), size(L.A[1],2) )
@@ -31,6 +8,33 @@ size(L::Compose) = ( size(L.A[end],1), size(L.A[1],2) )
 # Constructors
 
 *(L1::LinearOperator, L2::LinearOperator) = Compose(L1,L2)
+
+function Compose(L1::LinearOperator, L2::LinearOperator)
+	if size(L1,2) != size(L2,1)
+		throw(DimensionMismatch("cannot compose operators"))
+	end
+	if domainType(L1) != codomainType(L2)
+		throw(DomainError())
+	end
+	Compose( L1, L2, Array{domainType(L1)}(size(L2,1)) )
+end
+	
+Compose(L1::LinearOperator,L2::LinearOperator,mid::AbstractArray) = 
+Compose( (L2,L1), (mid,))
+
+Compose(L1::Compose,       L2::LinearOperator,mid::AbstractArray) = 
+Compose( (L2,L1.A...), (mid,L1.mid...))
+
+Compose(L1::LinearOperator,L2::Compose,       mid::AbstractArray) = 
+Compose((L2.A...,L1), (L2.mid...,mid))
+
+Compose(L1::Compose,       L2::Compose,       mid::AbstractArray) = 
+Compose((L2.A...,L1.A...), (L2.mid...,mid,L1.mid...))
+
+Compose{N,M}(A::NTuple{N,Any},mid::NTuple{M,Any}) = 
+Compose{N,M,typeof(A),typeof(mid),
+	Array{codomainType(A[end]),ndims(A[end],1)},
+	Array{domainType(A[1]),ndims(A[1],2)}}(A,mid)
 
 # Special cases
 
@@ -42,21 +46,29 @@ size(L::Compose) = ( size(L.A[end],1), size(L.A[1],2) )
 *{S<:Scale}(L1::LinearOperator, L2::S) = L2.coeff*(L1*L2.A)
 *{S1<:Scale,S2<:Scale}(L1::S1, L2::S2) = (L1.coeff*L2.coeff)*(L1.A*L2.A)
 
-.*(d::AbstractArray, L2::LinearOperator) = DiagOp(codomainType(L2), d)*L2
-.*(d::AbstractArray, L2::Scale         ) = DiagOp(L2.coeff*d)
+# redefine .*
+Base.broadcast(::typeof(*), d::AbstractArray, L::LinearOperator) = DiagOp(codomainType(L), d)*L
+Base.broadcast(::typeof(*), d::AbstractArray, L::Scale)          = DiagOp(L.coeff*d)
 
 # Operators
-function A_mul_B!(y::AbstractArray,L::Compose,b::AbstractArray)
-	A_mul_B!(L.mid[1],L.A[1],b)
-	for i = 2:length(L.A)-1
-		A_mul_B!(L.mid[i],L.A[i], L.mid[i-1])
+@generated function A_mul_B!{N,M,T1,T2,C,D}(y::C,L::Compose{N,M,T1,T2,C,D},b::D)
+	ex = :(A_mul_B!(L.mid[1],L.A[1],b))
+	for i = 2:M
+		ex = quote 
+			$ex	
+			A_mul_B!(L.mid[$i],L.A[$i], L.mid[$i-1])
+		end
 	end
-	A_mul_B!(y,L.A[length(L.A)], L.mid[length(L.A)-1])
+	ex = quote 
+		$ex 
+		A_mul_B!(y,L.A[N], L.mid[M]) 
+		return y
+	end
 end
 
 # Transformations
 function transpose(L::Compose)
-	Compose(flipdim([(L.A.')...],1),flipdim(L.mid,1))
+	Compose(transpose.(L.A)[length(L.A):-1:1] ,L.mid[length(L.mid):-1:1])
 end
 
 # Properties
