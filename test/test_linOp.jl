@@ -354,7 +354,7 @@ stuff = [
 		      ),),
        "args"     => ( randn(10), randn(10) ),
 	     ),
-## testing Reshape ####
+# testing Reshape ####
 	 Dict(
        "Operator" => (Reshape,),
        "params"   => ((MatrixOp(2*ones(4,8)),2,2),),
@@ -366,7 +366,7 @@ stuff = [
        "params"   => ((Variation(ones(5,4)),5*4*2),),
        "args"     => ( randn(5,4), randn(5*4*2) ),
 	     ),
-### testing Scale ####
+## testing Scale ####
 	 Dict(
        "Operator" => ((*),),
        "params"   => ((2, MatrixOp(randn(srand(1),4,8))),),
@@ -394,7 +394,7 @@ stuff = [
        "args"     => ( randn(8), randn(4) ),
        "in_out"   => ( ones(8), -2*ones(4,8)*ones(8) ),
 	     ),
-### testing Sum ####
+## testing Sum ####
 	 Dict(
        "Operator" => ((+),),
        "params"   => ((MatrixOp(randn(srand(1),4,8)), MatrixOp(randn(srand(2),4,8))),),
@@ -422,7 +422,7 @@ stuff = [
        "args"     => ( randn(4), fft(randn(4)) ),
        "in_out"   => ( randn(srand(3),4), fft(randn(srand(3),4)))
 	     ),
-### testing Compose ####
+## testing Compose ####
 	 Dict(
        "Operator" => ((*),),
        "params"   => (( MatrixOp(randn(srand(3),4,3)) , DCT((3,))                     ,),),
@@ -462,7 +462,7 @@ stuff = [
        "args"     => ( randn(3), randn(3) ),
        "in_out"   => ( randn(srand(3),3), randn(srand(1),3).*(FiniteDiff((3,))*randn(srand(3),3) )  )
 	     ),
-## testing Compose special cases ####
+### testing Compose special cases ####
 	 Dict(
        "Operator" => ((*),),
        "params"   => (( DFT((10*5,)), Reshape(-DCT((10,10))[:,1:5],10*5)   ,),),
@@ -535,7 +535,7 @@ stuff = [
 		        randn(srand(3),3,10)*randn(srand(10),10)+
 			randn(srand(4),3,4)*randn(srand(11),4) )
 	     ),
-## testing VCAT #### #TODO add some more tests on VCAT
+### testing VCAT #### #TODO add some more tests on VCAT
 	 Dict(
        "Operator" => ((vcat),),
        "params"   => (( MatrixOp(randn(srand(1),10,3)), MatrixOp(randn(srand(2),4,3)),),),

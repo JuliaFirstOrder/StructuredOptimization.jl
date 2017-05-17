@@ -18,7 +18,6 @@ A_mul_B!{T}(y::AbstractArray{T}, L::Eye, b::AbstractArray{T}) = y .= b
 Ac_mul_B!(y, L::Eye, b) = A_mul_B!(y,L,b) 
 
 # Transformations
-transpose(L::Eye) = L
 inv(L::Eye ) = L
 
 #Properties

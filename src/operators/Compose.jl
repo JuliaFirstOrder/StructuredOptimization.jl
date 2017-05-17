@@ -51,7 +51,7 @@ Base.broadcast(::typeof(*), d::AbstractArray, L::LinearOperator) = DiagOp(codoma
 Base.broadcast(::typeof(*), d::AbstractArray, L::Scale)          = DiagOp(L.coeff*d)
 
 # Operators
-@generated function A_mul_B!{N,M,T1,T2,C,D}(y::C,L::Compose{N,M,T1,T2,C,D},b::D)
+@generated function A_mul_B!{N,M,T1,T2,C,D}(y::C, L::Compose{N,M,T1,T2,C,D},b::D)
 	ex = :(A_mul_B!(L.mid[1],L.A[1],b))
 	for i = 2:M
 		ex = quote 
@@ -66,9 +66,19 @@ Base.broadcast(::typeof(*), d::AbstractArray, L::Scale)          = DiagOp(L.coef
 	end
 end
 
-# Transformations
-function transpose(L::Compose)
-	Compose(transpose.(L.A)[length(L.A):-1:1] ,L.mid[length(L.mid):-1:1])
+@generated function Ac_mul_B!{N,M,T1,T2,C,D}(y::D, L::Compose{N,M,T1,T2,C,D},b::C)
+	ex = :(Ac_mul_B!(L.mid[M],L.A[N],b))
+	for i = M:-1:2
+		ex = quote 
+			$ex	
+			Ac_mul_B!(L.mid[$i-1],L.A[$i], L.mid[$i])
+		end
+	end
+	ex = quote 
+		$ex 
+		Ac_mul_B!(y,L.A[1], L.mid[1]) 
+		return y
+	end
 end
 
 # Properties

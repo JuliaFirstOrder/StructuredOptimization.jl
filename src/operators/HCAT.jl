@@ -61,10 +61,16 @@ function (*){N,C,D,L}(H::HCAT{N,C,D,L},b::D)
 	return y
 end
 
-# Transformations
-function transpose{N,C,D,L}(H::HCAT{N,C,D,L}) 
-	At = transpose.(H.A)
-	VCAT{N,D,C,typeof(At)}(At,H.mid)
+function Ac_mul_B!{N,C,D,L}(y::D, H::HCAT{N,C,D,L}, b::C)
+	for i = 1:length(H.A)
+		Ac_mul_B!(y[i],H.A[i],b)
+	end
+end
+
+function *{L<:HCAT}(H::Transpose{L},b::AbstractArray)
+	y = zeros.( domainType.(H.A.A), size.(H.A.A,2))
+	Ac_mul_B!(y,H.A,b)
+	return y
 end
 
 # Properties

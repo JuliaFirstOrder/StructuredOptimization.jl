@@ -20,4 +20,5 @@ Ac_mul_B!{T<:LinearOperator}(y, L::Transpose{T}, x) = A_mul_B!(y, L.A, x)
 codomainType(L::Transpose) =   domainType(L.A)
 
 fun_name(L::Transpose)  = "$(fun_name(L.A)) (adjoint)"
+fun_type(L::Transpose) = fun_codomain(L.A)*" → "*fun_domain(L.A)
 

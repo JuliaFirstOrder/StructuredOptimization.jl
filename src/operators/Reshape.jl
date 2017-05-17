@@ -25,10 +25,10 @@ function A_mul_B!{N,M,C,D,T}(y::C, L::Reshape{N,M,C,D,T}, b::D)
 	A_mul_B!(y_res, L.A, b_res)
 end
 
-# Transformations
-function transpose{N,M,C,D,T}(L::Reshape{N,M,C,D,T})  
-	At = L.A'
-	Reshape{M,N,D,C,typeof(At)}(L.dim_in,L.dim_out, At)
+function Ac_mul_B!{N,M,C,D,T}(y::D, L::Reshape{N,M,C,D,T}, b::C)
+	y_res = reshape(y,size(L.A,2))
+	b_res = reshape(b,size(L.A,1))
+	Ac_mul_B!(y_res, L.A, b_res)
 end
 
 # Properties

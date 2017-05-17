@@ -1,7 +1,7 @@
 
 # Generalized length, dot product, norm, similar and deepcopy for nested Array objects
 
-deepsimilar(x::NTuple) = similar.(x)
+deepsimilar{N}(x::NTuple{N,Any}) = similar.(x)
 
 deepsimilar{T <: AbstractArray}(x::T) = similar(x)
 

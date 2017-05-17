@@ -19,7 +19,7 @@ nh = round(Int64,n/2)
 x2 = (zeros(nh),zeros(nh))
 
 A2 = LBFGS(x2,mem)
-#println(A2)
+println(typeof(A2))
 
 x_old = randn(n)
 x_old2 = (randn(nh),randn(nh))
@@ -37,10 +37,14 @@ for i = 1:N
     grad = Q*x + q
     grad2 = (grad[1:nh],grad[nh+1:end])
     if i > 1
-	    update!(A,   x, x_old,   grad,  grad_old)
+	    println("LBFGS update")
+	    @time update!(A,   x, x_old,   grad,  grad_old)
+	    println("Tuple LBFGS update")
 	    @time update!(A2, x2, x_old2, grad2, grad_old2)
-	    A_mul_B!(dir,A,grad)
-	    A_mul_B!(dir2,A2,grad2)
+	    println("LBFGS mul")
+	    @time A_mul_B!(dir,A,grad)
+	    println("Tuple LBFGS mul")
+	    @time A_mul_B!(dir2,A2,grad2)
     else
 	    copy!(dir, -grad)
 	    dir2 = deepcopy((-).(grad2))
@@ -56,14 +60,21 @@ end
 @test norm(dir[1:nh]-dir2[1])<1e-8
 @test norm(dir[nh+1:end]-dir2[2])<1e-8
 
-x2 = (randn(nh),randn(nh)+randn(nh)*im)
-x_old2 = (randn(nh),randn(nh)+randn(nh)*im)
-grad2 = (randn(nh),randn(nh)+randn(nh)*im)
-grad_old2 = (randn(nh),randn(nh)+randn(nh)*im)
-A2 = LBFGS(x2,mem)
 #println(A2)
 	    
-@time update!(A2, x2, x_old2, grad2, grad_old2)
-@time update!(A2, x2, x_old2, grad2, grad_old2)
-@time update!(A2, x2, x_old2, grad2, grad_old2)
+function foo() 
+	x2 = (randn(nh),randn(nh)+randn(nh)*im)
+	x_old2 = (randn(nh),randn(nh)+randn(nh)*im)
+	grad2 = (randn(nh),randn(nh)+randn(nh)*im)
+	grad_old2 = (randn(nh),randn(nh)+randn(nh)*im)
+	dir2 = (randn(nh),randn(nh)+randn(nh)*im)
+	A2 = LBFGS(x2,mem)
+	update!(A2, x2, x_old2, grad2, grad_old2)
+	#@code_warntype update!(A2, x2, x_old2, grad2, grad_old2)
+	@time update!(A2, x2, x_old2, grad2, grad_old2)
+	A_mul_B!(dir2,A2,grad2)
+	@time A_mul_B!(dir2,A2,grad2)
+end
+
+foo()
 

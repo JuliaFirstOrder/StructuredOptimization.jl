@@ -43,10 +43,26 @@ function *(V::VCAT,b::AbstractArray)
 	return y
 end
 
-# Transformations
-function transpose{N,C,D,L}(V::VCAT{N,C,D,L}) 
-	At = transpose.(V.A)
-	HCAT{N,D,C,typeof(At)}(At,V.mid)
+@generated function Ac_mul_B!{N,C,D,L}(y::D, S::VCAT{N,C,D,L}, b::C)
+	ex = :(Ac_mul_B!(y, S.A[1], b[1]))
+	for i = 2:N
+		ex = quote
+			$ex
+			Ac_mul_B!(S.mid, S.A[$i], b[$i])
+			y .+= S.mid
+		end
+	end
+	ex = quote
+		$ex
+		return y
+	end
+	
+end
+
+function (*){N,C,D,L,T<:VCAT{N,C,D,L}}(H::Transpose{T},b::C)
+	y = zeros( domainType(H.A),size(H.A,2))
+	Ac_mul_B!(y,H.A,b)
+	return y
 end
 
 # Properties
