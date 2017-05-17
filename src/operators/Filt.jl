@@ -1,12 +1,12 @@
 export Filt
 
-immutable Filt <: LinearOperator
+immutable Filt{N} <: LinearOperator
 	domainType::Type
-	dim_in::Tuple
+	dim_in::NTuple{N,Int}
 	b::AbstractVector
 	a::AbstractVector
 	si::AbstractVector
-	function Filt(domainType,dim_in,b,a)
+	function Filt{N}(domainType,dim_in,b,a) where {N}
 		isempty(b) && throw(ArgumentError("filter vector b must be non-empty"))
 		isempty(a) && throw(ArgumentError("filter vector a must be non-empty"))
 		a[1] == 0  && throw(ArgumentError("filter vector a[1] must be nonzero"))
@@ -35,19 +35,19 @@ size(L::Filt) = L.dim_in, L.dim_in
 # Constructors
 
 Filt{D1}(dim_in::Int,  b::AbstractVector{D1}, a::AbstractVector{D1}) = 
-Filt(eltype(b),(dim_in,), b, a)
+Filt{1}(eltype(b),(dim_in,), b, a)
 
 Filt{D1}(dim_in::Tuple,  b::AbstractVector{D1}, a::AbstractVector{D1}) = 
-Filt(eltype(b), dim_in, b, a)
+Filt{length(dim_in)}(eltype(b), dim_in, b, a)
 
 Filt{D1}(dim_in::Int,  b::AbstractVector{D1}) = 
-Filt(eltype(b),(dim_in,), b, [1.0])
+Filt{1}(eltype(b),(dim_in,), b, [1.0])
 
 Filt{D1}(dim_in::Tuple,  b::AbstractVector{D1}) = 
-Filt(eltype(b), dim_in, b, [1.0])
+Filt{length(dim_in)}(eltype(b), dim_in, b, [1.0])
 
 Filt{D1}(x::AbstractArray{D1}, b::AbstractVector{D1}, a::AbstractVector{D1}) = 
-Filt(eltype(x),size(x), b, a)
+Filt{ndims(x)}(eltype(x),size(x), b, a)
 
 Filt{D1}(x::AbstractArray{D1}, b::AbstractVector{D1}) = 
 Filt(x, b, [1.])

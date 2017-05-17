@@ -1,32 +1,33 @@
 import Base: getindex
 export GetIndex 
 
-immutable GetIndex <: LinearOperator
+immutable GetIndex{N,M,T<:Tuple} <: LinearOperator
 	domainType::Type
-	dim_in::Tuple
-	dim_out::Tuple
-	idx::Tuple
-
-	function GetIndex(domainType,dim_in,idx)
-		dim_out = get_dim_out(dim_in,idx...)
-		new(domainType,dim_in,dim_out,idx)
-	end
+	dim_out::NTuple{N,Int}
+	dim_in::NTuple{M,Int}
+	idx::T
 end
 
 size(L::GetIndex) = (L.dim_out,L.dim_in)
 
 # Constructors
+
+function GetIndex{M,T<:Tuple}(domainType::Type,dim_in::NTuple{M,Int},idx::T)
+	dim_out = get_dim_out(dim_in,idx...)
+	GetIndex{length(dim_out),M,T}(domainType,dim_out,dim_in,idx)
+end
+
 GetIndex(dim_in::Tuple, idx::Tuple) = GetIndex(Float64, dim_in, idx)
 GetIndex(x::AbstractArray, idx::Tuple) = GetIndex(eltype(x), size(x), idx)
 
 getindex(A::LinearOperator,idx...) = GetIndex(codomainType(A),size(A,1),idx)*A 
 
 # Operators
-function A_mul_B!(y::AbstractArray,L::GetIndex,b::AbstractArray)
-	copy!(y,view(b,L.idx...))
+function A_mul_B!{T1,N,M,T2}(y::Array{T1,N},L::GetIndex{N,M,T2},b::Array{T1,M})
+	y .= view(b,L.idx...)
 end
 
-function Ac_mul_B!(y::AbstractArray,L::GetIndex,b::AbstractArray)
+function Ac_mul_B!{T1,N,M,T2}(y::Array{T1,M},L::GetIndex{N,M,T2},b::AbstractArray{T1,N})
 	y .= 0.
 	setindex!(y,b,L.idx...)
 end

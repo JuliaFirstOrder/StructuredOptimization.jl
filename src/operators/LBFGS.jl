@@ -1,173 +1,176 @@
 export LBFGS, update!
 
-immutable LBFGS <:LinearOperator
+type LBFGS{M, T<:RealOrComplex, A<:AbstractArray{T}, N} <:LinearOperator
 	domainType::Type
-	dim::Tuple
-	mem::Int64
-	currmem::Array{Int64,1}
-	curridx::Array{Int64,1}
-	s::AbstractArray
-	y::AbstractArray
-	s_m::Array
-	y_m::Array
-	ys_m::Array{Float64,1}
-	alphas::Array{Float64,1}
-	H::Array{Float64,1}
+	dim::NTuple{N,Int}
+	currmem::Int
+	curridx::Int
+	s::A
+	y::A
+	s_m::NTuple{M,A}
+	y_m::NTuple{M,A}
+	ys_m::Array{T,1}
+	alphas::Array{T,1}
+	H::Float64
 end
 size(A::LBFGS) = (A.dim,A.dim)
 
-function LBFGS{D1}(x::AbstractArray{D1}, 
-		   mem::Int64,
-		   currmem::Array{Int64,1},
-		   curridx::Array{Int64,1},
-		   ys_m::Array, 
-		   alphas::Array, 
-		   H::Array)
+function LBFGS{T<:RealOrComplex, A<:AbstractArray{T}}(x::A, mem::Int)
 
-	s_m = Array{Array{D1},1}(mem)
-	y_m = Array{Array{D1},1}(mem)
-	for i in eachindex(s_m)
-		s_m[i] = similar(x)
-		y_m[i] = similar(x)
-	end
+	s_m = ([similar(x) for i = 1:mem]...)
+	y_m = ([similar(x) for i = 1:mem]...)
+
 	s = similar(x)
 	y = similar(x)
-	return LBFGS(D1,size(x), mem, currmem, curridx, s, y, s_m, y_m, ys_m, alphas, H)
-end
 
-function LBFGS{D1}(x::AbstractArray{D1}, mem::Int64)
 	ys_m = zeros(Float64,mem)
 	alphas = zeros(Float64,mem)
-	LBFGS(x, mem, [0], [0], ys_m, alphas, [1.])
+
+	return LBFGS{mem,T,A,ndims(x)}(eltype(x), size(x), 0, 0, s, y, s_m, y_m, ys_m, alphas, 1.)
 end
 
 #create an array of LBFGS Op. which all share some stuff
-function LBFGS{T<:AbstractArray}(x::Array{T,1},mem::Int64)
-	LBFGS_col = Array{LBFGS,1}(length(x))
-	LBFGS_col[1] = LBFGS(x[1],mem)
-	for i = 2:length(x)
-		LBFGS_col[i] = LBFGS(x[i],mem,
-		                     LBFGS_col[1].currmem,
-				     LBFGS_col[1].curridx,
-				     LBFGS_col[1].ys_m,
-				     LBFGS_col[1].alphas,
-				     LBFGS_col[1].H) 
-	end
-	return LBFGS_col
+function LBFGS{N}(x::NTuple{N,Any},mem::Int64)
+	return LBFGS.(x,mem)
 end
 
-function update!(A::LBFGS, x::Array, x_prev::Array, gradx::Array, gradx_prev::Array)
+function update!{M, 
+		 T<:RealOrComplex, 
+		 A<:AbstractArray{T},N}(
+			L::LBFGS{M,T,A,N}, 
+			x::A, 
+			x_prev::A, 
+			gradx::A, 
+			gradx_prev::A)
 
-	A.s .= (-).(x, x_prev)
-	A.y .= (-).(gradx, gradx_prev)
-	ys = real(vecdot(A.s,A.y))
+	L.s .= (-).(x, x_prev)
+	L.y .= (-).(gradx, gradx_prev)
+	ys = real(vecdot(L.s,L.y))
 
 	if ys > 0
-		A.curridx[1] += 1
-		if A.curridx[1] > A.mem A.curridx[1] = 1 end
-		A.currmem[1] += 1
-		if A.currmem[1] > A.mem A.currmem[1] = A.mem end
+		L.curridx += 1
+		if L.curridx > M L.curridx = 1 end
+		L.currmem += 1
+		if L.currmem > M L.currmem = M end
 
-		copy!(A.s_m[A.curridx[1]], A.s)
-		copy!(A.y_m[A.curridx[1]], A.y)
-		A.ys_m[A.curridx[1]] = ys
-		A.H[1] = ys/real(vecdot(A.y,A.y))
+		L.s_m[L.curridx] .=  L.s
+		L.y_m[L.curridx] .=  L.y
+		L.ys_m[L.curridx] = ys
+		L.H = ys/real(vecdot(L.y,L.y))
 	end
-
+	return L
 end
 
-function update!{T<:AbstractArray}(A::Array{LBFGS,1}, 
-				   x::Array{T,1}, 
-				   x_prev::Array{T,1}, 
-				   gradx::Array{T,1}, 
-				   gradx_prev::Array{T,1})
+@generated function update!{M,N2,A <: NTuple{N2,Any}}(L::NTuple{N2,LBFGS{M}}, 
+						      x::A, 
+						      x_prev::A, 
+						      gradx::A, 
+						      gradx_prev::A)
 
-	ys = 0.
-	for i in eachindex(A)
-		A[i].s .= (-).(x[i], x_prev[i])
-		A[i].y .= (-).(gradx[i], gradx_prev[i])
-		ys += real(vecdot(A[i].s, A[i].y))
-	end
-
-	if ys > 0
-		A[1].curridx[1] += 1
-		if A[1].curridx[1] > A[1].mem A[1].curridx[1] = 1 end
-		A[1].currmem[1] += 1
-		if A[1].currmem[1] > A[1].mem A[1].currmem[1] = A[1].mem end
-
-		A[1].H[1] = 0.
-		for i in eachindex(A)
-			copy!(A[i].s_m[A[1].curridx[1]], A[i].s)
-			copy!(A[i].y_m[A[1].curridx[1]], A[i].y)
-			A[1].H[1] += real(vecdot(A[i].y,A[i].y))
+	ex = :(ys = 0.)
+	for i in 1:N2
+		ex = quote 
+			$ex
+			L[$i].s .= (-).(x[$i], x_prev[$i])
+			L[$i].y .= (-).(gradx[$i], gradx_prev[$i])
+			ys += real(vecdot(L[$i].s, L[$i].y))
 		end
-		A[1].ys_m[A[1].curridx[1]] = ys
-		A[1].H[1] = (A[1].H[1]/ys)^(-1)
 	end
 
+	ex2 = :()
+		
+	for i in 1:N2
+		ex2 = quote
+			$ex2
+			L[$i].s_m[L[1].curridx] .= L[$i].s
+			L[$i].y_m[L[1].curridx] .= L[$i].y
+			L[1].H += real(vecdot(L[$i].y,L[$i].y))
+		end
+	end
+
+	ex =  quote
+		$ex
+	
+		if ys > 0
+			L[1].curridx += 1
+			if L[1].curridx > $M L[1].curridx = 1 end
+			L[1].currmem += 1
+			if L[1].currmem > $M L[1].currmem = $M end
+
+			L[1].H = 0.
+			$ex2
+			L[1].ys_m[L[1].curridx] = ys
+			L[1].H = (L[1].H/ys)^(-1)
+		end
+	return L
+	end
 end
 
-function A_mul_B!(d::AbstractArray, A::LBFGS, gradx::AbstractArray)
+function A_mul_B!{M, T<:RealOrComplex, A<:AbstractArray{T},N}(d::A, L::LBFGS{M,T,A,N}, gradx::A)
 	d .= (-).(gradx)
-	idx = A.curridx[1]
-	for i=1:A.currmem[1]
-		A.alphas[idx] = real(vecdot(A.s_m[idx], d))/A.ys_m[idx]
-		d .= (-).(d, (*).(A.alphas[idx], A.y_m[idx]))
+	idx = L.curridx
+	for i=1:L.currmem
+		L.alphas[idx] = real(vecdot(L.s_m[idx], d))/L.ys_m[idx]
+		d .-= L.alphas[idx].*L.y_m[idx]
 		idx -= 1
-		if idx == 0 idx = A.mem end
+		if idx == 0 idx = M end
 	end
-	d .= (*).(A.H[1], d)
-	for i=1:A.currmem[1]
+	d .= (*).(L.H, d)
+	for i=1:L.currmem
 		idx += 1
-		if idx > A.mem idx = 1 end
-		beta = real(vecdot(A.y_m[idx], d))/A.ys_m[idx]
-		d .= (+).(d, (*).((A.alphas[idx]-beta), A.s_m[idx]))
+		if idx > M idx = 1 end
+		beta = real(vecdot(L.y_m[idx], d))/L.ys_m[idx]
+		d .+=  (L.alphas[idx].-beta).*L.s_m[idx]
 	end
 end
 
-function A_mul_B!{T<:AbstractArray}(d::Array{T,1}, A::Array{LBFGS,1}, gradx::Array{T,1})
-	d .= (-).(gradx)
-	idx = A[1].curridx[1]
-	for i=1:A[1].currmem[1]
+function A_mul_B!{M,N2,A<:NTuple{N2,Any}}(d::A, L::NTuple{N2,LBFGS{M}}, gradx::A)
+	for ii in 1:N2
+		d[ii] .= (-).(gradx[ii])
+	end
+	idx = L[1].curridx
+	for i=1:L[1].currmem
 		
-		A[1].alphas[idx] = 0.
-		for i in eachindex(A)
-			A[1].alphas[idx] += real(vecdot(A[i].s_m[idx], d[i]))
+		L[1].alphas[idx] = 0.
+		for ii in 1:N2
+			L[1].alphas[idx] += real(vecdot(L[ii].s_m[idx], d[ii]))
 		end
-		A[1].alphas[idx] /= A[1].ys_m[idx]
+		L[1].alphas[idx] /= L[1].ys_m[idx]
 		
-		for i in eachindex(A)
-			d[i] .= (-).(d[i], (*).(A[1].alphas[idx], A[i].y_m[idx]))
+		for ii in 1:N2
+			d[ii] .-= L[1].alphas[idx].*L[ii].y_m[idx]
 		end
 		
 		idx -= 1
-		if idx == 0 idx = A[1].mem end
+		if idx == 0 idx = M end
 	end
-	d .= (*).(A[1].H[1], d)
-	for i=1:A[1].currmem[1]
+	for ii in 1:N2
+		d[ii] .= (*).(L[1].H, d[ii])
+	end
+	for i=1:L[1].currmem
 		idx += 1
-		if idx > A[1].mem idx = 1 end
+		if idx > M idx = 1 end
 		
 		beta = 0.
-		for i in eachindex(A)
-			beta += real(vecdot(A[i].y_m[idx], d[i]))
+		for ii in 1:N2
+			beta += real(vecdot(L[ii].y_m[idx], d[ii]))
 		end
-		beta /= A[1].ys_m[idx]
+		beta /= L[1].ys_m[idx]
 
-		for i in eachindex(A)
-			d[i] .= (+).(d[i], (*).((A[1].alphas[idx]-beta), A[i].s_m[idx]))
+		for ii in 1:N2
+			d[ii] .+=  (L[1].alphas[idx].-beta).*L[ii].s_m[idx]
 		end
 	end
 end
 
 function reset(A::LBFGS)
-	A.currmem[1] = 0
-	A.curridx[1] = 0
+	A.currmem = 0
+	A.curridx = 0
 end
 
 function reset(A::Array{LBFGS,1})
-	A[1].currmem[1] = 0
-	A[1].curridx[1] = 0
+	A[1].currmem = 0
+	A[1].curridx = 0
 end
 
 fun_name(A::LBFGS)  = "LBFGS Operator"

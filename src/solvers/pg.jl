@@ -5,6 +5,7 @@ type PG <: ForwardBackwardSolver
 	halt::Function
 	gamma::Float64
 	it::Int
+	fpr::AbstractArray
 	normfpr::Float64
 	cost::Float64
 	time::Float64
@@ -49,138 +50,146 @@ fun_name(S::PG) = S.fast ? "Fast Proximal Gradient" : "Proximal Gradient"
 * `linesearch::Bool=true`: activates linesearch on stepsize γ
 * `fast::Bool=true`: switches between proximal gradient and fast proximal gradient
 """
-PG(; tol::Float64 = 1e-8,
-      maxit::Int64 = 10000,
-      verbose::Int64 = 1,
-      halt::Function = halt_default,
-      linesearch::Bool = true,
-      fast::Bool = false,
-      gamma::Float64 = Inf) =
-PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, fast, 0, 0)
 
-	
-(p::PG)(; tol::Float64   = p.tol, 
-	maxit::Int64     = p.maxit,
-	verbose::Int64   = p.verbose,
-	halt::Function   = p.halt,
-	linesearch::Bool = p.linesearch,
-	gamma::Float64   = p.gamma        ) =
-PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, p.fast, 0, 0)
+PG(;
+	tol::Float64 = 1e-8,
+	maxit::Int64 = 10000,
+	verbose::Int64 = 1,
+	halt::Function = halt_default,
+	linesearch::Bool = true,
+	fast::Bool = false,
+	gamma::Float64 = Inf) =
+PG(tol, maxit, verbose, halt, gamma,  0, [], Inf, Inf, NaN, linesearch, fast, 0, 0)
 
 # alias for fast = true
-FPG(; tol::Float64 = 1e-8,
-      maxit::Int64 = 10000,
-      verbose::Int64 = 1,
-      halt::Function = halt_default,
-      linesearch::Bool = true,
-      gamma::Float64 = Inf) =
+FPG(;
+	tol::Float64 = 1e-8,
+	maxit::Int64 = 10000,
+	verbose::Int64 = 1,
+	halt::Function = halt_default,
+	linesearch::Bool = true,
+	gamma::Float64 = Inf) =
 PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
-function solve(f::CompositeFunction, g::ProximableFunction, slv0::PG)
+# (p::PG)(; tol::Float64   = p.tol,
+# 	maxit::Int64     = p.maxit,
+# 	verbose::Int64   = p.verbose,
+# 	halt::Function   = p.halt,
+# 	linesearch::Bool = p.linesearch,
+# 	gamma::Float64   = p.gamma        ) =
+# PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, p.fast, 0, 0)
+#
+# import Base: copy
+#
+# copy(slv::PG) = PG(copy(slv.tol),
+# 	           copy(slv.maxit),
+# 	           copy(slv.verbose),
+# 	           slv.halt,
+# 	           copy(slv.gamma),
+# 	           copy(slv.it),
+# 	           copy(slv.normfpr),
+# 	           copy(slv.cost),
+# 	           copy(slv.time),
+# 	           copy(slv.linesearch),
+# 	           copy(slv.fast),
+# 	           copy(slv.cnt_matvec),
+# 	           copy(slv.cnt_prox))
+
+function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
 
 	tic()
 
-	slv = copy(slv0)
 	x = deepcopy(~variable(f))
 
-	resx, fx = residual(f,x)
-	gradfi,   =      gradient(f,resx)
-	gradx     = At_mul_B(f,gradfi)
+	res_x = residual(f, x)
+	grad_f_res, f_x = gradient(f, res_x)
+	grad_f_x = At_mul_B(f, grad_f_res)
 	slv.cnt_matvec += 2
-	fz = fx
-	gz = Inf
-	costprev = Inf
+	g_x = Inf
+	cost_xprev = Inf
 	normfpr0 = Inf
 
-	if slv.gamma == Inf # compute upper bound for Lipschitz constant using fd
-		resx_eps, = residual(f,x+sqrt(eps()))
-		gradfi_eps,= gradient(f,resx_eps)
-		gradx_eps  = At_mul_B(f,gradfi_eps)
+	if slv.gamma == Inf
+		# compute upper bound for Lipschitz constant
+		res_x_eps = residual(f, x+sqrt(eps()))
+		grad_f_res_eps, = gradient(f, res_x_eps)
+		grad_f_x_eps = At_mul_B(f, grad_f_res_eps)
 		slv.cnt_matvec += 2
-		Lf = deepvecnorm(gradx-gradx_eps)/(sqrt(eps()*deeplength(x)))
-		slv.gamma = 1/Lf
-		gradfi_eps = gradx_eps = []
+		Lf = deepvecnorm(grad_f_x-grad_f_x_eps)/(sqrt(eps()*deeplength(x)))
+		slv.gamma = 1.0/Lf
 	end
 
 	# initialize variables
-	xprev = deepcopy(x)
-	resxprev = deepcopy(resx)
-	y = deepcopy(x)
-	fy = fx
-	grady = gradx
 
+	fpr = deepcopy(x)
+	slv.fpr = fpr
+	y = deepcopy(x)
+	xprev = deepcopy(x)
+	res_y = deepcopy(res_x)
+	res_xprev = deepcopy(res_x)
+	f_y = f_x
+	grad_f_y = grad_f_x
 	gradstep = deepcopy(x)
 
 	for slv.it = 1:slv.maxit
 
-		# stopping criterion
-		if slv.halt(slv, normfpr0, costprev) break end
-
 		# line search on gamma
 		for j = 1:32
-			gradstep .= (*).(-slv.gamma, grady)
-			gradstep .+= y
-			gz = prox!(x, g, gradstep, slv.gamma)
+			gradstep .= y .- slv.gamma.*grad_f_y
+			g_x = prox!(x, g, gradstep, slv.gamma)
 			slv.cnt_prox += 1
-			fpr = y-x
+			fpr .= y .- x
 			slv.normfpr = deepvecnorm(fpr)
-			fz = residual!(resx, f, x)
+			residual!(res_x, f, x)
+			f_x = cost(f, res_x)
 			slv.cnt_matvec += 1
 			if slv.linesearch == false break end
-			uppbnd = fy - real(deepvecdot(grady,fpr)) + 1/(2*slv.gamma)*slv.normfpr^2
-			if fz <= uppbnd break end
+			uppbnd = f_y - real(deepvecdot(grad_f_y, fpr)) + (0.5/slv.gamma)*(slv.normfpr^2)
+			if f_x <= uppbnd + 1e-6*abs(f_y) break end
 			slv.gamma = 0.5*slv.gamma
 		end
 
-		if slv.it == 1 normfpr0 = slv.normfpr end
-
-		slv.cost = fz + gz
+		slv.cost = f_x + g_x
 
 		# print out stuff
+
 		print_status(slv)
 
+		# stopping criterion
+
+		if slv.halt(slv) break end
+
 		# extrapolation
+
 		if slv.fast
-			y = x + (slv.it-1)/(slv.it+2) * (x - xprev)
-			resy = resx + (slv.it-1)/(slv.it+2) * (resx - resxprev)
+			y .= x .+ (slv.it-1)/(slv.it+2) .* (x .- xprev)
+			res_y .= res_x .+ (slv.it-1)/(slv.it+2) .* (res_x .- res_xprev)
 		else
+			# no need to copy, just move references around
 			y = x
-			resy = resx
+			res_y = res_x
 		end
 
 		# compute gradient and f(y)
-		fy = gradient!(gradfi,f,resy)
-		At_mul_B!(grady,f,gradfi)
-	
+
+		f_y = gradient!(grad_f_res, f, res_y)
+		At_mul_B!(grad_f_y, f, grad_f_res)
+
 		slv.cnt_matvec += 1
 
 		# update iterates
+
 		x, xprev = xprev, x
-		resx, resxprev = resxprev, resx
+		res_x, res_xprev = res_xprev, res_x
 		costprev = slv.cost
 
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
+	deepcopy!(~variable(f), x)
 
-	deepcopy!(~variable(f),x)
 	slv.time = toq()
 
 	return slv
 
 end
-
-import Base: copy
-copy(slv::PG) = PG(copy(slv.tol),
-	           copy(slv.maxit),
-	           copy(slv.verbose),
-	           slv.halt,
-	           copy(slv.gamma),
-	           copy(slv.it),
-	           copy(slv.normfpr),
-	           copy(slv.cost),
-	           copy(slv.time),
-	           copy(slv.linesearch),
-	           copy(slv.fast),
-	           copy(slv.cnt_matvec),
-	           copy(slv.cnt_prox))

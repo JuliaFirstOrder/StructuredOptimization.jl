@@ -1,8 +1,4 @@
-abstract AbstractAffineTerm
-abstract LinearOperator
-abstract DiagonalOperator <:   LinearOperator
-abstract IdentityOperator <: DiagonalOperator
-#abstract DiagonalOp <: DiagGramOp
+abstract type LinearOperator end
 
 import Base:
   *,
@@ -16,7 +12,6 @@ import Base:
   +,
   -,
   ==
-
 
 +(L::LinearOperator) = L
 
@@ -54,19 +49,23 @@ include("operators/Compose.jl")
 include("operators/HCAT.jl")
 include("operators/VCAT.jl")
 
-size(L::LinearOperator, i) = size(L)[i]
+size(L::LinearOperator, i::Int) = size(L)[i]
+ndims(L::LinearOperator)   = length(size(L,1)),length(size(L,2))
+ndims(L::LinearOperator, i::Int)   = ndims(L)[i]
 
 #usually domain is preserved, if not one has to redefine these functions
   domainType(L::LinearOperator) = L.domainType
 codomainType(L::LinearOperator) = L.domainType
 
-isEye(L::LinearOperator) = typeof(L) <: IdentityOperator
-isDiagonal(L::LinearOperator) = typeof(L) <: DiagonalOperator
-# this will be changed with typeof(L) <: GramDiagonal
-isGramDiagonal(L::LinearOperator) = typeof(L) <: DiagonalOperator
+isScaled(L::LinearOperator)         = false
 
-isInvertible(L::LinearOperator) = false
-isScaled(L::LinearOperator) = false
+isEye(L::LinearOperator)            = false
+isDiagonal(L::LinearOperator)       = false
+isGramDiagonal(L::LinearOperator)   = false
+
+isInvertible(L::LinearOperator)     = false
+isFullRowRank(L::LinearOperator)    = false
+isFullColumnRank(L::LinearOperator) = false
 
 function Base.show(io::IO, L::LinearOperator)
   println(io, "description : ", fun_name(L))

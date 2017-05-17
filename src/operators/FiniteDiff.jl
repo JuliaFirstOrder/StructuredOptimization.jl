@@ -2,7 +2,7 @@ export FiniteDiff
 
 immutable FiniteDiff{N,D} <: LinearOperator
 	domainType::Type
-	dim_in::Tuple
+	dim_in::NTuple{N,Int}
 end
 
 size(L::FiniteDiff) = (L.dim_in, L.dim_in)

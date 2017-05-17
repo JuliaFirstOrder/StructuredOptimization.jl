@@ -2,8 +2,8 @@ export MIMOFilt
 
 immutable MIMOFilt <: LinearOperator
 	domainType::Type
-	dim_out::Tuple
-	dim_in::Tuple
+	dim_out::Tuple{Int,Int}
+	dim_in::Tuple{Int,Int}
 	B::Vector{AbstractVector}
 	A::Vector{AbstractVector}
 	SI::Vector{AbstractVector}

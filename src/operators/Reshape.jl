@@ -1,26 +1,35 @@
 export Reshape
 
-immutable Reshape <: LinearOperator
-	dim_out::Tuple
-	dim_in::Tuple
-	A::LinearOperator
+immutable Reshape{N,M,C<:AbstractArray,D<:AbstractArray,L<:LinearOperator} <: LinearOperator
+	dim_out::NTuple{N,Int}
+	dim_in::NTuple{M,Int}
+	A::L
 end
 
 size(L::Reshape) = (L.dim_out, L.dim_in)
 
 # Constructors
-Reshape(L::LinearOperator, dim_out...) = Reshape( dim_out, size(L,2), L)
-Reshape(L::Scale, dim_out...) = L.coeff*(Reshape( dim_out, size(L,2), L.A))
+Reshape(L::LinearOperator, dim_out...) = 
+Reshape{length(dim_out),
+	length(size(L,2)),
+	Array{codomainType(L),length(dim_out)},
+	Array{domainType(L),ndims(L,2)},
+	typeof(L)}( dim_out, size(L,2), L)
+Reshape(L::Scale, dim_out...) = 
+L.coeff*(Reshape( L.A, dim_out...))
 
 # Operators
-function A_mul_B!(y::AbstractArray,L::Reshape,b::AbstractArray)
+function A_mul_B!{N,M,C,D,T}(y::C, L::Reshape{N,M,C,D,T}, b::D)
 	y_res = reshape(y,size(L.A,1))
 	b_res = reshape(b,size(L.A,2))
 	A_mul_B!(y_res, L.A, b_res)
 end
 
-# Transformations
-transpose(L::Reshape) = Reshape(L.dim_in,L.dim_out, L.A')
+function Ac_mul_B!{N,M,C,D,T}(y::D, L::Reshape{N,M,C,D,T}, b::C)
+	y_res = reshape(y,size(L.A,2))
+	b_res = reshape(b,size(L.A,1))
+	Ac_mul_B!(y_res, L.A, b_res)
+end
 
 # Properties
   domainType(  L::Reshape) =   domainType(L.A)

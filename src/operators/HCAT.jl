@@ -1,26 +1,29 @@
 import Base: hcat
 
-immutable HCAT <: LinearOperator
-	A::AbstractArray{LinearOperator}
-	mid::AbstractArray
-	function HCAT{T<:LinearOperator}(A::AbstractArray{T}, mid::AbstractArray)
-		if any(size.(A[2:end], 1) .!= size(A[1], 1))
-			throw(DimensionMismatch("operators must have the same codomain dimension!"))
-		end
-		if any(codomainType.(A[2:end]) .!= codomainType(A[1]))
-			throw(DomainError())
-		end
-		new(A, mid)
-	end
+immutable HCAT{N, C<:AbstractArray, D<:NTuple{N,Any}, L<:NTuple{N,Any}} <: LinearOperator
+	A::L
+	mid::C
 end
-size(L::HCAT) = size(L.A[1],1), tuple(size.(L.A, 2)...)
+size(L::HCAT) = size(L.A[1],1), size.(L.A, 2)
 
 # Constructors
+function HCAT{N,C<:AbstractArray}(A::NTuple{N,Any}, mid::C)
+	if any([size(A[1],1) != size(a,1) for a in A]) 
+		throw(DimensionMismatch("operators must have the same codomain dimension!"))
+	end
+	if any(codomainType.(A[2:end]) .!= codomainType(A[1]))
+		throw(DomainError())
+	end
+	domType = domainType.(A) 
+	D = Tuple{[Array{domType[i],ndims(A[i],2)} for i in eachindex(domType)]...}
+	HCAT{N,C,D,typeof(A)}(A, mid)
+end
+
 HCAT(A::LinearOperator) = A
 
 function HCAT(A::Vararg{LinearOperator})
 	mid = zeros(codomainType(A[1]),size(A[1],1))
-	return HCAT([A...], mid)
+	return HCAT(A, mid)
 end
 
 ## define `hcat` for convenience
@@ -28,16 +31,47 @@ hcat(L::Vararg{LinearOperator}) = HCAT(L...)
 hcat(L::LinearOperator) = L
 
 # Operators
-function A_mul_B!{T1,T2<:AbstractArray}(y::AbstractArray{T1}, S::HCAT, b::AbstractArray{T2})
-	A_mul_B!(y, S.A[1], b[1])
-	for i = 2:length(S.A)
-		A_mul_B!(S.mid, S.A[i], b[i])
-		y .= (+).(y, S.mid)
+@generated function A_mul_B!{N,C,D,L}(y::C, S::HCAT{N,C,D,L}, b::D)
+	ex = :(A_mul_B!(y, S.A[1], b[1]))
+	for i = 2:N
+		ex = quote
+			$ex
+			A_mul_B!(S.mid, S.A[$i], b[$i])
+			y .+= S.mid
+		end
+	end
+	ex = quote
+		$ex
+		return y
+	end
+	
+end
+
+#function A_mul_B!{N,C,D,L}(y::C, S::HCAT{N,C,D,L}, b::D)
+#	A_mul_B!(y, S.A[1], b[1])
+#	for i = 2:length(S.A)
+#		A_mul_B!(S.mid, S.A[i], b[i])
+#		y .= (+).(y, S.mid)
+#	end
+#end
+
+function (*){N,C,D,L}(H::HCAT{N,C,D,L},b::D)
+	y = zeros(codomainType(H),size(H,1))
+	A_mul_B!(y,H,b)
+	return y
+end
+
+function Ac_mul_B!{N,C,D,L}(y::D, H::HCAT{N,C,D,L}, b::C)
+	for i = 1:length(H.A)
+		Ac_mul_B!(y[i],H.A[i],b)
 	end
 end
 
-# Transformations
-transpose(L::HCAT) = VCAT((L.A.')[:],L.mid)
+function *{L<:HCAT}(H::Transpose{L},b::AbstractArray)
+	y = zeros.( domainType.(H.A.A), size.(H.A.A,2))
+	Ac_mul_B!(y,H.A,b)
+	return y
+end
 
 # Properties
 fun_name(L::HCAT) = length(L.A) == 2 ? "["fun_name(L.A[1])*", "*fun_name(L.A[2])*"]"  : "HCAT operator"
@@ -59,13 +93,3 @@ end
   domainType(L::HCAT) = domainType.(L.A)
 codomainType(L::HCAT) = codomainType(L.A[1])
 
-
-# import Base: copy, sort
-#
-# copy(A::HCAT) = HCAT(copy(A.A), A.mid)
-#
-# function sort(A::HCAT,p::Array)
-# 	H = A.A[p]
-# 	return HCAT(H,A.mid)
-# end
-#

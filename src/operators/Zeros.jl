@@ -1,10 +1,10 @@
 export Zeros
 
-immutable Zeros <: LinearOperator
+immutable Zeros{O,I} <: LinearOperator
 	codomainType::Type
 	domainType::Type
-	dim_out::Tuple
-	dim_in::Tuple
+	dim_out::NTuple{O,Int}
+	dim_in::NTuple{I,Int}
 end
 
 size(L::Zeros) = (L.dim_out,L.dim_in)
@@ -22,34 +22,18 @@ Zeros(        D::Type, dim_out::Tuple, dim_in::Tuple) = Zeros(      D,       D, 
 
 Zeros(L::LinearOperator) = Zeros(codomainType(L), domainType(L), size(L,1), size(L,2))
 
-#function zeros(A::VCAT)
-#	dim2 = size(A,2)
-#	V = Vector{LinearOperator}(length(dim2))
-#	for i in eachindex(V)
-#		V[i] = zeros(A.A[i])
-#	end
-#	vcat(V...)
-#end
-#
-#function zeros(A::HCAT)
-#	dim1 = size(A,1)
-#	V = Vector{LinearOperator}(length(dim1))
-#	for i in eachindex(V)
-#		V[i] = zeros(A.A[i])
-#	end
-#	hcat(V...)
-#end
 
 # operators
 function A_mul_B!(y::AbstractArray,A::Zeros,b::AbstractArray)
-	y .= 0
+	y .= 0.
 end
 
 function Ac_mul_B!(y::AbstractArray,A::Zeros,b::AbstractArray)
-	y .= 0
+	y .= 0.
 end
 
 # properties
 fun_name(A::Zeros)  = "Zero Operator"
+
 
 
