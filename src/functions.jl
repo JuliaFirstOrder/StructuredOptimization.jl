@@ -1,12 +1,18 @@
 is_smooth(f::ProximableFunction) = false
 is_quadratic(f::ProximableFunction) = false
-is_strconvex(f::ProximableFunction) = false
+is_generalized_quadratic(f::ProximableFunction) = false
+is_strongly_convex(f::ProximableFunction) = false
 
-include("functions/sqrNormL2.jl")
+include("functions/conjugate.jl")
 include("functions/moreauEnvelope.jl")
 include("functions/separableSum.jl")
 include("functions/norm.jl")
 include("functions/rank.jl")
+include("functions/sqrNormL2.jl")
+
+NullFunction() = IndFree()
+is_null(f::ProximableFunction) = false
+is_null(f::IndFree) = true
 
 function gradient!(f::ProximableFunction, args...)
 	error("gradient not implemented for $f")

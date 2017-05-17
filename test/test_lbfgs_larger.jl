@@ -1,4 +1,4 @@
-@printf("Testing L-BFGS routines on a larger problem\n")
+@printf("\nTesting L-BFGS routines on a larger problem\n")
 
 n = 10000
 dens = 100/n
@@ -61,8 +61,8 @@ end
 @test norm(dir[nh+1:end]-dir2[2])<1e-3
 
 #println(A2)
-	    
-function foo() 
+
+function foo()
 	x2 = (randn(nh),randn(nh)+randn(nh)*im)
 	x_old2 = (randn(nh),randn(nh)+randn(nh)*im)
 	grad2 = (randn(nh),randn(nh)+randn(nh)*im)
@@ -78,4 +78,3 @@ function foo()
 end
 
 foo()
-

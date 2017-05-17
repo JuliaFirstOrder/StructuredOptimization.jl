@@ -1,6 +1,6 @@
 is_smooth(f::SeparableSum) = all(is_smooth.(f.fs))
 is_quadratic(f::SeparableSum) = all(is_quadratic.(f.fs))
-is_strconvex(f::SeparableSum) = all(is_strconvex.(f.fs))
+is_strongly_convex(f::SeparableSum) = all(is_strongly_convex.(f.fs))
 
 function gradient!(grad::AbstractArray, fs::AbstractArray, x::AbstractArray)
   val = 0.0

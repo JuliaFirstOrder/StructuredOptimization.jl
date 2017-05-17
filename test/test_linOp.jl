@@ -1,3 +1,5 @@
+@printf("\nTesting linear operators\n")
+
 ##test linear operators
 
 #testing utils

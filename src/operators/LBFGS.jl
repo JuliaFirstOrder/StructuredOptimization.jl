@@ -58,7 +58,6 @@ function update!{M,
 	return L
 end
 
-<<<<<<< 312c91b651a81668f999129162b54669100a1e5b
 function update_s_y{M,T,A,N}(L::LBFGS{M,T,A,N}, x::A, x_prev::A, gradx::A, gradx_prev::A)
 	L.s .= (-).(x, x_prev)
 	L.y .= (-).(gradx, gradx_prev)
