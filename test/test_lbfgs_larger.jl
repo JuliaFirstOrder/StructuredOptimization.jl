@@ -57,8 +57,8 @@ for i = 1:N
     grad_old2 = deepcopy(grad2)
 end
 
-@test norm(dir[1:nh]-dir2[1])<1e-8
-@test norm(dir[nh+1:end]-dir2[2])<1e-8
+@test norm(dir[1:nh]-dir2[1])<1e-3
+@test norm(dir[nh+1:end]-dir2[2])<1e-3
 
 #println(A2)
 	    
@@ -74,6 +74,7 @@ function foo()
 	@time update!(A2, x2, x_old2, grad2, grad_old2)
 	A_mul_B!(dir2,A2,grad2)
 	@time A_mul_B!(dir2,A2,grad2)
+	#@code_warntype update!(A2, x2, x_old2, grad2, grad_old2)
 end
 
 foo()
