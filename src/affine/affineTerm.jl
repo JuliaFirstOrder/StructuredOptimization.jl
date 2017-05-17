@@ -1,9 +1,8 @@
-import Base: +,-
+import Base: +, -
 
 immutable AffineTerm <: AbstractAffineTerm
 	A::LinearTerm
 	b::AbstractArray
-
 	function AffineTerm(A,b)
 		size(b)!= size(A,1) && throw(DimensionMismatch())
 		codomainType(A) != eltype(b) && throw(DomainError())
@@ -13,19 +12,19 @@ end
 
 variable(A::AffineTerm) = variable(A.A)
 operator(A::AffineTerm) = operator(A.A)
-adjoint( A::AffineTerm) = adjoint( A.A)
-tilt(    A::AffineTerm) = A.b
+adjoint(A::AffineTerm) = adjoint(A.A)
+tilt(A::AffineTerm) = A.b
 
-domainType(A::AffineTerm) =   domainType(A::LinearTerm)
+domainType(A::AffineTerm) = domainType(A::LinearTerm)
 codomainType(A::AffineTerm) = codomainType(A::LinearTerm)
 size(A::AffineTerm, args...) = size(A.A, args...)
 
 # Constructors
 
-(+)(A::LinearTerm,b::AbstractArray)       = AffineTerm( A, b)
-(-)(A::LinearTerm,b::AbstractArray)       = AffineTerm( A,-b)
-(+)(b::AbstractArray,A::LinearTerm)       = AffineTerm( A, b)
-(-)(b::AbstractArray,A::LinearTerm)       = AffineTerm(-A, b)
+(+)(A::LinearTerm,b::AbstractArray) = AffineTerm( A, b)
+(-)(A::LinearTerm,b::AbstractArray) = AffineTerm( A,-b)
+(+)(b::AbstractArray,A::LinearTerm) = AffineTerm( A, b)
+(-)(b::AbstractArray,A::LinearTerm) = AffineTerm(-A, b)
 (+)(A::AffineTerm,b::AbstractArray) = AffineTerm( A.A, A.b+b)
 (-)(A::AffineTerm,b::AbstractArray) = AffineTerm( A.A, A.b-b)
 (+)(b::AbstractArray,A::AffineTerm) = AffineTerm( A.A, A.b+b)

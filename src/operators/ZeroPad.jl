@@ -13,49 +13,53 @@ immutable ZeroPad{N} <: LinearOperator
 	end
 end
 
-size(L::ZeroPad) = L.dim_out, L.dim_in
-
 # Constructors
+
 ZeroPad{N}(dim_in::Tuple, zp::Vararg{Int,N}) = ZeroPad{length(dim_in)}(Float64, dim_in, zp...)
 
 ZeroPad(x::AbstractArray, zp::Vararg{Int}) = ZeroPad{ndims(x)}(eltype(x), size(x), zp...)
 
-# Operators
-function A_mul_B!{T}(y::AbstractVector{T}, L::ZeroPad{1}, b::AbstractVector{T}) 
+# Mappings
+
+function A_mul_B!{T}(y::AbstractVector{T}, L::ZeroPad{1}, b::AbstractVector{T})
 	for i in eachindex(y)
 		y[i] = i <= length(b) ? b[i] : 0.
 	end
 end
 
-function Ac_mul_B!{T}(y::AbstractVector{T}, L::ZeroPad{1}, b::AbstractVector{T}) 
+function Ac_mul_B!{T}(y::AbstractVector{T}, L::ZeroPad{1}, b::AbstractVector{T})
 	for i in eachindex(y)
-		y[i] = b[i] 
+		y[i] = b[i]
 	end
 end
 
-function A_mul_B!{T}(y::AbstractArray{T,2}, L::ZeroPad{2}, b::AbstractArray{T,2}) 
+function A_mul_B!{T}(y::AbstractArray{T,2}, L::ZeroPad{2}, b::AbstractArray{T,2})
 	for l = 1:size(y,1), m = 1:size(y,2)
 		y[l,m] = l <= size(b,1) && m <= size(b,2) ? b[l,m] : 0.
 	end
 end
 
-function Ac_mul_B!{T}(y::AbstractArray{T,2}, L::ZeroPad{2}, b::AbstractArray{T,2}) 
+function Ac_mul_B!{T}(y::AbstractArray{T,2}, L::ZeroPad{2}, b::AbstractArray{T,2})
 	for l = 1:size(y,1), m = 1:size(y,2)
 		y[l,m] = b[l,m]
 	end
 end
 
-function A_mul_B!{T}(y::AbstractArray{T,3}, L::ZeroPad{3}, b::AbstractArray{T,3}) 
+function A_mul_B!{T}(y::AbstractArray{T,3}, L::ZeroPad{3}, b::AbstractArray{T,3})
 	for l = 1:size(y,1), m = 1:size(y,2), n = 1:size(y,3)
 		y[l,m,n] = l <= size(b,1) && m <= size(b,2) && n <= size(b,3) ? b[l,m,n] : 0.
 	end
 end
 
-function Ac_mul_B!{T}(y::AbstractArray{T,3}, L::ZeroPad{3}, b::AbstractArray{T,3}) 
+function Ac_mul_B!{T}(y::AbstractArray{T,3}, L::ZeroPad{3}, b::AbstractArray{T,3})
 	for l = 1:size(y,1), m = 1:size(y,2), n = 1:size(y,3)
 		y[l,m,n] = b[l,m,n]
 	end
 end
 
+# Properties
+
+size(L::ZeroPad) = L.dim_out, L.dim_in
+
 fun_name(L::ZeroPad)       = "Zero Pad"
-isGramDiagonal(L::ZeroPad)  = true
+is_gram_diagonal(L::ZeroPad)  = true

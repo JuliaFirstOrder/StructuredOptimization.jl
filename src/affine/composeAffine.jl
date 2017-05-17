@@ -1,4 +1,3 @@
-
 function compose(f::Type, B::LinearTerm, args...)
 	mid = Array{codomainType(operator(B))}(size(operator(B),1))
 	A = f(mid, args...)

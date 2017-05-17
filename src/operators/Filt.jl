@@ -30,29 +30,27 @@ immutable Filt{N} <: LinearOperator
 	end
 end
 
-size(L::Filt) = L.dim_in, L.dim_in
-
 # Constructors
 
-Filt{D1}(dim_in::Int,  b::AbstractVector{D1}, a::AbstractVector{D1}) = 
+Filt{D1}(dim_in::Int,  b::AbstractVector{D1}, a::AbstractVector{D1}) =
 Filt{1}(eltype(b),(dim_in,), b, a)
 
-Filt{D1}(dim_in::Tuple,  b::AbstractVector{D1}, a::AbstractVector{D1}) = 
+Filt{D1}(dim_in::Tuple,  b::AbstractVector{D1}, a::AbstractVector{D1}) =
 Filt{length(dim_in)}(eltype(b), dim_in, b, a)
 
-Filt{D1}(dim_in::Int,  b::AbstractVector{D1}) = 
+Filt{D1}(dim_in::Int,  b::AbstractVector{D1}) =
 Filt{1}(eltype(b),(dim_in,), b, [1.0])
 
-Filt{D1}(dim_in::Tuple,  b::AbstractVector{D1}) = 
+Filt{D1}(dim_in::Tuple,  b::AbstractVector{D1}) =
 Filt{length(dim_in)}(eltype(b), dim_in, b, [1.0])
 
-Filt{D1}(x::AbstractArray{D1}, b::AbstractVector{D1}, a::AbstractVector{D1}) = 
+Filt{D1}(x::AbstractArray{D1}, b::AbstractVector{D1}, a::AbstractVector{D1}) =
 Filt{ndims(x)}(eltype(x),size(x), b, a)
 
-Filt{D1}(x::AbstractArray{D1}, b::AbstractVector{D1}) = 
+Filt{D1}(x::AbstractArray{D1}, b::AbstractVector{D1}) =
 Filt(x, b, [1.])
 
-# Operators
+# Mappings
 
 function A_mul_B!{T}(y::AbstractArray{T},L::Filt,x::AbstractArray{T})
 	for col = 1:size(x,2)
@@ -65,8 +63,6 @@ function Ac_mul_B!{T}(y::AbstractArray{T},L::Filt,x::AbstractArray{T})
 		length(L.a) != 1 ? iir_rev!(y,L.b,L.a,x,L.si,col,col) : fir_rev!(y,L.b,x,L.si,col,col)
 	end
 end
-
-fun_name(L::Filt)  = size(L.a,1) != 1 ? "IIR" : "FIR"
 
 function iir!(y, b, a, x, si, coly, colx)
     silen = length(si)
@@ -81,6 +77,8 @@ function iir!(y, b, a, x, si, coly, colx)
     end
     si .= 0. #reset state
 end
+
+# Utilities
 
 function iir_rev!(y, b, a, x, si, coly, colx)
     silen = length(si)
@@ -123,3 +121,9 @@ function fir_rev!(y, b, x, si, coly, colx)
     end
     si .= 0.
 end
+
+# Properties
+
+size(L::Filt) = L.dim_in, L.dim_in
+
+fun_name(L::Filt)  = size(L.a,1) != 1 ? "IIR" : "FIR"

@@ -12,10 +12,11 @@ function Variable(args...)
 end
 
 size(x::Variable) = size(x.x)
+
 """
   `~(x::RegLS.Variable)`
 
-return the `Array` inside `Variable`.
+return the `Array` object containing the value of `x`.
 """
 ~(x::Variable) = x.x
 ~{T<:AbstractVariable}(x::Vector{T}) = length(x) == 1 ? ~(x[1]) : (~).(x)

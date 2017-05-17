@@ -21,25 +21,25 @@ immutable MIMOFilt <: LinearOperator
 			isempty(b[i]) && throw(ArgumentError("filter vector b[$i] must be non-empty"))
 			isempty(a[i]) && throw(ArgumentError("filter vector a[$i] must be non-empty"))
 			a[i][1] == 0  && throw(ArgumentError("filter vector a[$i][1] must be nonzero"))
-		
+
 			as = length(a[i])
 			bs = length(b[i])
 			sz = max(as, bs)
 			silen = sz - 1
 
-		
+
 			# Filter coefficient normalization
 			if a[i][1] != 1
 				norml = a[i][1]
 				a[i] ./= norml
 				b[i] ./= norml
 			end
-		
+
 			# Pad the coefficients with zeros if needed
 			bs<sz   && (b[i] = copy!(zeros(eltype(b[i]), sz), b[i]))
 			1<as<sz && (a[i] = copy!(zeros(eltype(a[i]), sz), a[i]))
 
-			si = zeros(promote_type(eltype(b[i]), 
+			si = zeros(promote_type(eltype(b[i]),
 			   	   eltype(a[i])), max(length(a[i]), length(b[i]))-1)
 
 			push!(B,b[i])
@@ -50,24 +50,21 @@ immutable MIMOFilt <: LinearOperator
 	end
 end
 
-size(L::MIMOFilt) = L.dim_out, L.dim_in
-
 # Constructors
 
-MIMOFilt{D1<:AbstractVector}(dim_in::Tuple,  b::Vector{D1}, a::Vector{D1}) = 
+MIMOFilt{D1<:AbstractVector}(dim_in::Tuple,  b::Vector{D1}, a::Vector{D1}) =
 MIMOFilt(eltype(b[1]), dim_in, b, a)
 
-MIMOFilt{D1<:AbstractVector}(dim_in::Tuple,  b::Vector{D1}) = 
+MIMOFilt{D1<:AbstractVector}(dim_in::Tuple,  b::Vector{D1}) =
 MIMOFilt(eltype(b[1]), dim_in, b, [[1.0] for i in eachindex(b)])
 
-MIMOFilt{D1<:AbstractVector}(x::AbstractMatrix,  b::Vector{D1}, a::Vector{D1}) = 
+MIMOFilt{D1<:AbstractVector}(x::AbstractMatrix,  b::Vector{D1}, a::Vector{D1}) =
 MIMOFilt(eltype(x), size(x), b, a)
 
-MIMOFilt{D1<:AbstractVector}(x::AbstractMatrix,  b::Vector{D1}) = 
+MIMOFilt{D1<:AbstractVector}(x::AbstractMatrix,  b::Vector{D1}) =
 MIMOFilt(eltype(x), size(x), b, [[1.0] for i in eachindex(b)])
 
-
-# Operators
+# Mappings
 
 function A_mul_B!{T}(y::AbstractArray{T},L::MIMOFilt,x::AbstractArray{T})
 	cnt = 0
@@ -76,19 +73,18 @@ function A_mul_B!{T}(y::AbstractArray{T},L::MIMOFilt,x::AbstractArray{T})
 	for cy = 1:L.dim_out[2]
 		cnt += 1
 		cx  += 1
-		length(L.A[cnt]) != 1 ? add_iir!(y,L.B[cnt],L.A[cnt],x,L.SI[cnt],cy,cx) : 
+		length(L.A[cnt]) != 1 ? add_iir!(y,L.B[cnt],L.A[cnt],x,L.SI[cnt],cy,cx) :
 		add_fir!(y,L.B[cnt],x,L.SI[cnt],cy,cx)
-			
+
 		for c2 = 2:L.dim_in[2]
 			cnt += 1
 			cx  += 1
-			length(L.A[cnt]) != 1 ? add_iir!(y,L.B[cnt],L.A[cnt],x,L.SI[cnt],cy,cx) : 
+			length(L.A[cnt]) != 1 ? add_iir!(y,L.B[cnt],L.A[cnt],x,L.SI[cnt],cy,cx) :
 			add_fir!(y,L.B[cnt],x,L.SI[cnt],cy,cx)
 		end
 		cx = 0
 	end
 end
-
 
 function Ac_mul_B!{T}(y::AbstractArray{T},L::MIMOFilt,x::AbstractArray{T})
 	cnt = 0
@@ -97,21 +93,26 @@ function Ac_mul_B!{T}(y::AbstractArray{T},L::MIMOFilt,x::AbstractArray{T})
 	for cy = 1:L.dim_out[2]
 		cnt += 1
 		cx  += 1
-		length(L.A[cnt]) != 1 ? add_iir_rev!(y,L.B[cnt],L.A[cnt],x,L.SI[cnt],cx,cy) : 
+		length(L.A[cnt]) != 1 ? add_iir_rev!(y,L.B[cnt],L.A[cnt],x,L.SI[cnt],cx,cy) :
 		add_fir_rev!(y,L.B[cnt],x,L.SI[cnt],cx,cy)
-			
+
 		for c2 = 2:L.dim_in[2]
 			cnt += 1
 			cx  += 1
-			length(L.A[cnt]) != 1 ? add_iir_rev!(y,L.B[cnt],L.A[cnt],x,L.SI[cnt],cx,cy) : 
+			length(L.A[cnt]) != 1 ? add_iir_rev!(y,L.B[cnt],L.A[cnt],x,L.SI[cnt],cx,cy) :
 			add_fir_rev!(y,L.B[cnt],x,L.SI[cnt],cx,cy)
 		end
 		cx = 0
 	end
 end
 
+# Properties
 
-fun_name(L::MIMOFilt)  = "MIMO Filt" 
+size(L::MIMOFilt) = L.dim_out, L.dim_in
+
+fun_name(L::MIMOFilt)  = "MIMO Filt"
+
+# Utilities
 
 function add_iir!(y, b, a, x, si, coly, colx)
     silen = length(si)

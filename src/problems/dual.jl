@@ -22,7 +22,7 @@ function Dual(smooth::CompositeFunction, nonsmooth::CompositeFunction)
 	for i in eachindex(variable(smooth))
 		A = operator(affine(smooth)[i])
 		typeof(A)<: HCAT ? A = A.A[i] : nothing
-		isInvertible(A) == true ? nothing : error("operator not easily invertable")
+		is_invertible(A) == true ? nothing : error("operator not easily invertable")
 		Ainv[i] = inv(A)
 	end
 

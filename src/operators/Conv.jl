@@ -6,14 +6,12 @@ immutable Conv{N} <: LinearOperator
 	h::AbstractVector
 end
 
-size(L::Conv) = (L.dim_in[1]+length(L.h)-1,), L.dim_in
-
 # Constructors
 
 Conv{D1}(dim_in::Int,  h::AbstractVector{D1}) = Conv(eltype(h),(dim_in,), h)
 Conv{D1}(x::AbstractVector{D1}, h::AbstractVector{D1}) = Conv(eltype(x),size(x), h)
 
-# Operators
+# Mappings
 
 function A_mul_B!{T}(y::AbstractVector{T},A::Conv,b::AbstractVector{T})
 		y .= conv(A.h,b)
@@ -24,5 +22,7 @@ function Ac_mul_B!{T}(y::AbstractVector{T},A::Conv,b::AbstractVector{T})
 end
 
 # Properties
-fun_name(A::Conv)  = "Convolution Operator"
 
+size(L::Conv) = (L.dim_in[1]+length(L.h)-1,), L.dim_in
+
+fun_name(A::Conv)  = "Convolution Operator"

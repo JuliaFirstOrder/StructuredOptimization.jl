@@ -14,8 +14,8 @@ end
 
 variable(A::LinearTerm) = A.x
 operator(A::LinearTerm) = A.L
-adjoint(A::LinearTerm)  = A.Lt
-tilt(A::LinearTerm)     =  0.
+adjoint(A::LinearTerm) = A.Lt
+tilt(A::LinearTerm) = 0.
 
 domainType(A::LinearTerm) =   domainType(operator(A))
 codomainType(A::LinearTerm) = codomainType(operator(A))
@@ -30,6 +30,7 @@ LinearTerm(x::Variable,L::LinearOperator) = LinearTerm([x],L)
 
 +(A::LinearTerm, B::LinearTerm) =  all(variable(A) == variable(B)) ? LinearTerm(variable(A), A.L+B.L) :
 LinearTerm(unsigned_sum(variable(A),operator(A),variable(B),operator(B), true)...)
+
 #see utils down here for unsigned_sum
 # other constructors in AffineConstructors and ComposeAffine
 

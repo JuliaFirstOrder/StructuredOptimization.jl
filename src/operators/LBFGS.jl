@@ -2,7 +2,7 @@ export LBFGS, update!
 
 #TODO make Ac_mul_B!
 
-type LBFGS{M, T<:RealOrComplex, A<:AbstractArray{T}, N} <:LinearOperator
+type LBFGS{M, T<:RealOrComplex, A <: AbstractArray{T}, N} <:LinearOperator
 	domainType::Type
 	dim::NTuple{N,Int}
 	currmem::Int
@@ -15,7 +15,8 @@ type LBFGS{M, T<:RealOrComplex, A<:AbstractArray{T}, N} <:LinearOperator
 	alphas::Array{Float64,1}
 	H::Float64
 end
-size(A::LBFGS) = (A.dim,A.dim)
+
+# Constructors
 
 function LBFGS{T<:RealOrComplex, A<:AbstractArray{T}}(x::A, mem::Int)
 
@@ -31,13 +32,13 @@ function LBFGS{T<:RealOrComplex, A<:AbstractArray{T}}(x::A, mem::Int)
 	return LBFGS{mem,T,A,ndims(x)}(eltype(x), size(x), 0, 0, s, y, s_m, y_m, ys_m, alphas, 1.)
 end
 
-function update!{M, 
-		 T<:RealOrComplex, 
+function update!{M,
+		 T<:RealOrComplex,
 		 A<:AbstractArray{T},N}(
-			L::LBFGS{M,T,A,N}, 
-			x::A, 
-			x_prev::A, 
-			gradx::A, 
+			L::LBFGS{M,T,A,N},
+			x::A,
+			x_prev::A,
+			gradx::A,
 			gradx_prev::A)
 
 
@@ -49,29 +50,29 @@ function update!{M,
 		L.currmem += 1
 		if L.currmem > M L.currmem = M end
 
-	
+
 		yty = update_s_m_y_m(L,L.curridx)
 		L.ys_m[L.curridx] = ys
-		L.H = ys/yty 
+		L.H = ys/yty
 	end
 	return L
 end
 
-function update_s_y{M,T,A,N}(L::LBFGS{M,T,A,N}, x::A, x_prev::A, gradx::A, gradx_prev::A) 
+<<<<<<< 312c91b651a81668f999129162b54669100a1e5b
+function update_s_y{M,T,A,N}(L::LBFGS{M,T,A,N}, x::A, x_prev::A, gradx::A, gradx_prev::A)
 	L.s .= (-).(x, x_prev)
 	L.y .= (-).(gradx, gradx_prev)
 	ys = real(vecdot(L.s,L.y))
 	return ys
 end
 
-function update_s_m_y_m{M,T,A,N}(L::LBFGS{M,T,A,N}, curridx::Int) 
+function update_s_m_y_m{M,T,A,N}(L::LBFGS{M,T,A,N}, curridx::Int)
 	L.s_m[curridx] .=  L.s
 	L.y_m[curridx] .=  L.y
 
 	yty = real(vecdot(L.y,L.y))
 	return yty
 end
-
 
 function A_mul_B!{M, T<:RealOrComplex, A<:AbstractArray{T},N}(d::A, L::LBFGS{M,T,A,N}, gradx::A)
 	d .= (-).(gradx)
@@ -101,11 +102,8 @@ function loop2!{M,T,A,N}(d::A, idx::Int, L::LBFGS{M,T,A,N})
 	return d
 end
 
+# Properties
 
-function reset(A::LBFGS)
-	A.currmem = 0
-	A.curridx = 0
-end
-
+size(A::LBFGS) = (A.dim,A.dim)
 
 fun_name(A::LBFGS)  = "LBFGS Operator"

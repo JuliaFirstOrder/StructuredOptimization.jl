@@ -54,7 +54,6 @@ A = M*x+z
 A = M*x-z
 @test norm(A(~[x,z])-(M*~x-~z) )<1e-9
 
-
 println("\n test Tilted LinearTerm \n")
 
 #wrong size of b
@@ -111,7 +110,6 @@ A = pi*(M*x)
 
 A = 4*(M*x-b)
 @test norm(A(~x)-4*(M*~x-b)) < 1e-9
-
 
 println("\n testing function constructors \n")
 println(zeros(z)-b)
