@@ -8,6 +8,7 @@ srand(0)
 ### Passing:
 
 include("test_linOp.jl")
+include("test_linOp_calculus.jl")
 include("test_lbfgs.jl")
 include("test_lbfgs_larger.jl")
 include("test_functions.jl")
