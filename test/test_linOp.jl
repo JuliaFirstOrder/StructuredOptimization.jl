@@ -21,7 +21,6 @@ function test_FwAdj(A::LinearOperator, x, y, verb::Bool = false)
 	d1 = RegLS.deepvecdot(y2, y)
 	d2 = RegLS.deepvecdot(x, x2)
 	return abs( d1 - d2 )
-
 end
 
 stuff = [
