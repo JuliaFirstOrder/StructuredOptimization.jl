@@ -10,7 +10,7 @@ end
 
 # Constructors
 
-function HCAT{N, C<:Union{Tuple,AbstractArray}}(A::NTuple{N,LinearOperator}, mid::C, M::Int)
+function HCAT{N, C<:Union{Tuple,AbstractArray}, L <:NTuple{N,LinearOperator}}(A::L, mid::C, M::Int)
 	if any([size(A[1],1) != size(a,1) for a in A])
 		throw(DimensionMismatch("operators must have the same codomain dimension!"))
 	end
@@ -19,7 +19,7 @@ function HCAT{N, C<:Union{Tuple,AbstractArray}}(A::NTuple{N,LinearOperator}, mid
 	end
 	domType = domainType.(A)
 	D = Tuple{[Array{domType[i],ndims(A[i],2)} for i in eachindex(domType)]...}
-	HCAT{M,N,C,D,typeof(A)}(A, mid)
+	HCAT{M,N,C,D,L}(A, mid)
 end
 
 HCAT(A::LinearOperator) = A

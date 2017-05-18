@@ -10,7 +10,7 @@ end
 
 # Constructors
 
-function VCAT{M, D<:Union{Tuple,AbstractArray}}(A::NTuple{M,LinearOperator}, mid::D, N::Int)
+function VCAT{M, D<:Union{Tuple,AbstractArray}, L<:NTuple{M,LinearOperator}}(A::L, mid::D, N::Int)
 	if any([size(A[1],2) != size(a,2) for a in A])
 		throw(DimensionMismatch("operators must have the same codomain dimension!"))
 	end
@@ -19,7 +19,7 @@ function VCAT{M, D<:Union{Tuple,AbstractArray}}(A::NTuple{M,LinearOperator}, mid
 	end
 	codomType = codomainType.(A)
 	C = Tuple{[Array{codomType[i],ndims(A[i],1)} for i in eachindex(codomType)]...}
-	VCAT{M,N,C,D,typeof(A)}(A, mid)
+	VCAT{M,N,C,D,L}(A, mid)
 end
 
 VCAT(A::LinearOperator) = A

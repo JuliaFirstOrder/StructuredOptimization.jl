@@ -26,7 +26,5 @@ include("test_functions.jl")
 
 #include("test_solvers.jl")
 
-#A = MatrixOp(randn(10,10))
-#B = MatrixOp(randn(5,5))
-#D = DCAT(A,B)
-#println(D)
+
+
