@@ -378,7 +378,7 @@ stuff = [
 		      ),),
        "args"     => ( randn(10), randn(10) ),
 	     ),
-# testing Reshape ####
+## testing Reshape ####
 	 Dict(
        "Operator" => (Reshape,),
        "params"   => ((MatrixOp(2*ones(4,8)),2,2),),
@@ -493,7 +493,7 @@ stuff = [
   #      "args"     => (  randn(10,10), fft(randn(10*5)) ),
   #      "in_out"   => ( randn(srand(3),10,10), fft(reshape(-dct(randn(srand(3),10,10))[:,1:5],10*5) )  )
 	#      ),
-### testing HCAT ####
+#### testing HCAT ####
 	 Dict(
        "Operator" => (HCAT,),
        "params"   => (( MatrixOp(randn(srand(1),3,10)), MatrixOp(randn(srand(2),3,4)),),),
@@ -520,6 +520,23 @@ stuff = [
 		      real(6*ifft(fft(randn(srand(1),6)))+dct(randn(srand(1),6)))
 		      ),
 	     ),
+	 Dict(
+       "Operator" => (HCAT,),
+       "params"   => (( 
+		       VCAT(MatrixOp(randn(srand(1),5,10)), MatrixOp(randn(srand(2),10,10))),
+		       VCAT(MatrixOp(randn(srand(3),5,10)), MatrixOp(randn(srand(4),10,10))),
+		       ),),
+       "wrg_pr"   => (( 
+		       VCAT(MatrixOp(randn(srand(1),5,10)), MatrixOp(randn(srand(2),10,10))),
+		       VCAT(MatrixOp(randn(srand(1),6,5)), MatrixOp(randn(srand(2),10,5))),
+		       ),),
+       "args"     => ( (randn(10),randn(10)), (randn(5),randn(10)) ),
+       "in_out"   => ( (randn(srand(1),10),randn(srand(1),10)),
+		      (randn(srand(1),5,10)*randn(srand(1),10)+
+	 	       randn(srand(3),5,10)*randn(srand(1),10),		      
+		       randn(srand(2),10,10)*randn(srand(1),10)+
+		       randn(srand(4),10,10)*randn(srand(1),10))),
+             ),
 	#  Dict(
   #      "Operator" => (HCAT,),
   #      "params"   => (( MatrixOp(randn(srand(1),3,10)), -MatrixOp(randn(srand(2),3,4)), DCT(3) ),),
@@ -568,6 +585,29 @@ stuff = [
        "in_out"   => ( randn(srand(3),3),
 		        (randn(srand(1),10,3)*randn(srand(3),3),
 	   randn(srand(2),4, 3)*randn(srand(3),3))    )
+	     ),
+	 Dict(
+       "Operator" => (VCAT,),
+       "params"   => (( 
+		       HCAT(MatrixOp(randn(srand(1),5,10)), MatrixOp(randn(srand(2),5,2))),
+		       HCAT(MatrixOp(randn(srand(3),6,10)), MatrixOp(randn(srand(4),6,2))),
+		       ),),
+       "wrg_pr"   => (( 
+		       HCAT(MatrixOp(randn(srand(1),5,11)), MatrixOp(randn(srand(2),5,2))),
+		       HCAT(MatrixOp(randn(srand(3),6,10)), MatrixOp(randn(srand(4),6,2))),
+		       ),),
+       "args"     => ( (randn(10),randn(2)), (randn(5),randn(6)) ),
+       "in_out"   => ( (randn(srand(1),10),randn(srand(1),2)),
+		      (randn(srand(1),5,10)*randn(srand(1),10)+
+	 	       randn(srand(2),5, 2)*randn(srand(1), 2),		      
+		       randn(srand(3),6,10)*randn(srand(1),10)+
+		       randn(srand(4),6, 2)*randn(srand(1), 2))),
+             ),
+#### testing DCAT ####
+	 Dict(
+       "Operator" => (DCAT,),
+       "params"   => (( MatrixOp(randn(srand(1),3,10)), Variation(5,6),),),
+       "args"     => ( (randn(10),randn(5,6)), (randn(3),randn(30,2)) ),
 	     ),
 	 ]
 

@@ -24,3 +24,8 @@ include("test_functions.jl")
 ### This should be correct:
 
 #include("test_solvers.jl")
+
+#A = MatrixOp(randn(10,10))
+#B = MatrixOp(randn(5,5))
+#D = DCAT(A,B)
+#println(D)

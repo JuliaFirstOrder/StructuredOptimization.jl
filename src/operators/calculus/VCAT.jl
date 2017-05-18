@@ -1,29 +1,34 @@
 export VCAT
 
-immutable VCAT{N, C <: NTuple{N,Any}, D <: AbstractArray, L <: NTuple{N,Any}} <: LinearOperator
+immutable VCAT{M, N, 
+	       C <: NTuple{M,AbstractArray}, 
+	       D <: Union{NTuple{N,AbstractArray}, AbstractArray}, 
+	       L <: NTuple{M,LinearOperator}} <: LinearOperator
 	A::L
 	mid::D
 end
 
 # Constructors
 
-function VCAT{N, D <: AbstractArray}(A::NTuple{N,Any}, mid::D)
+function VCAT{M, D<:Union{Tuple,AbstractArray}}(A::NTuple{M,LinearOperator}, mid::D, N::Int)
 	if any([size(A[1],2) != size(a,2) for a in A])
 		throw(DimensionMismatch("operators must have the same codomain dimension!"))
 	end
-	if any(domainType.(A[2:end]) .!= domainType(A[1]))
+	if any([domainType(A[1]) != domainType(a) for a in A])
 		throw(DomainError())
 	end
 	codomType = codomainType.(A)
 	C = Tuple{[Array{codomType[i],ndims(A[i],1)} for i in eachindex(codomType)]...}
-	VCAT{N, C, D, typeof(A)}(A, mid)
+	VCAT{M,N,C,D,typeof(A)}(A, mid)
 end
 
 VCAT(A::LinearOperator) = A
 
 function VCAT(A::Vararg{LinearOperator})
-	mid = zeros(domainType(A[1]), size(A[1], 2))
-	return VCAT(A, mid)
+	s = size(A[1],2)
+	t = domainType(A[1])
+	mid,N  = create_mid(t,s)
+	return VCAT(A, mid, N)
 end
 
 # Syntax (commented for now; does not belong here)
@@ -36,26 +41,37 @@ end
 
 # Mappings
 
-function A_mul_B!{N,C,D,L}(y::C, V::VCAT{N,C,D,L}, b::D)
-	for i = 1:length(V.A)
-		A_mul_B!(y[i],V.A[i],b)
+@generated function A_mul_B!{M,N,C,D,L}(y::C, H::VCAT{M,N,C,D,L}, b::D)
+	ex = :()
+	for i = 1:M
+		ex = :($ex; A_mul_B!(y[$i],H.A[$i],b))
+	end
+	ex = quote
+		$ex
+		return y
 	end
 end
 
-@generated function Ac_mul_B!{N,C,D,L}(y::D, S::VCAT{N,C,D,L}, b::C)
+@generated function Ac_mul_B!{M,N,C,D,L}(y::D, S::VCAT{M,N,C,D,L}, b::C)
 	ex = :(Ac_mul_B!(y, S.A[1], b[1]))
-	for i = 2:N
+	for i = 2:M
 		ex = quote
 			$ex
 			Ac_mul_B!(S.mid, S.A[$i], b[$i])
-			y .+= S.mid
+		end
+	
+		if D <: AbstractArray
+			ex = :($ex; y .+= S.mid)
+		else
+			for ii = 1:N
+				ex = :($ex; y[$ii] .+= S.mid[$ii])
+			end
 		end
 	end
 	ex = quote
 		$ex
 		return y
 	end
-
 end
 
 # Properties
@@ -72,6 +88,8 @@ function fun_codomain(L::VCAT)
 	end
 	return str
 end
+
+fun_domain(L::VCAT) = fun_domain(L.A[1])
 
   domainType(L::VCAT) = domainType(L.A[1])
 codomainType(L::VCAT) = codomainType.(L.A)

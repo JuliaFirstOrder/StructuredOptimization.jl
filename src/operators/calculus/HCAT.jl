@@ -1,30 +1,38 @@
 export HCAT
 
-immutable HCAT{N, C <: AbstractArray, D <: NTuple{N,Any}, L <: NTuple{N,Any}} <: LinearOperator
+immutable HCAT{M, N, 
+	       C <: Union{NTuple{M,AbstractArray}, AbstractArray}, 
+	       D <: NTuple{N,AbstractArray}, 
+	       L <: NTuple{N,LinearOperator}} <: LinearOperator
 	A::L
 	mid::C
 end
 
 # Constructors
 
-function HCAT{N, C <: AbstractArray}(A::NTuple{N,Any}, mid::C)
+function HCAT{N, C<:Union{Tuple,AbstractArray}}(A::NTuple{N,LinearOperator}, mid::C, M::Int)
 	if any([size(A[1],1) != size(a,1) for a in A])
 		throw(DimensionMismatch("operators must have the same codomain dimension!"))
 	end
-	if any(codomainType.(A[2:end]) .!= codomainType(A[1]))
+	if any([codomainType(A[1]) != codomainType(a) for a in A])
 		throw(DomainError())
 	end
 	domType = domainType.(A)
 	D = Tuple{[Array{domType[i],ndims(A[i],2)} for i in eachindex(domType)]...}
-	HCAT{N,C,D,typeof(A)}(A, mid)
+	HCAT{M,N,C,D,typeof(A)}(A, mid)
 end
 
 HCAT(A::LinearOperator) = A
 
 function HCAT(A::Vararg{LinearOperator})
-	mid = zeros(codomainType(A[1]), size(A[1], 1))
-	return HCAT(A, mid)
+	s = size(A[1],1)
+	t = codomainType(A[1])
+	mid,M  = create_mid(t,s)
+	return HCAT(A, mid, M)
 end
+
+create_mid{N}(t::NTuple{N,DataType},s::NTuple{N,NTuple}) = zeros.(t,s), N
+create_mid{N}(t::Type,s::NTuple{N,Int}) = zeros(t,s), 1
 
 # Syntax (commented for now; does not belong here)
 
@@ -36,13 +44,20 @@ end
 
 # Mappings
 
-@generated function A_mul_B!{N,C,D,L}(y::C, S::HCAT{N,C,D,L}, b::D)
+@generated function A_mul_B!{M,N,C,D,L}(y::C, S::HCAT{M,N,C,D,L}, b::D)
 	ex = :(A_mul_B!(y, S.A[1], b[1]))
 	for i = 2:N
 		ex = quote
 			$ex
 			A_mul_B!(S.mid, S.A[$i], b[$i])
-			y .+= S.mid
+		end
+	
+		if C <: AbstractArray
+			ex = :($ex; y .+= S.mid)
+		else
+			for ii = 1:M
+				ex = :($ex; y[$ii] .+= S.mid[$ii])
+			end
 		end
 	end
 	ex = quote
@@ -51,9 +66,14 @@ end
 	end
 end
 
-function Ac_mul_B!{N,C,D,L}(y::D, H::HCAT{N,C,D,L}, b::C)
-	for i = 1:length(H.A)
-		Ac_mul_B!(y[i],H.A[i],b)
+@generated function Ac_mul_B!{M,N,C,D,L}(y::D, H::HCAT{M,N,C,D,L}, b::C)
+	ex = :()
+	for i = 1:N
+		ex = :($ex; Ac_mul_B!(y[$i],H.A[$i],b))
+	end
+	ex = quote
+		$ex
+		return y
 	end
 end
 
@@ -72,5 +92,7 @@ function fun_domain(L::HCAT)
 	return str
 end
 
+fun_codomain(L::HCAT) = fun_codomain(L.A[1])
+
 domainType(L::HCAT) = domainType.(L.A)
-codomainType(L::HCAT) = codomainType(L.A[1])
+codomainType(L::HCAT) = codomainType.(L.A[1])
