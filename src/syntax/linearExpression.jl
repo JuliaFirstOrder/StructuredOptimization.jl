@@ -1,3 +1,33 @@
+export LinearExpression
+
+immutable LinearExpression{T <: LinearOperator} <: AbstractAffineExpression
+	L::T
+	x::Variable
+	function LinearExpression{T}(L::T, x::Variable) where {T <: LinearOperator}
+		if size(L, 2) != size(x)
+			throw(ArgumentError("Size of the operator domain $(size(L, 2)) must match size of the variable $(size(x))"))
+		end
+		if domainType(L) != eltype(x)
+			throw(ArgumentError("Type of the operator domain $(domainType(L)) must match type of the variable $(eltype(x))"))
+		end
+		new(L, x)
+	end
+end
+
+LinearExpression{T <: LinearOperator}(L::T, x::Variable) = LinearExpression{T}(L, x)
+
+LinearExpression{T <: LinearOperator, E <: LinearExpression}(L::T, e::E) = LinearExpression(Compose(L, e.L), e.x)
+
+# Properties
+
+is_diagonal(L::LinearExpression) = is_diagonal(L.L)
+is_gram_diagonal(L::LinearExpression) = is_gram_diagonal(L.L)
+is_invertible(L::LinearExpression) = is_invertible(L.L)
+is_full_row_rank(L::LinearExpression) = is_full_row_rank(L.L)
+is_full_column_rank(L::LinearExpression) = is_full_column_rank(L.L)
+
+# Syntax
+
 import Base: reshape,
 	     .*,
 	     getindex,
@@ -72,33 +102,3 @@ reshape(A::LinearExpression, args...) = LinearExpression(variable(A), Reshape(op
 
 # reshape(A::AffineExpression, args...) =
 # LinearExpression(variable(A), Reshape(operator(A), args...))+reshape(tilt(A), args...)
-
-# LinearExpression manipulation
-
-import Base: +, -
-
-(+)(ex::LinearExpression) = ex1
-(-)(ex::LinearExpression) = LinearExpression(Scale(-1.0, ex.L), ex.x)
-
-# AffineExpression construction
-
-(+)(ex::LinearExpression, b::AbstractArray) = AffineExpression([ex], b)
-(-)(ex::LinearExpression, b::AbstractArray) = AffineExpression([ex], -b)
-(+)(b::AbstractArray, ex::LinearExpression) = AffineExpression([ex], b)
-(-)(b::AbstractArray, ex::LinearExpression) = AffineExpression([-ex], b)
-
-(+)(lex1::LinearExpression, lex2::LinearExpression) = AffineExpression([lex1, lex2])
-(-)(lex1::LinearExpression, lex2::LinearExpression) = AffineExpression([lex1, -lex2])
-
-(+)(ex::AffineExpression, b::AbstractArray) = AffineExpression(ex.Ls, ex.b+b)
-(-)(ex::AffineExpression, b::AbstractArray) = AffineExpression(ex.Ls, ex.b-b)
-(+)(b::AbstractArray, ex::AffineExpression) = AffineExpression(ex.Ls, ex.b+b)
-(-)(b::AbstractArray, ex::AffineExpression) = AffineExpression(.-ex.Ls, b-ex.b)
-
-(+)(ex::AffineExpression, lex::LinearExpression) = AffineExpression(vcat(ex.Ls, lex), ex.b)
-(-)(ex::AffineExpression, lex::LinearExpression) = AffineExpression(vcat(ex.Ls, -lex), ex.b)
-(+)(lex::LinearExpression, ex::AffineExpression) = AffineExpression(vcat(ex.Ls, lex), ex.b)
-(-)(lex::LinearExpression, ex::AffineExpression) = AffineExpression(vcat(.-ex.Ls, lex), ex.b)
-
-(+)(ex1::AffineExpression, ex2::AffineExpression) = AffineExpression(vcat(ex1.Ls, ex2.Ls), ex1.b+ex2.b)
-(-)(ex1::AffineExpression, ex2::AffineExpression) = AffineExpression(vcat(ex1.Ls, .-ex2.Ls), ex1.b-ex2.b)

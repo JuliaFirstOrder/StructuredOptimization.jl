@@ -1,9 +1,33 @@
 immutable Term{T <: ProximableFunction}
 	f::T
-	A::AbstractAffineExpression
+	A::AffineExpression
 end
 
-Term{T <: ProximableFunction}(f::T, x::Variable) = Term{T}(f, LinearExpression(Eye(eltype(x), size(x)), x))
+Term{T <: ProximableFunction}(f::T, x::Variable) = Term(f, LinearExpression(Eye(eltype(x), size(x)), x))
+Term{T <: ProximableFunction}(f::T, L::LinearExpression) = Term{T}(f, AffineExpression([L], zeros(codomainType(L.L), size(L.L, 1))))
+
+# Properties
+
+variables(t::Term) = variables(t.A)
+
+is_smooth(t::Term) = is_smooth(t.f)
+is_smooth(terms::Vararg{Term}) = all(is_smooth.(terms))
+
+is_proximable(t::Term) = all(is_gram_diagonal.(t.A.Ls))
+function is_proximable(terms::Vararg{Term})
+	if any(is_proximable.(terms) == false)
+		return false
+	end
+	# loops here are probably better than one-liners
+	for i in 1:length(terms)
+		for j in (i+1):length(terms)
+			if !isempty(intersect(variables(terms[i]), variables(terms[j])))
+				return false
+			end
+		end
+	end
+	return true
+end
 
 # Define sum of terms simply as their vcat
 
@@ -21,7 +45,7 @@ import Base: *
 
 import Base: norm
 
-function norm(ex::Union{Variable, AbstractAffineExpression}, p=2)
+function norm(ex::AbstractAffineExpression, p=2)
 	if p == 0
 		f = NormL0()
 	elseif p == 1
@@ -65,12 +89,12 @@ end
 
 import Base: <=, >=, in
 
-(<=)(ex::Union{Variable, AbstractAffineExpression}, ub) = Term(IndBox(-Inf, ub), ex)
-(<=)(lb, ex::Union{Variable, AbstractAffineExpression}) = Term(IndBox(lb, +Inf), ex)
-(>=)(ex::Union{Variable, AbstractAffineExpression}, lb) = Term(IndBox(lb, +Inf), ex)
-(>=)(ub, ex::Union{Variable, AbstractAffineExpression}) = Term(IndBox(-Inf, ub), ex)
+(<=)(ex::AbstractAffineExpression, ub) = Term(IndBox(-Inf, ub), ex)
+(<=)(lb, ex::AbstractAffineExpression) = Term(IndBox(lb, +Inf), ex)
+(>=)(ex::AbstractAffineExpression, lb) = Term(IndBox(lb, +Inf), ex)
+(>=)(ub, ex::AbstractAffineExpression) = Term(IndBox(-Inf, ub), ex)
 
-function in(ex::Union{Variable, AbstractAffineExpression}, bnds::AbstractArray)
+function in(ex::AbstractAffineExpression, bnds::AbstractArray)
 	if length(bnds) != 2
 		error("should provide 2 bounds!")
 	end
@@ -87,8 +111,17 @@ import Base: rank
 # We should probably fix this: it allows weird things in expressing problems.
 # Maybe we should have Rank <: ProximableFunction (with no prox! nor gradient!
 # defined), that gives IndBallRank when combined with <=.
-rank(ex::Union{Variable, AbstractAffineExpression}) = Term(IndBallRank(1), ex)
+rank(ex::AbstractAffineExpression) = Term(IndBallRank(1), ex)
 
 import Base: <=
 
 (<=)(t::Term{T} where T <: IndBallRank, r::Integer) = Term(IndBallRank(r), t.A)
+
+# Hinge loss
+
+export hingeloss
+
+hingeloss(x::Variable, args...) = hingeloss(eye(x), args...)
+
+hingeloss{R <: Real}(A::AbstractAffineExpression, b::Array{R,1}) =
+Term(variable(A), [HingeLoss(b, 1.0)], [A])

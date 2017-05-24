@@ -1,10 +1,7 @@
 import Base: size, eltype, ~
 export Variable
 
-# TODO: remove for now?
-# abstract type AbstractVariable end
-
-immutable Variable{A <: AbstractArray}
+immutable Variable{A <: AbstractArray} <: AbstractAffineExpression
 	x::A
 end
 

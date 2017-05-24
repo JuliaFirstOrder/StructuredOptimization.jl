@@ -1,16 +1,13 @@
+export solve
+
 abstract type Solver end
 abstract type ForwardBackwardSolver <: Solver end
-
-export
-  PG,
-  FPG,
-  ZeroFPR
 
 include("solvers/pg.jl")
 include("solvers/zerofpr.jl")
 include("solvers/utils.jl")
 
-default_slv = ZeroFPR
+default_slv = PG
 
 # To print out solver objects
 
@@ -24,8 +21,6 @@ function Base.show(io::IO, slv::ForwardBackwardSolver)
 	println(io, "prox   eval: $(slv.cnt_prox)")
 	print(  io, "matvec eval: $(slv.cnt_matvec)")
 end
-
-export solve
 
 # solve(A::AbstractArray, b::AbstractArray, g::ProximableFunction) =
 # solve(A, b, g, zeros(eltype(b), size(A,2)))

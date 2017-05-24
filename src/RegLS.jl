@@ -10,9 +10,7 @@ import ProximalOperators: RealOrComplex
 include("utils.jl")
 include("operators.jl")
 include("functions.jl")
-include("variables.jl")
-include("affine.jl")
-include("term.jl")
+include("syntax.jl")
 include("solvers.jl")
 include("problem.jl")
 

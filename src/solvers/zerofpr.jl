@@ -1,3 +1,4 @@
+export ZeroFPR
 
 type ZeroFPR <: ForwardBackwardSolver
 	tol::Float64
@@ -21,7 +22,7 @@ end
 fun_name(S::ZeroFPR) = "ZeroFPR"
 
 """
-# Zero Fixed Point Residual Solver
+# ZeroFPR Solver
 
 Default solver of RegLS.
 
@@ -67,52 +68,37 @@ ZeroFPR(;
 	linesearch::Bool = true) =
 ZeroFPR(tol, maxit, verbose, mem, halt, gamma, 0, [], Inf, Inf, NaN, linesearch, 0, 0, 0, 0)
 
-# (z::ZeroFPR)(;
-# 	tol::Float64 = z.tol,
-# 	maxit::Int64 = z.maxit,
-# 	mem::Int64 = z.mem,
-# 	verbose::Int64 = z.verbose,
-# 	halt::Function = z.halt,
-# 	gamma::Float64 = z.gamma,
-# 	linesearch::Bool = z.linesearch) =
-# ZeroFPR(tol,
-# 	maxit,
-# 	verbose,
-# 	mem,
-# 	halt,
-# 	gamma,
-#         0, Inf, Inf, NaN, linesearch, 0, 0, 0)
-#
-# import Base: copy
-#
-# copy(slv::ZeroFPR) = ZeroFPR(copy(slv.tol),
-# 			     copy(slv.maxit),
-# 			     copy(slv.verbose),
-# 			     copy(slv.mem),
-# 			     slv.halt,
-# 			     copy(slv.gamma),
-# 			     copy(slv.it),
-# 			     copy(slv.normfpr),
-# 			     copy(slv.cost),
-# 			     copy(slv.time),
-# 			     copy(slv.linesearch),
-# 			     copy(slv.cnt_matvec),
-# 			     copy(slv.cnt_prox))
+function solve(cf::CompositeFunction, solver::ZeroFPR)
+	error("not yet implemented")
+end
 
-function solve(f::Term, g::ProximableFunction, slv::ZeroFPR)
+function apply(slv::ZeroFPR, x0::AbstractArray,
+	f::ProximableFunction, L::LinearOperator, b::AbstractArray,
+	g::ProximableFunction)
+	if is_quadratic(s)
+		return apply(slv, x0, f, L, b, NullFunction(), NullOperator(), [], g)
+	else
+		return apply(slv, x0, NullFunction(), NullOperator(), [], f, L, b, g)
+	end
+end
+
+function apply(slv::ZeroFPR, x0::AbstractArray,
+	s::ProximableFunction, L_s::LinearOperator, b_s::AbstractArray,
+	q::ProximableFunction, L_q::LinearOperator, b_q::AbstractArray,
+	g::ProximableFunction)
 
 	tic()
 
-	q, s = split_Quadratic(f)
-	x = deepcopy(~variable(f))
+	# q, s = split_Quadratic(f)
+	x = deepcopy(x0)
 
 	lbfgs = LBFGS(x, slv.mem)
 	beta = 0.05
 
 	if !isempty(q)
-		res_q_x = residual(q, x)
+		res_q_x = A_mul_B(L_q, x) + b_q
 		grad_q_res, q_x = gradient(q, res_q_x)
-		grad_q_x = At_mul_B(q, grad_q_res)
+		grad_q_x = At_mul_B(L_q, grad_q_res)
 	else
 		res_q_x = []
 		q_x = 0.0
@@ -120,9 +106,9 @@ function solve(f::Term, g::ProximableFunction, slv::ZeroFPR)
 	end
 
 	if !isempty(s)
-		res_s_x = residual(s, x)
+		res_s_x = A_mul_B(L_s, x) + b_s
 		grad_s_res, s_x = gradient(s, res_s_x)
-		grad_s_x = At_mul_B(s, grad_s_res)
+		grad_s_x = At_mul_B(L_s, grad_s_res)
 	else
 		res_s_x = []
 		s_x = 0.0
@@ -134,9 +120,11 @@ function solve(f::Term, g::ProximableFunction, slv::ZeroFPR)
 
 	if slv.gamma == Inf
 		# compute upper bound for Lipschitz constant
-		res_f_eps = residual(f, x+sqrt(eps()))
-		grad_f_res_eps, = gradient(f, res_f_eps)
-		grad_f_eps = At_mul_B(f, grad_f_res_eps)
+		res_q_eps = A_mul_B(L_q, x+sqrt(eps())) + b_q
+		res_s_eps = A_mul_B(L_s, x+sqrt(eps())) + b_s
+		grad_q_res_eps, = gradient(q, res_q_eps)
+		grad_s_res_eps, = gradient(s, res_s_eps)
+		grad_f_eps = At_mul_B(L_q, grad_q_res_eps) + At_mul_B(L_s, grad_s_res_eps)
 		Lf = deepvecnorm(grad_f_eps - grad_f_x)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = (1-beta)/Lf
 	end
@@ -182,15 +170,17 @@ function solve(f::Term, g::ProximableFunction, slv::ZeroFPR)
 		FBE_prev = FBE_x
 
 		if !isempty(q)
-			residual!(res_q_xbar, q, xbar)
-			q_xbar = cost(q, res_q_xbar)
+			A_mul_B!(res_q_xbar, L_q, xbar)
+			res_q_xbar .+= b_q
+			q_xbar = q(res_q_xbar)
 		else
 			q_xbar = 0.0
 		end
 
 		if !isempty(s)
-			residual!(res_s_xbar, s, xbar)
-			s_xbar = cost(s, res_s_xbar)
+			A_mul_B!(res_s_xbar, L_s, xbar)
+			res_s_xbar .+= b_s
+			s_xbar = s(res_s_xbar)
 		else
 			s_xbar = 0.0
 		end
@@ -209,14 +199,16 @@ function solve(f::Term, g::ProximableFunction, slv::ZeroFPR)
 				fpr_x .= (-).(x, xbar)
 				slv.normfpr = deepvecnorm(fpr_x)
 				if !isempty(q)
-					residual!(res_q_xbar, q, xbar)
-					q_xbar = cost(q, res_q_xbar)
+					A_mul_B!(res_q_xbar, L_q, xbar)
+					res_q_xbar .+= b_q
+					q_xbar = q(res_q_xbar)
 				else
 					q_xbar = 0.0
 				end
 				if !isempty(s)
-					residual!(res_s_xbar, s, xbar)
-					s_xbar = cost(s, res_s_xbar)
+					A_mul_B!(res_s_xbar, L_s, xbar)
+					res_s_xbar .+= b_s
+					s_xbar = s(res_s_xbar)
 				else
 					s_xbar = 0.0
 				end
@@ -242,14 +234,14 @@ function solve(f::Term, g::ProximableFunction, slv::ZeroFPR)
 			# println("res_q_xbar  : $(size(res_q_xbar))")
 			# println("grad_q_res  : $(size(grad_q_res))")
 			gradient!(grad_q_res, q, res_q_xbar)
-			At_mul_B!(grad_q_xbar, q, grad_q_res)
+			At_mul_B!(grad_q_xbar, L_q, grad_q_res)
 		else
 		  grad_q_xbar = 0.0
 		end
 
 		if !isempty(s)
 			gradient!(grad_s_res, s, res_s_xbar)
-			At_mul_B!(grad_s_xbar, s, grad_s_res)
+			At_mul_B!(grad_s_xbar, L_s, grad_s_res)
 		else
 		  grad_s_xbar = 0.0
 		end
@@ -282,20 +274,20 @@ function solve(f::Term, g::ProximableFunction, slv::ZeroFPR)
 		tau = 1.0
 
 		if !isempty(q)
-			A_mul_B!(Aq_d, q, d)
+			A_mul_B!(Aq_d, L_q, d)
 			gradient!(grad_q_Aq_d, q, Aq_d)
-			At_mul_B!(grad_q_d, q, grad_q_Aq_d)
+			At_mul_B!(grad_q_d, L_q, grad_q_Aq_d)
 		end
 
 		if !isempty(s)
-			A_mul_B!(As_d, s, d)
+			A_mul_B!(As_d, L_s, d)
 		end
 
 		for j = 1:32
 			x .= (+).(xbar_prev, (*).(tau, d))
 			if !isempty(q)
 				res_q_x .= (+).(res_q_xbar, (*).(tau, Aq_d))
-				q_x = cost(q, res_q_x)
+				q_x = q(res_q_x)
 				grad_q_x .= (+).(grad_q_xbar, (*).(tau, grad_q_d))
 			else
 				q_x = 0.0
@@ -304,7 +296,7 @@ function solve(f::Term, g::ProximableFunction, slv::ZeroFPR)
 			if !isempty(s)
 				res_s_x .= (+).(res_s_xbar, (*).(tau, As_d))
 				s_x = gradient!(grad_s_res, s, res_s_x)
-				At_mul_B!(grad_s_x, s, grad_s_res)
+				At_mul_B!(grad_s_x, L_s, grad_s_res)
 			else
 				s_x = 0.0
 				grad_s_x = 0.0
@@ -324,7 +316,7 @@ function solve(f::Term, g::ProximableFunction, slv::ZeroFPR)
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
-	deepcopy!(~variable(f), x)
+	deepcopy!(x0, x)
 
 	slv.time = toq()
 

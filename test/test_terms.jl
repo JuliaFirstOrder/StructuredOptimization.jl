@@ -34,6 +34,31 @@ y = Variable(7)
 B = randn(5, 7)
 b = randn(5)
 
-cf = ls(A*x - b) + norm(x, 1)
-cf1 = ls(A*x - B*y + b) + norm(y, 1) + norm(y, 2)
-cf2 = 0.5*norm(A*x - B*y + b, 2)^2 + norm(y, 1) + norm(y, 2)
+cf1 = ls(A*x - b) + norm(x, 1)
+cf2 = ls(A*x - B*y + b) + norm(y, 1) + norm(y, 2)
+cf3 = 0.5*norm(A*x - B*y + b, 2)^2 + norm(x, 1) + norm(y, 2)
+
+u = Variable(5)
+w = Variable(5)
+z = Variable(5)
+
+cf4 = norm(A*x + z)
+@test RegLS.is_proximable(cf4) == false
+@test RegLS.is_smooth(cf4) == false
+@test RegLS.is_smooth(cf4^2) == true
+
+cf5 = norm(w + z)^2
+@test RegLS.is_proximable(cf5) == true
+@test RegLS.is_smooth(cf5) == true
+
+cf6 = norm(x, 1) + norm(y, 2)
+@test RegLS.is_proximable(cf6...) == true
+@test RegLS.is_smooth(cf6...) == false
+
+cf7 = norm(x, 1) + (x in [-1.0, +1.0])
+@test RegLS.is_proximable(cf7...) == false
+@test RegLS.is_smooth(cf7...) == false
+
+cf8 = norm(w + z, 1) + (norm(u) <= 1.0)
+@test RegLS.is_proximable(cf8...) == true
+@test RegLS.is_smooth(cf8...) == false

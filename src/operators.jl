@@ -2,28 +2,7 @@ export LinearOperator
 
 abstract type LinearOperator end
 
-import Base: A_mul_B!, Ac_mul_B!, size, ndims, transpose, *
-  # .*,
-  # inv,
-  # size,
-  # ndims,
-  # +,
-  # -,
-  # ==
-
-# +(L::LinearOperator) = L
-
-# function *(L::LinearOperator,b::AbstractArray)
-# 	y = zeros(codomainType(L),size(L,1))
-# 	A_mul_B!(y,L,b)
-# 	return y
-# end
-
-# function Ac_mul_B{T <: Union{AbstractArray, Tuple}}(L::LinearOperator, b::T)
-#   y = deepzeros(domainType(L), size(L, 2))
-# 	Ac_mul_B!(y, L, b)
-#   return y
-# end
+import Base: A_mul_B!, Ac_mul_B!, size, ndims, transpose, *, +, -
 
 # Basic operators
 
@@ -61,25 +40,15 @@ size(L::LinearOperator, i::Int) = size(L)[i]
 ndims(L::LinearOperator) = length(size(L,1)), length(size(L,2))
 ndims(L::LinearOperator, i::Int) = ndims(L)[i]
 
-#usually domain is preserved, if not one has to redefine these functions
-  # domainType(L::LinearOperator) = L.domainType
-# codomainType(L::LinearOperator) = L.domainType
-
 is_diagonal(L::LinearOperator) = false
-is_gram_diagonal(L::LinearOperator) = is_diagonal(L::LinearOperator)
+is_gram_diagonal(L::LinearOperator) = is_diagonal(L)
 is_invertible(L::LinearOperator) = false
 is_full_row_rank(L::LinearOperator) = false
 is_full_column_rank(L::LinearOperator) = false
 
 function Base.show(io::IO, L::LinearOperator)
-  println(io, "description : ", fun_name(L))
-  print(  io, "type        : ", fun_type(L))
+  print(io, typeof(L))
 end
-
-fun_type(  L) = fun_domain(L)*" → "*fun_codomain(L)
-
-fun_domain(L::LinearOperator)   =   domainType(L) <: Complex ? "ℂ^$(size(L,2))" : "ℝ^$(size(L,2))"
-fun_codomain(L::LinearOperator) = codomainType(L) <: Complex ? "ℂ^$(size(L,1))" : "ℝ^$(size(L,1))"
 
 # Shorthands
 
@@ -88,5 +57,9 @@ function (*){T <: Union{AbstractArray, Tuple}}(L::LinearOperator, b::T)
 	A_mul_B!(y, L, b)
   return y
 end
+
+(-){T <: LinearOperator}(L::T) = Scale(-1.0, L)
+
+(+){T <: LinearOperator}(L::T) = L
 
 transpose{T <: LinearOperator}(L::T) = Transpose(L)
