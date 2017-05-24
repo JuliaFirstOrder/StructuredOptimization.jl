@@ -1,8 +1,8 @@
 export VCAT
 
-immutable VCAT{M, N, 
-	       C <: NTuple{M,AbstractArray}, 
-	       D <: Union{NTuple{N,AbstractArray}, AbstractArray}, 
+immutable VCAT{M, N,
+	       C <: NTuple{M,AbstractArray},
+	       D <: Union{NTuple{N,AbstractArray}, AbstractArray},
 	       L <: NTuple{M,LinearOperator}} <: LinearOperator
 	A::L
 	mid::D
@@ -59,7 +59,7 @@ end
 			$ex
 			Ac_mul_B!(S.mid, S.A[$i], b[$i])
 		end
-	
+
 		if D <: AbstractArray
 			ex = :($ex; y .+= S.mid)
 		else
@@ -93,3 +93,5 @@ fun_domain(L::VCAT) = fun_domain(L.A[1])
 
   domainType(L::VCAT) = domainType(L.A[1])
 codomainType(L::VCAT) = codomainType.(L.A)
+
+is_full_column_rank(L::HCAT) = any(is_full_column_rank.(L.A))

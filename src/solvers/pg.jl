@@ -71,39 +71,26 @@ FPG(;
 	gamma::Float64 = Inf) =
 PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
-# (p::PG)(; tol::Float64   = p.tol,
-# 	maxit::Int64     = p.maxit,
-# 	verbose::Int64   = p.verbose,
-# 	halt::Function   = p.halt,
-# 	linesearch::Bool = p.linesearch,
-# 	gamma::Float64   = p.gamma        ) =
-# PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, p.fast, 0, 0)
-#
-# import Base: copy
-#
-# copy(slv::PG) = PG(copy(slv.tol),
-# 	           copy(slv.maxit),
-# 	           copy(slv.verbose),
-# 	           slv.halt,
-# 	           copy(slv.gamma),
-# 	           copy(slv.it),
-# 	           copy(slv.normfpr),
-# 	           copy(slv.cost),
-# 	           copy(slv.time),
-# 	           copy(slv.linesearch),
-# 	           copy(slv.fast),
-# 	           copy(slv.cnt_matvec),
-# 	           copy(slv.cnt_prox))
+function solve(terms::Vector{Term}, solver::PG)
+	# Separate smooth and nonsmooth
+	S = []; N = []
+	for term in terms
+		
+	end
+end
 
-function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
+function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T,
+	f::ProximableFunction, L::LinearOperator, b::AbstractArray,
+	g::ProximableFunction)
 
 	tic()
 
-	x = deepcopy(~variable(f))
+	x = deepcopy(x0)
 
-	res_x = residual(f, x)
+	# res_x = residual(f, x)
+	res_x = A_mul_B(L, x) + b
 	grad_f_res, f_x = gradient(f, res_x)
-	grad_f_x = At_mul_B(f, grad_f_res)
+	grad_f_x = At_mul_B(L, grad_f_res)
 	slv.cnt_matvec += 2
 	g_x = Inf
 	cost_xprev = Inf
@@ -111,9 +98,9 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
 
 	if slv.gamma == Inf
 		# compute upper bound for Lipschitz constant
-		res_x_eps = residual(f, x+sqrt(eps()))
+		res_x_eps = A_mul_B(L, x+sqrt(eps())) + b
 		grad_f_res_eps, = gradient(f, res_x_eps)
-		grad_f_x_eps = At_mul_B(f, grad_f_res_eps)
+		grad_f_x_eps = At_mul_B(L, grad_f_res_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(grad_f_x-grad_f_x_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = 1.0/Lf
@@ -140,8 +127,9 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
 			slv.cnt_prox += 1
 			fpr .= y .- x
 			slv.normfpr = deepvecnorm(fpr)
-			residual!(res_x, f, x)
-			f_x = cost(f, res_x)
+			A_mul_B!(res_x, L, x)
+			res_x .+= b
+			f_x = f(res_x)
 			slv.cnt_matvec += 1
 			if slv.linesearch == false break end
 			uppbnd = f_y - real(deepvecdot(grad_f_y, fpr)) + (0.5/slv.gamma)*(slv.normfpr^2)
@@ -173,7 +161,7 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
 		# compute gradient and f(y)
 
 		f_y = gradient!(grad_f_res, f, res_y)
-		At_mul_B!(grad_f_y, f, grad_f_res)
+		At_mul_B!(grad_f_y, L, grad_f_res)
 
 		slv.cnt_matvec += 1
 
@@ -186,7 +174,7 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
-	deepcopy!(~variable(f), x)
+	deepcopy!(x0, x)
 
 	slv.time = toq()
 

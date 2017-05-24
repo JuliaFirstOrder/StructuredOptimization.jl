@@ -6,4 +6,4 @@ rank(x::Variable, args...) = rank(eye(x), args...)
 # We should probably fix this: it allows weird things in expressing problems.
 # Maybe we should have Rank <: ProximableFunction (with no prox! nor gradient!
 # defined), that gives IndBallRank when combined with <=.
-rank(A::AbstractAffineTerm) = CompositeFunction(variable(A), [IndBallRank(1)], [A])
+rank(A::AbstractAffineExpression) = Term(variable(A), [IndBallRank(1)], [A])

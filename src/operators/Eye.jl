@@ -1,30 +1,27 @@
 export Eye
 
-immutable Eye{N} <: LinearOperator
-	domainType::Type
-	dim_in::NTuple{N,Int}
+immutable Eye{T, N} <: LinearOperator
+	dim::NTuple{N, Integer}
 end
 
 # Constructors
 
-Eye(dim_in::Vararg{Int64})  = Eye(dim_in)
-Eye(domainType::Type, dim_in::Vararg{Int64})  = Eye(domainType,dim_in)
-Eye(dim_in::Tuple)          = Eye(Float64,dim_in)
-Eye{T}(x::AbstractArray{T}) = Eye(T,size(x))
+Eye{N}(t::Type, dims::NTuple{N, Integer}) = Eye{t, N}(dims)
+Eye(t::Type, dims::Vararg{Integer}) = Eye{t, length(dims)}(dims)
 
 # Mappings
 
-A_mul_B!{T}(y::AbstractArray{T}, L::Eye, b::AbstractArray{T}) = y .= b
-Ac_mul_B!(y, L::Eye, b) = A_mul_B!(y,L,b)
+A_mul_B!{T, N}(y::AbstractArray{T, N}, L::Eye{T, N}, b::AbstractArray{T, N}) = y .= b
+Ac_mul_B!{T, N}(y::AbstractArray{T, N}, L::Eye{T, N}, b::AbstractArray{T, N}) = A_mul_B!(y, L, b)
 
-# Transformations
-# inv(L::Eye ) = L
+# Properties
 
-#Properties
+domainType{T, N}(L::Eye{T, N}) = T
+codomainType{T, N}(L::Eye{T, N}) = T
 
-size(L::Eye) = (L.dim_in, L.dim_in)
+size(L::Eye) = (L.dim, L.dim)
 
-fun_name(L::Eye)  = "Identity Operator"
+fun_name(L::Eye) = "Identity"
 
 is_diagonal(L::Eye) = true
 is_gram_diagonal(L::Eye) = true

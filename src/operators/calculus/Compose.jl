@@ -90,3 +90,6 @@ fun_name(L::Compose) = length(L.A) == 2 ? fun_name(L.A[2])*" * "*fun_name(L.A[1]
 
 domainType(L::Compose)   = domainType(L.A[1])
 codomainType(L::Compose) = codomainType(L.A[end])
+
+is_diagonal(L::Compose) = all(is_diagonal.(L.A))
+is_invertible(L::Compose) = all(is_invertible.(L.A))

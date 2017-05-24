@@ -1,13 +1,16 @@
+import ProximalOperators: is_convex
+
 immutable MoreauEnvelope{R <: Real, T <: ProximableFunction} <: ProximableFunction
 	lambda::R
 	g::T
 	# dirty trick to use in place prox! when evaluating the function
 	# not sure about that!
 	buf::AbstractVector{Nullable{AbstractArray}}
-	function MoreauEnvelope(lambda::R, g::T)
-		if lambda <= 0 error("parameter lambda must be positive") end
-		new(lambda, g, [ Nullable{AbstractArray}() ])
-	end
+end
+
+function MoreauEnvelope{R, T}(lambda::R, g::T) where {R <: Real, T <: ProximableFunction}
+	if lambda <= 0 error("parameter lambda must be positive") end
+	MoreauEnvelope{R, T}(lambda, g, [ Nullable{AbstractArray}() ])
 end
 
 MoreauEnvelope{R <: Real, T <: ProximableFunction}(lambda::R, g::T) = MoreauEnvelope{R, T}(lambda, g)

@@ -1,9 +1,8 @@
-# TODO: fill in here
 export DCAT
 
-immutable DCAT{N, 
-	       C <: NTuple{N,AbstractArray}, 
-	       D <: NTuple{N,AbstractArray}, 
+immutable DCAT{N,
+	       C <: NTuple{N,AbstractArray},
+	       D <: NTuple{N,AbstractArray},
 	       L<:NTuple{N,LinearOperator}} <: LinearOperator
 	A::L
 end
@@ -26,7 +25,7 @@ Ac_mul_B!{N,C,D,L}(y::D, S::DCAT{N,C,D,L}, b::C) = Ac_mul_B!.(y,S.A,b)
 # Properties
 size(L::DCAT) = size.(L.A,1), size.(L.A, 2)
 
-fun_name(L::DCAT) = length(L.A) == 2 ? "["fun_name(L.A[1])*", 0; 0 "*fun_name(L.A[2])*"]" : 
+fun_name(L::DCAT) = length(L.A) == 2 ? "["fun_name(L.A[1])*", 0; 0 "*fun_name(L.A[2])*"]" :
 "DCAT operator"
 
 function fun_domain(L::DCAT)
@@ -49,3 +48,9 @@ end
 
 domainType(L::DCAT)   = domainType.(L.A)
 codomainType(L::DCAT) = codomainType.(L.A)
+
+is_diagonal(L::DCAT) = all(is_diagonal.(L.A))
+is_gram_diagonal(L::DCAT) = all(is_gram_diagonal.(L.A))
+is_invertible(L::DCAT) = all(is_invertible.(L.A))
+is_full_row_rank(L::DCAT) = all(is_full_row_rank.(L.A))
+is_full_column_rank(L::DCAT) = all(is_full_column_rank.(L.A))

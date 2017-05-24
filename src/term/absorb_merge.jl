@@ -1,10 +1,10 @@
-function mergeProx(x_sorted::Vector{Variable}, cf::CompositeFunction)
+function mergeProx(x_sorted::Vector{Variable}, cf::Term)
 	if length(x_sorted) == 1 # no block variables
 		return mergeProx(terms(cf), affine(cf))
 	else
 		p = Vector{ProximableFunction}(length(x_sorted))
 		fi   = Vector{ProximableFunction}()
-		Ai   = Vector{AbstractAffineTerm}()
+		Ai   = Vector{AbstractAffineExpression}()
 		for i in eachindex(x_sorted)
 			for ii in eachindex(affine(cf))
 				if variable(affine(cf)[ii])[1] == x_sorted[i]
@@ -15,13 +15,13 @@ function mergeProx(x_sorted::Vector{Variable}, cf::CompositeFunction)
 			p[i] = mergeProx(fi,Ai)
 
 			fi   = Vector{ProximableFunction}() # reinitialize the arrays
-			Ai   = Vector{AbstractAffineTerm}()
+			Ai   = Vector{AbstractAffineExpression}()
 		end
 		return SeparableSum(p)
 	end
 end
 
-function mergeProx(f::Vector{ProximableFunction}, affOps::Vector{AbstractAffineTerm})
+function mergeProx(f::Vector{ProximableFunction}, affOps::Vector{AbstractAffineExpression})
 	if length(f) <= 1
 		if isempty(f)
 			p = IndFree()
@@ -43,8 +43,8 @@ end
 # isempty(p::SeparableSum) = all([typeof(f)  <: IndFree for f in p.fs ])
 
 # absorb linear operator into proximable operator
-absorbOp(A::AbstractAffineTerm, p::ProximableFunction) = absorbOp(operator(A), p, tilt(A))
-absorbOp(A::Vector{AbstractAffineTerm}, p::Vector{ProximableFunction}) =
+absorbOp(A::AbstractAffineExpression, p::ProximableFunction) = absorbOp(operator(A), p, tilt(A))
+absorbOp(A::Vector{AbstractAffineExpression}, p::Vector{ProximableFunction}) =
 absorbOp.(operator(A), p, tilt.(A))
 
 absorbOp{L <:Union{Eye,GetIndex}}(A::L, p::ProximableFunction, b) =
@@ -54,5 +54,5 @@ b == 0. ? p : PrecomposeDiagonal(p, A.coeff, b)
 absorbOp{L <:DiagOp}(A::L, p::ProximableFunction, b) = PrecomposeDiagonal(p, A.d, b)
 
 # merge Proximal operators
-mergeProx{T<:AbstractAffineTerm}(p::ProximableFunction, lambda, A::T) =  Regularize(p, lambda, -tilt(A.b))
+mergeProx{T<:AbstractAffineExpression}(p::ProximableFunction, lambda, A::T) =  Regularize(p, lambda, -tilt(A.b))
 mergeProx{T<:LinearOperator}(p::ProximableFunction, lambda, A::T) =  Regularize(p, lambda,     0.    )

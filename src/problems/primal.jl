@@ -1,5 +1,5 @@
 immutable Primal
-	s::CompositeFunction          #smooth cost function
+	s::Term          #smooth cost function
 	p::ProximableFunction
 end
 

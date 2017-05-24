@@ -1,8 +1,8 @@
 export HCAT
 
-immutable HCAT{M, N, 
-	       C <: Union{NTuple{M,AbstractArray}, AbstractArray}, 
-	       D <: NTuple{N,AbstractArray}, 
+immutable HCAT{M, N,
+	       C <: Union{NTuple{M,AbstractArray}, AbstractArray},
+	       D <: NTuple{N,AbstractArray},
 	       L <: NTuple{N,LinearOperator}} <: LinearOperator
 	A::L
 	mid::C
@@ -51,7 +51,7 @@ create_mid{N}(t::Type,s::NTuple{N,Int}) = zeros(t,s), 1
 			$ex
 			A_mul_B!(S.mid, S.A[$i], b[$i])
 		end
-	
+
 		if C <: AbstractArray
 			ex = :($ex; y .+= S.mid)
 		else
@@ -96,3 +96,6 @@ fun_codomain(L::HCAT) = fun_codomain(L.A[1])
 
 domainType(L::HCAT) = domainType.(L.A)
 codomainType(L::HCAT) = codomainType.(L.A[1])
+
+is_gram_diagonal(L::HCAT) = all(is_gram_diagonal.(L.A))
+is_full_row_rank(L::HCAT) = any(is_full_row_rank.(L.A))

@@ -1,35 +1,32 @@
 export LBFGS, update!
 
-#TODO make Ac_mul_B!
+# TODO make Ac_mul_B!
+# Edit: Ac_mul_B! is not really needed for this operator
 
-type LBFGS{M, T<:RealOrComplex, A <: AbstractArray{T}, N} <:LinearOperator
+type LBFGS{M, R <: Real, T <: Union{R, Complex{R}}, A <: AbstractArray N} <: LinearOperator
 	domainType::Type
-	dim::NTuple{N,Int}
+	dim::NTuple{N, Int}
 	currmem::Int
 	curridx::Int
-	s::A
-	y::A
-	s_m::NTuple{M,A}
-	y_m::NTuple{M,A}
-	ys_m::Array{Float64,1}
-	alphas::Array{Float64,1}
-	H::Float64
+	s::AbstractArray
+	y::AbstractArray
+	s_m::NTuple{M, AbstractArray}
+	y_m::NTuple{M, AbstractArray}
+	ys_m::Array{R, 1}
+	alphas::Array{R, 1}
+	H::R
 end
 
 # Constructors
 
-function LBFGS{T<:RealOrComplex, A<:AbstractArray{T}}(x::A, mem::Int)
-
+function LBFGS{R <: Real, T <: Union{R, Complex{R}}, A <: AbstractArray}(x::A{T}, mem::Int)
 	s_m = ([similar(x) for i = 1:mem]...)
 	y_m = ([similar(x) for i = 1:mem]...)
-
 	s = similar(x)
 	y = similar(x)
-
-	ys_m = zeros(Float64,mem)
-	alphas = zeros(Float64,mem)
-
-	return LBFGS{mem,T,A,ndims(x)}(eltype(x), size(x), 0, 0, s, y, s_m, y_m, ys_m, alphas, 1.)
+	ys_m = zeros(Float64, mem)
+	alphas = zeros(Float64, mem)
+	return LBFGS{mem, T, A, ndims(x)}(eltype(x), size(x), 0, 0, s, y, s_m, y_m, ys_m, alphas, 1.)
 end
 
 function update!{M,
@@ -96,13 +93,13 @@ function loop2!{M,T,A,N}(d::A, idx::Int, L::LBFGS{M,T,A,N})
 		idx += 1
 		if idx > M idx = 1 end
 		beta = real(vecdot(L.y_m[idx], d))/L.ys_m[idx]
-		d .+=  (L.alphas[idx].-beta).*L.s_m[idx]
+		d .+= (L.alphas[idx].-beta).*L.s_m[idx]
 	end
 	return d
 end
 
 # Properties
 
-size(A::LBFGS) = (A.dim,A.dim)
+size(A::LBFGS) = (A.dim, A.dim)
 
-fun_name(A::LBFGS)  = "LBFGS Operator"
+fun_name(A::LBFGS) = "LBFGS Operator"

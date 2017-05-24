@@ -99,7 +99,7 @@ ZeroFPR(tol, maxit, verbose, mem, halt, gamma, 0, [], Inf, Inf, NaN, linesearch,
 # 			     copy(slv.cnt_matvec),
 # 			     copy(slv.cnt_prox))
 
-function solve(f::CompositeFunction, g::ProximableFunction, slv::ZeroFPR)
+function solve(f::Term, g::ProximableFunction, slv::ZeroFPR)
 
 	tic()
 

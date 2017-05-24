@@ -1,42 +1,51 @@
-import Base: size, ~
+import Base: size, eltype, ~
 export Variable
 
-abstract type AbstractVariable end
+# TODO: remove for now?
+# abstract type AbstractVariable end
 
-immutable Variable{T <: Union{Real,Complex}} <: AbstractVariable
-	x::AbstractArray{T}
+immutable Variable{A <: AbstractArray}
+	x::A
 end
 
-function Variable(args...)
+function Variable{I <: Integer}(T::Type, args::Vararg{I})
+  Variable(zeros(T, args...))
+end
+
+function Variable{I <: Integer}(args::Vararg{I})
   Variable(zeros(args...))
 end
 
+# Utils
+
+function Base.show(io::IO, x::Variable)
+  print(io, "Variable($(eltype(x.x)), $(size(x.x)))")
+end
+
 size(x::Variable) = size(x.x)
+size(x::Variable, i) = size(x.x, i)
+eltype(x::Variable) = eltype(x.x)
+ndims(x::Variable) = ndims(x.x)
 
 """
   `~(x::RegLS.Variable)`
 
-return the `Array` object containing the value of `x`.
+returns the `Array` object containing the value of `x`.
 """
 ~(x::Variable) = x.x
-~{T<:AbstractVariable}(x::Vector{T}) = length(x) == 1 ? ~(x[1]) : (~).(x)
+~(x::Tuple{Variable}) = (~).(x)
 
-deepcopy!(x::Variable,y::AbstractArray) = deepcopy!(x.x,y)
-deepcopy!{T<:AbstractVariable}(x::Vector{T},y::AbstractArray) = deepcopy!(~x,y)
+# deepcopy!(x::Variable,y::AbstractArray) = deepcopy!(x.x,y)
+# deepcopy!{T<:AbstractVariable}(x::Vector{T},y::AbstractArray) = deepcopy!(~x,y)
 
-domainType(x::Variable) = eltype(~x)
+# domainType(x::Variable) = eltype(x.x)
 
-function Base.show{V <: AbstractVariable }(io::IO, f::V)
-  println(io, "description : Optization Variable")
-  print(  io, "type        : ", fun_type(f))
-end
-
-fun_type(x::AbstractVariable)   =   domainType(x) <: Complex ? "ℂ^$(size(x))" : "ℝ^$(size(x))"
-function fun_type{V <: AbstractVariable}(x::Vector{V})
-	str = ""
-	for i in eachindex(x)
-		str *= fun_type(x[i])
-		i != length(x) && (str *= ", ")
-	end
-	return str
-end
+# fun_type(x::AbstractVariable)   =   domainType(x) <: Complex ? "ℂ^$(size(x))" : "ℝ^$(size(x))"
+# function fun_type{V <: AbstractVariable}(x::Vector{V})
+# 	str = ""
+# 	for i in eachindex(x)
+# 		str *= fun_type(x[i])
+# 		i != length(x) && (str *= ", ")
+# 	end
+# 	return str
+# end

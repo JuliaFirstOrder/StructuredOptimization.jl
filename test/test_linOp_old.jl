@@ -6,14 +6,18 @@
 function test_FwAdj(A::LinearOperator, x, y, verb::Bool = false)
 	verb && (println(); show(A); println())
 
-	y2 = 0.*deepcopy(y)
+	y1 = A*x
 	verb && println("forward preallocated")
+	y2 = 0.*deepcopy(y)
 	A_mul_B!(y2,A,x) #verify in-place linear operator works
+	@test all(vecnorm(y1 .- y2) .<= 1e-12)
 	verb && @time A_mul_B!(y2,A,x)
 
+	x1 = A'*y
 	verb && println("adjoint preallocated")
 	x2 = 0.*deepcopy(x)
 	Ac_mul_B!(x2,A,y) #verify in-place linear operator works
+	@test all(vecnorm(x1 .- x2) .<= 1e-12)
 	verb && @time Ac_mul_B!(x2,A,y)
 
 	test2 = RegLS.vecnorm(x.-x2) #verify equivalence
@@ -117,13 +121,12 @@ stuff = [
 	     ),
 	 Dict(
        "Operator" => (DiagOp,),
-       "params"   => ((randn(4,4)*im, randn(srand(1),4,4)+im*randn(srand(2),4,4),),),
-       "wrg_pr"   => ((randn(4,4), randn(srand(1),4,4)+im*randn(srand(2),4,4),),),
+       "params"   => ((randn(4,4)*im,),),
        "args"     => ( randn(4,4)+randn(4,4)*im, randn(4,4)+randn(4,4)*im ),
 	     ),
 	 Dict(
        "Operator" => (MatrixOp,),
-       "params"   => ((randn(srand(1),4,6),),),
+       "params"   => ((randn(srand(1),4),),),
        "args"     => ( randn(6), randn(4) ),
        "in_out"   => (ones(6),randn(srand(1),4,6)*ones(6))
 	     ),
@@ -144,12 +147,12 @@ stuff = [
 	     ),
 	 Dict(
        "Operator" => (MatrixOp,),
-       "params"   => ((Complex{Float64}, randn(4,3), 3,2 ),),
+       "params"   => ((Complex{Float64},),),
        "args"     => ( randn(3,2)+im, randn(4,2)+im )
 	     ),
 	 Dict(
        "Operator" => (MatrixOp,),
-       "params"   => ((randn(3,2)+im, randn(4,3)),),
+       "params"   => ((randn(4,3),),),
        "args"     => ( randn(3,2)+im, randn(4,2)+im )
 	     ),
 	 Dict(
@@ -521,18 +524,18 @@ stuff = [
 	     ),
 	 Dict(
        "Operator" => (HCAT,),
-       "params"   => (( 
+       "params"   => ((
 		       VCAT(MatrixOp(randn(srand(1),5,10)), MatrixOp(randn(srand(2),10,10))),
 		       VCAT(MatrixOp(randn(srand(3),5,10)), MatrixOp(randn(srand(4),10,10))),
 		       ),),
-       "wrg_pr"   => (( 
+       "wrg_pr"   => ((
 		       VCAT(MatrixOp(randn(srand(1),5,10)), MatrixOp(randn(srand(2),10,10))),
 		       VCAT(MatrixOp(randn(srand(1),6,5)), MatrixOp(randn(srand(2),10,5))),
 		       ),),
        "args"     => ( (randn(10),randn(10)), (randn(5),randn(10)) ),
        "in_out"   => ( (randn(srand(1),10),randn(srand(1),10)),
 		      (randn(srand(1),5,10)*randn(srand(1),10)+
-	 	       randn(srand(3),5,10)*randn(srand(1),10),		      
+	 	       randn(srand(3),5,10)*randn(srand(1),10),
 		       randn(srand(2),10,10)*randn(srand(1),10)+
 		       randn(srand(4),10,10)*randn(srand(1),10))),
              ),
@@ -587,18 +590,18 @@ stuff = [
 	     ),
 	 Dict(
        "Operator" => (VCAT,),
-       "params"   => (( 
+       "params"   => ((
 		       HCAT(MatrixOp(randn(srand(1),5,10)), MatrixOp(randn(srand(2),5,2))),
 		       HCAT(MatrixOp(randn(srand(3),6,10)), MatrixOp(randn(srand(4),6,2))),
 		       ),),
-       "wrg_pr"   => (( 
+       "wrg_pr"   => ((
 		       HCAT(MatrixOp(randn(srand(1),5,11)), MatrixOp(randn(srand(2),5,2))),
 		       HCAT(MatrixOp(randn(srand(3),6,10)), MatrixOp(randn(srand(4),6,2))),
 		       ),),
        "args"     => ( (randn(10),randn(2)), (randn(5),randn(6)) ),
        "in_out"   => ( (randn(srand(1),10),randn(srand(1),2)),
 		      (randn(srand(1),5,10)*randn(srand(1),10)+
-	 	       randn(srand(2),5, 2)*randn(srand(1), 2),		      
+	 	       randn(srand(2),5, 2)*randn(srand(1), 2),
 		       randn(srand(3),6,10)*randn(srand(1),10)+
 		       randn(srand(4),6, 2)*randn(srand(1), 2))),
              ),

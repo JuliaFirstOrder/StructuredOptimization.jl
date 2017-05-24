@@ -1,6 +1,7 @@
-abstract type AbstractAffineTerm end
+abstract type AbstractAffineExpression end
 
-include("affine/linearTerm.jl")
-include("affine/affineTerm.jl")
-include("affine/linearTermConstructors.jl")
-include("affine/composeAffine.jl")
+include("affine/linearExpression.jl")
+include("affine/affineExpression.jl")
+include("affine/syntax.jl")
+
+# include("affine/composeAffine.jl")

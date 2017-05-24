@@ -26,3 +26,7 @@ deepmaxabs(x::NTuple) = maximum(abs, deepmaxabs.(x))
 deepmaxabs{T <: AbstractArray}(x::T) = maximum(abs,x)
 
 deepmaxabs{T <: Number}(x::T) = abs(x)
+
+deepzeros{N}(t::NTuple{N, DataType}, s::NTuple{N, NTuple}) = zeros.(t, s)
+
+deepzeros{N}(t::Type, s::NTuple{N, Int}) = zeros(t, s)

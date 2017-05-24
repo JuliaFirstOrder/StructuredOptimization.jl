@@ -2,10 +2,8 @@ export LinearOperator
 
 abstract type LinearOperator end
 
-import Base: A_mul_B!, Ac_mul_B!, size, ndims
-  # *,
+import Base: A_mul_B!, Ac_mul_B!, size, ndims, transpose, *
   # .*,
-  # transpose,
   # inv,
   # size,
   # ndims,
@@ -19,6 +17,12 @@ import Base: A_mul_B!, Ac_mul_B!, size, ndims
 # 	y = zeros(codomainType(L),size(L,1))
 # 	A_mul_B!(y,L,b)
 # 	return y
+# end
+
+# function Ac_mul_B{T <: Union{AbstractArray, Tuple}}(L::LinearOperator, b::T)
+#   y = deepzeros(domainType(L), size(L, 2))
+# 	Ac_mul_B!(y, L, b)
+#   return y
 # end
 
 # Basic operators
@@ -38,8 +42,8 @@ include("operators/Filt.jl")
 include("operators/MIMOFilt.jl")
 include("operators/ZeroPad.jl")
 include("operators/Xcorr.jl")
-include("operators/LBFGS.jl")
-include("operators/BlkDiagLBFGS.jl")
+# include("operators/LBFGS.jl")
+# include("operators/BlkDiagLBFGS.jl")
 include("operators/utils.jl")
 
 # Calculus rules
@@ -58,8 +62,8 @@ ndims(L::LinearOperator) = length(size(L,1)), length(size(L,2))
 ndims(L::LinearOperator, i::Int) = ndims(L)[i]
 
 #usually domain is preserved, if not one has to redefine these functions
-  domainType(L::LinearOperator) = L.domainType
-codomainType(L::LinearOperator) = L.domainType
+  # domainType(L::LinearOperator) = L.domainType
+# codomainType(L::LinearOperator) = L.domainType
 
 is_diagonal(L::LinearOperator) = false
 is_gram_diagonal(L::LinearOperator) = is_diagonal(L::LinearOperator)
@@ -76,3 +80,13 @@ fun_type(  L) = fun_domain(L)*" → "*fun_codomain(L)
 
 fun_domain(L::LinearOperator)   =   domainType(L) <: Complex ? "ℂ^$(size(L,2))" : "ℝ^$(size(L,2))"
 fun_codomain(L::LinearOperator) = codomainType(L) <: Complex ? "ℂ^$(size(L,1))" : "ℝ^$(size(L,1))"
+
+# Shorthands
+
+function (*){T <: Union{AbstractArray, Tuple}}(L::LinearOperator, b::T)
+  y = deepzeros(codomainType(L), size(L, 1))
+	A_mul_B!(y, L, b)
+  return y
+end
+
+transpose{T <: LinearOperator}(L::T) = Transpose(L)

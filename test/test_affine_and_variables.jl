@@ -12,7 +12,7 @@ println(x)
 xc = Variable(Complex{Float64},3)
 println(xc)
 
-println("\n test LinearTerm \n")
+println("\n test LinearExpression \n")
 
 #wrong size of L
 @test_throws Exception Eye(4)*x
@@ -54,7 +54,7 @@ A = M*x+z
 A = M*x-z
 @test norm(A(~[x,z])-(M*~x-~z) )<1e-9
 
-println("\n test Tilted LinearTerm \n")
+println("\n test Tilted LinearExpression \n")
 
 #wrong size of b
 @test_throws Exception Eye(3)*x+randn(4)
@@ -194,7 +194,7 @@ A =  mimofilt(M*X-B,[b,b])
 @test norm(A(~X)-sum(filt(b,[1.0],M*~X-B),2)) <1e-9
 
 
-println("\n testing sort_and_expand LinearTerm \n")
+println("\n testing sort_and_expand LinearExpression \n")
 
 ##test sort_and_expand
 
