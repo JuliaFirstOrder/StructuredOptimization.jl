@@ -29,6 +29,14 @@ function is_proximable(terms::Vararg{Term})
 	return true
 end
 
+is_convex(t::Term) = is_convex(t.f)
+is_convex(terms::Vararg{Term}) = all(is_convex.(t.f))
+
+is_strongly_convex(t::Term) = is_strongly_convex(t.f) && length(t.A) == 1 && is_full_column_rank(t.A[1])
+function is_strongly_convex(terms::Vararg{Term})
+	error("not yet implemented")
+end
+
 # Define sum of terms simply as their vcat
 
 import Base: +
