@@ -4,7 +4,7 @@ abstract type Solver end
 abstract type ForwardBackwardSolver <: Solver end
 
 include("solvers/pg.jl")
-include("solvers/zerofpr.jl")
+# include("solvers/zerofpr.jl")
 include("solvers/utils.jl")
 
 default_slv = PG

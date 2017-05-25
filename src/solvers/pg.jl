@@ -77,18 +77,17 @@ function solve(terms::Vector{Term}, solver::PG)
 	# Separate smooth and nonsmooth
 	smooth = [t for t in terms if is_smooth(t) == true]
 	nonsmooth = [t for t in terms if is_smooth(t) == false]
-	if is_proximable(N...)
-		println("Solving the PRIMAL")
+	if is_proximable(nonsmooth...)
+		# Solving the PRIMAL
 		return solver
 	end
 	strongly = [t for t in terms if is_strongly_convex(t) == true]
 	nonstrongly = [t for t in terms if is_strongly_convex(t) == false]
 	if false # TODO: here, a condition for "easily conjugable" should go
-		println("Solving the DUAL")
+		# Solving the DUAL
 		return solver
 	end
-	error("Sorry, I CANNOT solve this problem")
-	return solver
+	error("Sorry, I cannot solve this problem")
 end
 
 function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T,

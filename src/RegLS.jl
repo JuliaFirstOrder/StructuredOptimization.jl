@@ -5,9 +5,7 @@ module RegLS
 using ProximalOperators
 import ProximalOperators: RealOrComplex
 
-# import Base: in, +, *, <=, ==, sum, isempty, rank, norm
-
-include("utils.jl")
+include("deep.jl")
 include("operators.jl")
 include("functions.jl")
 include("syntax.jl")

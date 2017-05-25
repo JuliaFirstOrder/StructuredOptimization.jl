@@ -7,6 +7,7 @@ srand(0)
 
 ### Passing:
 
+include("test_deep.jl")
 include("test_operators.jl")
 include("test_operators_calculus.jl")
 include("test_functions.jl")
