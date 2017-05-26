@@ -7,7 +7,6 @@ type PG <: ForwardBackwardSolver
 	halt::Function
 	gamma::Float64
 	it::Int
-	fpr::AbstractArray
 	normfpr::Float64
 	cost::Float64
 	time::Float64
@@ -61,7 +60,7 @@ PG(;
 	linesearch::Bool = true,
 	fast::Bool = false,
 	gamma::Float64 = Inf) =
-PG(tol, maxit, verbose, halt, gamma,  0, [], Inf, Inf, NaN, linesearch, fast, 0, 0)
+PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, fast, 0, 0)
 
 # alias for fast = true
 FPG(;
@@ -134,18 +133,17 @@ function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T, f::ProximableFu
 	if slv.gamma == Inf
 		# compute upper bound for Lipschitz constant
 		grad_f_x_eps = deepcopy(x0)
-		res_x_eps = L*(x+sqrt(eps())) # + b
+		res_x_eps = L*(x .+ sqrt(eps())) # + b
 		grad_f_res_eps, = gradient(f, res_x_eps)
 		Ac_mul_B!(grad_f_x_eps, L, grad_f_res_eps)
 		slv.cnt_matvec += 2
-		Lf = deepvecnorm(grad_f_x-grad_f_x_eps)/(sqrt(eps()*deeplength(x)))
+		Lf = deepvecnorm(grad_f_x .- grad_f_x_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = 1.0/Lf
 	end
 
 	# initialize variables
 
 	fpr = deepcopy(x)
-	slv.fpr = fpr
 	y = deepcopy(x)
 	xprev = deepcopy(x)
 	res_y = deepcopy(res_x)
@@ -158,10 +156,10 @@ function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T, f::ProximableFu
 
 		# line search on gamma
 		for j = 1:32
-			gradstep .= y .- slv.gamma.*grad_f_y
+			deepaxpy!(gradstep, y, -slv.gamma, grad_f_y)
 			g_x = prox!(x, g, gradstep, slv.gamma)
 			slv.cnt_prox += 1
-			fpr .= y .- x
+			deepaxpy!(fpr, y, -1.0, x)
 			slv.normfpr = deepvecnorm(fpr)
 			A_mul_B!(res_x, L, x)
 			# res_x .+= b
@@ -186,8 +184,12 @@ function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T, f::ProximableFu
 		# extrapolation
 
 		if slv.fast
-			y .= x .+ (slv.it-1)/(slv.it+2) .* (x .- xprev)
-			res_y .= res_x .+ (slv.it-1)/(slv.it+2) .* (res_x .- res_xprev)
+			deepaxpy!(y, x, (slv.it-1)/(slv.it+2), x)
+			deepaxpy!(y, y, -(slv.it-1)/(slv.it+2), xprev)
+			# y .= x .+ (slv.it-1)/(slv.it+2) .* (x .- xprev)
+			deepaxpy!(res_y, res_x, (slv.it-1)/(slv.it+2), res_x)
+			deepaxpy!(res_y, res_y, -(slv.it-1)/(slv.it+2), res_xprev)
+			# res_y .= res_x .+ (slv.it-1)/(slv.it+2) .* (res_x .- res_xprev)
 		else
 			# no need to copy, just move references around
 			y = x

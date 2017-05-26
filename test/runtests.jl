@@ -8,7 +8,7 @@ srand(0)
 
 ### Passing:
 
-# include("test_deep.jl")
+include("test_deep.jl")
 # include("test_functions.jl")
 # include("test_variables_expressions.jl")
 # include("test_terms.jl")

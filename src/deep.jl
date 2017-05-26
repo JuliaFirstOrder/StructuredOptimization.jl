@@ -27,3 +27,7 @@ deepmaxabs{R <: Number}(x::AbstractArray{R}) = maximum(abs, x)
 deepzeros(t::Tuple, s::Tuple) = deepzeros.(t, s)
 
 deepzeros(t::Type, n::NTuple{N, Integer} where {N}) = zeros(t, n)
+
+deepaxpy!{T <: Tuple, R <: Real}(z::T, x::T, alpha::R, y::T) = deepaxpy!.(z, x, alpha, y)
+
+deepaxpy!{T <: Number, R <: Real}(z::AbstractArray{T}, x::AbstractArray{T}, alpha::R, y::AbstractArray{T}) = (z .= x .+ alpha.*y)

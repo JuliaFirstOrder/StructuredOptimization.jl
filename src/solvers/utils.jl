@@ -6,20 +6,20 @@ function print_status(slv::ForwardBackwardSolver)
     @printf("-------|------------|------------|---------------\n")
   end
   if slv.verbose == 2 || (slv.verbose == 1 && (slv.it == 1 || slv.it%100 == 0))
-    @printf("%6d | %7.4e | %7.4e | %11.8e\n", slv.it, slv.gamma, deepmaxabs(slv.fpr)/slv.gamma, slv.cost)
+    @printf("%6d | %7.4e | %7.4e | %11.8e\n", slv.it, slv.gamma, slv.normfpr/slv.gamma, slv.cost)
   end
 end
 
 function print_status(slv::ForwardBackwardSolver, verbose::Int)
   if verbose == 2 || (verbose == 1 && (slv.it == 1 || slv.it%100 == 0))
-    @printf("%6d | %7.4e | %7.4e | %11.8e\n", slv.it, slv.gamma, deepmaxabs(slv.fpr)/slv.gamma, slv.cost)
+    @printf("%6d | %7.4e | %7.4e | %11.8e\n", slv.it, slv.gamma, slv.normfpr/slv.gamma, slv.cost)
   end
 end
 
 # Stopping criteria
 
 function halt_default(slv::ForwardBackwardSolver)
-	conv_fpr = deepmaxabs(slv.fpr)/slv.gamma <= slv.tol
+	conv_fpr = slv.normfpr/slv.gamma <= slv.tol
 	return conv_fpr
 end
 

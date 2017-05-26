@@ -22,3 +22,10 @@ RegLS.deepcopy!(y, x)
 @test RegLS.deepmaxabs(x .- y) == 0
 
 t1 = RegLS.deepzeros((Float32, Float64), ((3, ), (4, )) )
+
+t1 = (randn(20), randn(20))
+t2 = (randn(20), randn(20))
+t3 = RegLS.deepsimilar(t1)
+RegLS.deepaxpy!(t3, t1, 0.5, t2)
+t4 = (t1[1]+0.5*t2[1],t1[2]+0.5*t2[2])
+@test max(norm(t4[1]-t3[1]),norm(t4[2]-t3[2])) <= 1e-12

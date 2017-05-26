@@ -20,21 +20,21 @@ function gradient!(f::ProximableFunction, args...)
 	error("gradient not implemented for $f")
 end
 
-function gradient(f::ProximableFunction, x::AbstractArray)
-	y = similar(x)
-	fx = gradient!(y,f,x)
-	return y, fx
-end
-
-function gradstep!(y::AbstractArray, f::ProximableFunction, x::AbstractArray, gamma)
+function gradient{T <: Union{AbstractArray, Tuple}}(f::ProximableFunction, x::T)
+	y = deepsimilar(x)
 	fx = gradient!(y, f, x)
-	y .*= -gamma
-	y .+= x
-	return fx
-end
-
-function gradstep(f::ProximableFunction, x::AbstractArray, gamma)
-	y = similar(x)
-	fx = gradstep!(y, f, x, gamma)
 	return y, fx
 end
+
+# function gradstep!(y::AbstractArray, f::ProximableFunction, x::AbstractArray, gamma)
+# 	fx = gradient!(y, f, x)
+# 	y .*= -gamma
+# 	y .+= x
+# 	return fx
+# end
+#
+# function gradstep(f::ProximableFunction, x::AbstractArray, gamma)
+# 	y = similar(x)
+# 	fx = gradstep!(y, f, x, gamma)
+# 	return y, fx
+# end
