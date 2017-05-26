@@ -14,6 +14,7 @@ is_smooth(t::Term) = is_smooth(t.f)
 is_smooth(terms::Vararg{Term}) = all(is_smooth.(terms))
 
 is_proximable(t::Term) = all(is_gram_diagonal.(t.A.Ls))
+
 function is_proximable(terms::Vararg{Term})
 	if any(is_proximable.(terms) == false)
 		return false

@@ -20,6 +20,8 @@ LinearExpression{T <: LinearOperator, E <: LinearExpression}(L::T, e::E) = Linea
 
 # Properties
 
+is_eye(L::LinearExpression) = is_eye(L.L)
+is_null(L::LinearExpression) = is_null(L.L)
 is_diagonal(L::LinearExpression) = is_diagonal(L.L)
 is_gram_diagonal(L::LinearExpression) = is_gram_diagonal(L.L)
 is_invertible(L::LinearExpression) = is_invertible(L.L)

@@ -40,6 +40,8 @@ size(L::LinearOperator, i::Int) = size(L)[i]
 ndims(L::LinearOperator) = length(size(L,1)), length(size(L,2))
 ndims(L::LinearOperator, i::Int) = ndims(L)[i]
 
+is_null(L::LinearOperator) = false
+is_eye(L::LinearOperator) = false
 is_diagonal(L::LinearOperator) = false
 is_gram_diagonal(L::LinearOperator) = is_diagonal(L)
 is_invertible(L::LinearOperator) = false

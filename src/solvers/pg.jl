@@ -78,13 +78,14 @@ function solve(terms::Vector{Term}, solver::PG)
 	smooth = [t for t in terms if is_smooth(t) == true]
 	nonsmooth = [t for t in terms if is_smooth(t) == false]
 	if is_proximable(nonsmooth...)
-		# Solving the PRIMAL
+		println("Solving the PRIMAL")
 		return solver
 	end
 	strongly = [t for t in terms if is_strongly_convex(t) == true]
 	nonstrongly = [t for t in terms if is_strongly_convex(t) == false]
 	if false # TODO: here, a condition for "easily conjugable" should go
 		# Solving the DUAL
+		println("Solving the DUAL")
 		return solver
 	end
 	error("Sorry, I cannot solve this problem")

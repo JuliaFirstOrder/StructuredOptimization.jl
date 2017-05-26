@@ -23,6 +23,7 @@ size(L::Eye) = (L.dim, L.dim)
 
 fun_name(L::Eye) = "Identity"
 
+is_eye(L::Eye) = true
 is_diagonal(L::Eye) = true
 is_gram_diagonal(L::Eye) = true
 is_invertible(L::Eye) = true

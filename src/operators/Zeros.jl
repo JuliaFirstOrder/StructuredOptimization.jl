@@ -1,38 +1,36 @@
 export Zeros
 
-immutable Zeros{O,I} <: LinearOperator
-	codomainType::Type
-	domainType::Type
-	dim_out::NTuple{O,Int}
-	dim_in::NTuple{I,Int}
+immutable Zeros{C, D, O, I} <: LinearOperator
+	dim_out::NTuple{O, Integer}
+	dim_in::NTuple{I, Integer}
 end
 
 # Constructors
 
-Zeros(dim::Vararg{Int64}) = Zeros(dim)
-Zeros(domainType,dim::Vararg{Int64}) = Zeros(domainType,dim)
+Zeros{C, D}(out::Tuple, in::Tuple) where {C, D} =
+	Zeros{C, D, length(out), length(in)}(out, in)
 
-Zeros(                              x::AbstractArray) =
-Zeros(eltype(x), eltype(x),  size(x), size(x))
-Zeros(                                 dim_in::Tuple) = Zeros(Float64, Float64,  dim_in, dim_in)
-Zeros(        D::Type,                 dim_in::Tuple) = Zeros(      D,       D,  dim_in, dim_in)
-Zeros(                 dim_out::Tuple, dim_in::Tuple) = Zeros(Float64, Float64, dim_out, dim_in)
-Zeros(        D::Type, dim_out::Tuple, dim_in::Tuple) = Zeros(      D,       D, dim_out, dim_in)
+# Properties
 
-Zeros(L::LinearOperator) = Zeros(codomainType(L), domainType(L), size(L,1), size(L,2))
+domainType{C, D, O, I}(L::Zeros{C, D, O, I}) = D
+codomainType{C, D, O, I}(L::Zeros{C, D, O, I}) = C
 
 # Mappings
 
-function A_mul_B!(y::AbstractArray,A::Zeros,b::AbstractArray)
-	y .= 0.
+function A_mul_B!{C, D, O, I}(y::AbstractArray{C, O}, A::Zeros{C, D, O, I}, b::AbstractArray{D, I})
+	y .= zero(C)
 end
 
-function Ac_mul_B!(y::AbstractArray,A::Zeros,b::AbstractArray)
-	y .= 0.
+function Ac_mul_B!{C, D, O, I}(y::AbstractArray{D, I}, A::Zeros{C, D, O, I}, b::AbstractArray{C, O})
+	y .= zero(D)
 end
 
 # Properties
 
-size(L::Zeros) = (L.dim_out,L.dim_in)
+size(L::Zeros) = (L.dim_out, L.dim_in)
 
-fun_name(A::Zeros)  = "Zero Operator"
+fun_name(A::Zeros)  = "Zero operator"
+
+is_null(L::Zeros) = true
+is_diagonal(L::Zeros) = true
+is_gram_diagonal(L::Zeros) = true
