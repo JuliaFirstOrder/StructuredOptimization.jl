@@ -9,34 +9,15 @@ Term{T <: ProximableFunction}(f::T, L::LinearExpression) = Term{T}(f, AffineExpr
 # Properties
 
 variables(t::Term) = variables(t.A)
-
-is_smooth(t::Term) = is_smooth(t.f)
-is_smooth(terms::Vararg{Term}) = all(is_smooth.(terms))
-
-is_proximable(t::Term) = all(is_gram_diagonal.(t.A.Ls))
-
-function is_proximable(terms::Vararg{Term})
-	if any(is_proximable.(terms) == false)
-		return false
-	end
-	# loops here are probably better than one-liners
-	for i in 1:length(terms)
-		for j in (i+1):length(terms)
-			if !isempty(intersect(variables(terms[i]), variables(terms[j])))
-				return false
-			end
-		end
-	end
-	return true
-end
-
-is_convex(t::Term) = is_convex(t.f)
-is_convex(terms::Vararg{Term}) = all(is_convex.(t.f))
-
-is_strongly_convex(t::Term) = is_strongly_convex(t.f) && length(t.A) == 1 && is_full_column_rank(t.A[1])
-function is_strongly_convex(terms::Vararg{Term})
-	error("not yet implemented")
-end
+# is_smooth(t::Term) = is_smooth(t.f)
+#
+# is_smooth(terms::Vararg{Term}) = all(is_smooth.(terms))
+#
+# is_proximable(t::Term) = length(t.A.Ls) == 1 && is_gram_diagonal(t.A.Ls[1])
+#
+# is_convex(t::Term) = is_convex(t.f)
+#
+# is_strongly_convex(t::Term) = is_strongly_convex(t.f) && length(t.A) == 1 && is_full_column_rank(t.A[1])
 
 # Define sum of terms simply as their vcat
 

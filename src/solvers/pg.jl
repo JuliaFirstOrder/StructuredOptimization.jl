@@ -73,7 +73,33 @@ FPG(;
 	gamma::Float64 = Inf) =
 PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
 
+function get_proximable_functions(terms::Vararg{Term})
+	# loops here are probably better than one-liners
+	fs = []
+	for i in 1:length(terms)
+		if length(t.A.Ls) != 1 && !is_gram_diagonal(t.A.Ls[1]) return [] end
+		for j in (i+1):length(terms)
+			if !isempty(intersect(variables(terms[i]), variables(terms[j])))
+				return []
+			end
+		end
+		if is_diagonal(t.A.Ls[1])
+			D = get_gram_diagonal(t.A.Ls[1])
+			f = PrecomposeDiagonal(t.f, D, t.A.b)
+			append!(fs, f)
+		else
+			fwd = x -> t.A.Ls[1].L*x
+			adj = y -> t.A.Ls[1].L'*y
+			D = get_gram_diagonal(t.A.Ls[1])
+			f = PrecomposeDiagonal(t.f, fwd, adj, D, t.A.b)
+			append!(fs, f)
+		end
+	end
+	return []
+end
+
 function solve(terms::Vector{Term}, solver::PG)
+
 	# Separate smooth and nonsmooth
 	smooth = [t for t in terms if is_smooth(t) == true]
 	nonsmooth = [t for t in terms if is_smooth(t) == false]
