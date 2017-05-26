@@ -99,7 +99,6 @@ function get_proximable_functions(terms::Vararg{Term})
 end
 
 function solve(terms::Vector{Term}, solver::PG)
-
 	# Separate smooth and nonsmooth
 	smooth = [t for t in terms if is_smooth(t) == true]
 	nonsmooth = [t for t in terms if is_smooth(t) == false]
@@ -117,18 +116,16 @@ function solve(terms::Vector{Term}, solver::PG)
 	error("Sorry, I cannot solve this problem")
 end
 
-function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T,
-	f::ProximableFunction, L::LinearOperator, b::AbstractArray,
-	g::ProximableFunction)
+function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T, f::ProximableFunction, L::LinearOperator, g::ProximableFunction)
 
 	tic()
 
 	x = deepcopy(x0)
 
-	# res_x = residual(f, x)
-	res_x = A_mul_B(L, x) + b
+	grad_f_x = deepcopy(x0)
+	res_x = L*x # + b
 	grad_f_res, f_x = gradient(f, res_x)
-	grad_f_x = At_mul_B(L, grad_f_res)
+	Ac_mul_B!(grad_f_x, L, grad_f_res)
 	slv.cnt_matvec += 2
 	g_x = Inf
 	cost_xprev = Inf
@@ -136,9 +133,10 @@ function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T,
 
 	if slv.gamma == Inf
 		# compute upper bound for Lipschitz constant
-		res_x_eps = A_mul_B(L, x+sqrt(eps())) + b
+		grad_f_x_eps = deepcopy(x0)
+		res_x_eps = L*(x+sqrt(eps())) # + b
 		grad_f_res_eps, = gradient(f, res_x_eps)
-		grad_f_x_eps = At_mul_B(L, grad_f_res_eps)
+		Ac_mul_B!(grad_f_x_eps, L, grad_f_res_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(grad_f_x-grad_f_x_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = 1.0/Lf
@@ -166,7 +164,7 @@ function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T,
 			fpr .= y .- x
 			slv.normfpr = deepvecnorm(fpr)
 			A_mul_B!(res_x, L, x)
-			res_x .+= b
+			# res_x .+= b
 			f_x = f(res_x)
 			slv.cnt_matvec += 1
 			if slv.linesearch == false break end
@@ -199,7 +197,7 @@ function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T,
 		# compute gradient and f(y)
 
 		f_y = gradient!(grad_f_res, f, res_y)
-		At_mul_B!(grad_f_y, L, grad_f_res)
+		Ac_mul_B!(grad_f_y, L, grad_f_res)
 
 		slv.cnt_matvec += 1
 

@@ -1,3 +1,5 @@
+export gradient!, gradient
+
 is_smooth(f::ProximableFunction) = false
 is_quadratic(f::ProximableFunction) = false
 is_generalized_quadratic(f::ProximableFunction) = false
@@ -7,6 +9,7 @@ include("functions/conjugate.jl")
 include("functions/moreauEnvelope.jl")
 include("functions/separableSum.jl")
 include("functions/sqrNormL2.jl")
+include("functions/PrecomposeDiagonal.jl")
 include("functions/postcompose.jl")
 
 NullFunction() = IndFree()
