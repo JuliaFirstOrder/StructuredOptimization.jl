@@ -1,4 +1,5 @@
 using RegLS
+using AbstractOperators
 using ProximalOperators
 using Base.Test
 using Base.Profile
@@ -8,8 +9,6 @@ srand(0)
 ### Passing:
 
 include("test_deep.jl")
-include("test_operators.jl")
-include("test_operators_calculus.jl")
 include("test_functions.jl")
 include("test_variables_expressions.jl")
 include("test_terms.jl")

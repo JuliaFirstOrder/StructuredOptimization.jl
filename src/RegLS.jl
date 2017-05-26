@@ -2,11 +2,20 @@ __precompile__()
 
 module RegLS
 
-using ProximalOperators
+using AbstractOperators, ProximalOperators
 import ProximalOperators: RealOrComplex
+import AbstractOperators: domainType, 
+			  codomainType,
+			  is_eye,
+			  is_null,
+			  is_diagonal,
+			  is_gram_diagonal,
+			  is_invertible,
+			  is_full_row_rank,
+			  is_full_column_rank
+
 
 include("deep.jl")
-include("operators.jl")
 include("functions.jl")
 include("syntax.jl")
 include("solvers.jl")

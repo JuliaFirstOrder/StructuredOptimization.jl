@@ -1,4 +1,4 @@
-import Base: size, eltype, ~
+import Base: size, eltype, ndims, ~
 export Variable
 
 immutable Variable{A <: AbstractArray} <: AbstractAffineExpression
