@@ -1,5 +1,7 @@
 @printf("\nTesting solvers\n")
 
+tol = 1e-6;
+
 ###########################################################################
 # Lasso
 ###########################################################################
@@ -17,11 +19,11 @@ L = MatrixOp(A1)
 # Apply PG
 
 x = zeros(n)
-sol = RegLS.apply(PG(), x, f, L, g)
+sol = RegLS.apply(PG(tol=tol), x, f, L, g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
-@test norm(pgstep - x) <= 1e-8
+@test norm(pgstep - x) <= tol
 # project subgr onto the subdifferential of the L1-norm at x
 subgr = -A1'*(A1*x-b)
 subgr_proj = min.(max.(subgr, -lam), lam)
@@ -32,11 +34,11 @@ subgr_proj[x .> 0] = lam
 # Apply FPG
 
 x = zeros(n)
-sol = RegLS.apply(FPG(), x, f, L, g)
+sol = RegLS.apply(FPG(tol=tol), x, f, L, g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
-@test norm(pgstep - x) <= 1e-8
+@test norm(pgstep - x) <= tol
 # project subgr onto the subdifferential of the L1-norm at x
 subgr = -A1'*(A1*x-b)
 subgr_proj = min.(max.(subgr, -lam), lam)
@@ -48,12 +50,12 @@ subgr_proj[x .> 0] = lam
 # Regularized/constrained least squares with two variable blocks
 ###########################################################################
 
-m, n, l = 10, 50, 30
+m, n, l = 10, 30, 40
 A1 = randn(m, n)
 A2 = randn(m, l)
 x1 = randn(n)
 x2 = randn(l)
-x2 = 1.2.*x2./norm(x2)
+x2 = 1.1.*x2./norm(x2)
 b = A1*x1 + A2*x2
 
 f = PrecomposeDiagonal(SqrNormL2(), 1.0, -b)
@@ -63,28 +65,28 @@ L = HCAT(MatrixOp(A1), MatrixOp(A2))
 # Apply PG
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply(PG(), x, f, L, g)
+sol = RegLS.apply(PG(tol=tol), x, f, L, g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
 gstep2 = x[2] - A2'*res
 pgstep1 = sign.(gstep1).*max.(0, abs.(gstep1) .- lam)
 pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
-@test norm(x[1] - pgstep1) <= 1e-8
-@test norm(x[2] - pgstep2) <= 1e-8
+@test norm(x[1] - pgstep1) <= tol
+@test norm(x[2] - pgstep2) <= tol
 
 # Apply FPG
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply(FPG(), x, f, L, g)
+sol = RegLS.apply(FPG(tol=tol), x, f, L, g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
 gstep2 = x[2] - A2'*res
 pgstep1 = sign.(gstep1).*max.(0, abs.(gstep1) .- lam)
 pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
-@test norm(x[1] - pgstep1) <= 1e-8
-@test norm(x[2] - pgstep2) <= 1e-8
+@test norm(x[1] - pgstep1) <= tol
+@test norm(x[2] - pgstep2) <= tol
 
 ###########################################################################
 # L2-regularized least squares with two data blocks (just to play)
@@ -105,9 +107,9 @@ L = VCAT(MatrixOp(A1), MatrixOp(A2))
 # Apply PG
 
 x = zeros(n)
-sol = RegLS.apply(PG(), x, f, L, g)
+sol = RegLS.apply(PG(tol=tol), x, f, L, g)
 
 # Apply FPG
 
 x = zeros(n)
-sol = RegLS.apply(FPG(), x, f, L, g)
+sol = RegLS.apply(FPG(tol=tol), x, f, L, g)

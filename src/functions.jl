@@ -26,15 +26,15 @@ function gradient{T <: Union{AbstractArray, Tuple}}(f::ProximableFunction, x::T)
 	return y, fx
 end
 
-# function gradstep!(y::AbstractArray, f::ProximableFunction, x::AbstractArray, gamma)
-# 	fx = gradient!(y, f, x)
-# 	y .*= -gamma
-# 	y .+= x
-# 	return fx
-# end
-#
-# function gradstep(f::ProximableFunction, x::AbstractArray, gamma)
-# 	y = similar(x)
-# 	fx = gradstep!(y, f, x, gamma)
-# 	return y, fx
-# end
+function gradstep!{T <: Union{AbstractArray, Tuple}}(y::T, f::ProximableFunction, x::T, gamma)
+	fx = gradient!(y, f, x)
+	y .*= -gamma
+	y .+= x
+	return fx
+end
+
+function gradstep{T <: Union{AbstractArray, Tuple}}(f::ProximableFunction, x::T, gamma)
+	y = deepsimilar(x)
+	fx = gradstep!(y, f, x, gamma)
+	return y, fx
+end

@@ -122,7 +122,7 @@ function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T, f::ProximableFu
 	x = deepcopy(x0)
 
 	grad_f_x = deepcopy(x0)
-	res_x = L*x # + b
+	res_x = L*x
 	grad_f_res, f_x = gradient(f, res_x)
 	Ac_mul_B!(grad_f_x, L, grad_f_res)
 	slv.cnt_matvec += 2
@@ -133,7 +133,7 @@ function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T, f::ProximableFu
 	if slv.gamma == Inf
 		# compute upper bound for Lipschitz constant
 		grad_f_x_eps = deepcopy(x0)
-		res_x_eps = L*(x .+ sqrt(eps())) # + b
+		res_x_eps = L*(x .+ sqrt(eps()))
 		grad_f_res_eps, = gradient(f, res_x_eps)
 		Ac_mul_B!(grad_f_x_eps, L, grad_f_res_eps)
 		slv.cnt_matvec += 2
@@ -162,7 +162,6 @@ function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T, f::ProximableFu
 			deepaxpy!(fpr, y, -1.0, x)
 			slv.normfpr = deepvecnorm(fpr)
 			A_mul_B!(res_x, L, x)
-			# res_x .+= b
 			f_x = f(res_x)
 			slv.cnt_matvec += 1
 			if slv.linesearch == false break end
@@ -184,12 +183,12 @@ function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T, f::ProximableFu
 		# extrapolation
 
 		if slv.fast
+			# y = x + (it-1)/(it+2) * (x - xprev)
 			deepaxpy!(y, x, (slv.it-1)/(slv.it+2), x)
 			deepaxpy!(y, y, -(slv.it-1)/(slv.it+2), xprev)
-			# y .= x .+ (slv.it-1)/(slv.it+2) .* (x .- xprev)
+			# res_y = res_x + (it-1)/(it+2) * (res_x - res_xprev)
 			deepaxpy!(res_y, res_x, (slv.it-1)/(slv.it+2), res_x)
 			deepaxpy!(res_y, res_y, -(slv.it-1)/(slv.it+2), res_xprev)
-			# res_y .= res_x .+ (slv.it-1)/(slv.it+2) .* (res_x .- res_xprev)
 		else
 			# no need to copy, just move references around
 			y = x
