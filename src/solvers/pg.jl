@@ -10,57 +10,21 @@ type PG <: ForwardBackwardSolver
 	normfpr::Float64
 	cost::Float64
 	time::Float64
-	linesearch::Bool
+	adaptive::Bool
 	fast::Bool
 	cnt_matvec::Int
 	cnt_prox::Int
 end
-
-fun_name(S::PG) = S.fast ? "Fast Proximal Gradient" : "Proximal Gradient"
-
-"""
-# Proximal Gradient Solver
-
-## Usage
-
-
-* `slv = PG()` creates a `Solver` object that can be used in the function `solve`.
-* Can be used with convex regularizers only.
-* After solving a problem use `show(slv)` to visualize number of iterations, fixed point residual value, cost funtion value and time elapsed.
-
-
-## Keyword Arguments
-
-* `tol::Float64=1e-8`: tolerance
-* `maxit::Int64=10000`: maximum number of iterations
-* `verbose::Int64=1`: `0` verbose off, `1` print every 100 iteration, `2` print every iteration
-* `halt::Function`: custom stopping criterion function
-  * this function may be specified by the user and must have the following structure:
-
-    `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,Fcurr::Float64,Fprev::Float64)`
-
-    * `normfpr0` is the fixed point residual at x0
-    * `Fcurr` is the objective value at the current iteration
-    * `Fprev` is the objective value at the previous iteration
-    * example: `myhalt(slv,normfpr0,FBE,FBEx) = slv.normfpr < tol`
-
-* `gamma::Float64=Inf`: stepsize γ, if γ = Inf upper bound is computed using:
-
-  γ = || x0-(x0+ɛ) || / || ∇f(x0) - ∇f(x0+ɛ) ||
-
-* `linesearch::Bool=true`: activates linesearch on stepsize γ
-* `fast::Bool=true`: switches between proximal gradient and fast proximal gradient
-"""
 
 PG(;
 	tol::Float64 = 1e-8,
 	maxit::Int64 = 10000,
 	verbose::Int64 = 1,
 	halt::Function = halt_default,
-	linesearch::Bool = true,
+	adaptive::Bool = true,
 	fast::Bool = false,
 	gamma::Float64 = Inf) =
-PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, fast, 0, 0)
+PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, adaptive, fast, 0, 0)
 
 # alias for fast = true
 FPG(;
@@ -68,9 +32,9 @@ FPG(;
 	maxit::Int64 = 10000,
 	verbose::Int64 = 1,
 	halt::Function = halt_default,
-	linesearch::Bool = true,
+	adaptive::Bool = true,
 	gamma::Float64 = Inf) =
-PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
+PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, adaptive = adaptive, fast = true, gamma = gamma)
 
 function get_proximable_functions(terms::Vararg{Term})
 	# loops here are probably better than one-liners
@@ -115,7 +79,13 @@ function solve(terms::Vector{Term}, solver::PG)
 	error("Sorry, I cannot solve this problem")
 end
 
-function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T, f::ProximableFunction, L::LinearOperator, g::ProximableFunction)
+################################################################################
+################################################################################
+# Proximal gradient algorithm
+################################################################################
+################################################################################
+
+function apply(slv::PG, x0::T, f::ProximableFunction, L::LinearOperator, g::ProximableFunction) where {T <: Union{AbstractArray, Tuple}}
 
 	tic()
 
@@ -164,7 +134,7 @@ function apply{T <: Union{AbstractArray, Tuple}}(slv::PG, x0::T, f::ProximableFu
 			A_mul_B!(res_x, L, x)
 			f_x = f(res_x)
 			slv.cnt_matvec += 1
-			if slv.linesearch == false break end
+			if slv.adaptive == false break end
 			uppbnd = f_y - real(deepvecdot(grad_f_y, fpr)) + (0.5/slv.gamma)*(slv.normfpr^2)
 			if f_x <= uppbnd + 1e-6*abs(f_y) break end
 			slv.gamma = 0.5*slv.gamma

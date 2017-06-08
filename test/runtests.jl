@@ -8,12 +8,33 @@ srand(0)
 
 ### Passing:
 
-include("test_deep.jl")
-include("test_functions.jl")
-include("test_variables_expressions.jl")
-include("test_terms.jl")
-include("test_problem.jl")
-include("test_solvers.jl")
+@testset "RegLS" begin
+
+@testset "Tuple operations" begin
+  include("test_deep.jl")
+end
+
+@testset "Functions" begin
+  include("test_functions.jl")
+end
+
+@testset "Variables/expressions" begin
+  include("test_variables_expressions.jl")
+end
+
+@testset "Terms construction" begin
+  include("test_terms.jl")
+end
+
+@testset "Problems construction" begin
+  include("test_problem.jl")
+end
+
+@testset "Solvers" begin
+  include("test_solvers.jl")
+end
+
+end
 
 ### Yet to be checked:
 

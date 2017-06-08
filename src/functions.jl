@@ -12,10 +12,6 @@ include("functions/sqrNormL2.jl")
 include("functions/PrecomposeDiagonal.jl")
 include("functions/postcompose.jl")
 
-NullFunction() = IndFree()
-is_null(f::ProximableFunction) = false
-is_null(f::IndFree) = true
-
 function gradient!(f::ProximableFunction, args...)
 	error("gradient not implemented for $f")
 end
