@@ -9,7 +9,7 @@ include("functions/conjugate.jl")
 include("functions/moreauEnvelope.jl")
 include("functions/separableSum.jl")
 include("functions/sqrNormL2.jl")
-include("functions/PrecomposeDiagonal.jl")
+include("functions/precomposeDiagonal.jl")
 include("functions/postcompose.jl")
 
 function gradient!(f::ProximableFunction, args...)

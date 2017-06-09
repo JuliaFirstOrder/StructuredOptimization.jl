@@ -62,3 +62,35 @@ cf3 = 0.5*norm(A*x - B*y + b, 2)^2 + norm(x, 1) + norm(y, 2)
 # cf8 = norm(w + z, 1) + (norm(u) <= 1.0)
 # @test RegLS.is_proximable(cf8...) == true
 # @test RegLS.is_smooth(cf8...) == false
+
+# testing tidy_up
+
+
+
+A = randn(7,3)
+n1,n2,n3,n4,n5 = 3,3,4,4,7
+x1,x2,x3,x4,x5 = Variable(randn(n1)),Variable(randn(n2)),Variable(randn(n3)),Variable(randn(n4)),Variable(randn(n5))
+
+cf = ls(x1+x2)
+xAll = RegLS.get_all_variables(cf)
+@test xAll == (x1,x2)
+
+cf = ls(x1+x2)+ls(x1)
+xAll = RegLS.get_all_variables(cf)
+@test xAll == (x1,x2)
+
+cf = ls(x1+x2)+ls(x3+x4)+ls(x5)+ls(x5+A*x2)+ls(x1)+ls(x5)
+xAll = RegLS.get_all_variables(cf)
+@test xAll == (x1,x2,x3,x4,x5)
+
+
+
+
+
+
+
+
+
+
+
+

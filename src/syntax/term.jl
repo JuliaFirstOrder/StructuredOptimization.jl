@@ -3,12 +3,16 @@ immutable Term{T <: ProximableFunction}
 	A::AffineExpression
 end
 
-Term{T <: ProximableFunction}(f::T, x::Variable) = Term(f, LinearExpression(Eye(eltype(x), size(x)), x))
-Term{T <: ProximableFunction}(f::T, L::LinearExpression) = Term{T}(f, AffineExpression([L], zeros(codomainType(L.L), size(L.L, 1))))
+function Term{T1 <: ProximableFunction, T2 <: AbstractAffineExpression}(f::T1, ex::T2) 
+	A = convert(AffineExpression,ex)
+	Term(f, A)
+end
 
 # Properties
 
 variables(t::Term) = variables(t.A)
+operator(t::Term) = operator(t.A)
+tilt(t::Term) = operator(t.A)
 # is_smooth(t::Term) = is_smooth(t.f)
 #
 # is_smooth(terms::Vararg{Term}) = all(is_smooth.(terms))
@@ -23,7 +27,7 @@ variables(t::Term) = variables(t.A)
 
 import Base: +
 
-(+)(args::Vararg{Term}) = vcat(args...)
+(+)(args::Vararg{Term}) = tuple(args...)
 
 # Define multiplication by constant
 
@@ -115,3 +119,39 @@ hingeloss(x::Variable, args...) = hingeloss(eye(x), args...)
 
 hingeloss{R <: Real}(A::AbstractAffineExpression, b::Array{R,1}) =
 Term(variable(A), [HingeLoss(b, 1.0)], [A])
+
+# tidy up stuff
+# returns all variables of a cost function, in terms of appearance
+get_all_variables(t::Term) = variables(t) 
+
+function get_all_variables{N}(t::NTuple{N,Term})  
+	x = variables.(t)
+	xAll = x[1]
+	for i = 2:length(x)
+		for xi in x[i]
+			if (xi in xAll) == false
+				xAll = (xAll...,xi)
+			end
+		end
+	end
+	return xAll
+end
+
+# returns all operators with an order dictated by xAll 
+#function get_all_operators{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})  
+#	ops = ()
+#	for ti in t
+#		xi   = variables(ti)
+#		opsi = operator(ti)
+#		
+#	end
+#end
+
+
+
+
+
+
+
+
+

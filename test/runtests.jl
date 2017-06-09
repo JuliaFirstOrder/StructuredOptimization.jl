@@ -18,18 +18,18 @@ end
   include("test_functions.jl")
 end
 
-@testset "Variables/expressions" begin
+@testset "syntax/AffineExpression" begin
   include("test_variables_expressions.jl")
 end
 
-@testset "Terms construction" begin
+@testset "syntax/Terms" begin
   include("test_terms.jl")
 end
-
-@testset "Problems construction" begin
-  include("test_problem.jl")
-end
-
+#
+#@testset "Problems construction" begin
+#  include("test_problem.jl")
+#end
+#
 @testset "Solvers" begin
   include("test_solvers.jl")
 end
@@ -38,8 +38,6 @@ end
 
 ### Yet to be checked:
 
-# include("test_lbfgs.jl")
-# include("test_lbfgs_larger.jl")
 # include("test_costfunction.jl")
 # include("test_matcomp.jl")
 # include("test_svm.jl")

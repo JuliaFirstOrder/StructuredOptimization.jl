@@ -1,12 +1,14 @@
-import Base: size, eltype, ndims, ~
+import Base: convert, size, eltype, ndims, ~
 export Variable
 
-immutable Variable{A <: AbstractArray} <: AbstractAffineExpression
+immutable Variable{T, N, A <: AbstractArray{T,N}} <: AbstractAffineExpression
 	x::A
 end
 
-function Variable{I <: Integer}(T::Type, args::Vararg{I})
-  Variable(zeros(T, args...))
+Variable{T,N,A<:AbstractArray{T,N}}(x::A) = Variable{T,N,A}(x)
+
+function Variable{I <: Integer,N}(T::Type, args::Vararg{I,N})
+	Variable{T,N,Array{T,N}}(zeros(T, args...))
 end
 
 function Variable{I <: Integer}(args::Vararg{I})
@@ -32,17 +34,6 @@ returns the `Array` object containing the value of `x`.
 ~(x::Variable) = x.x
 ~(x::Tuple{Variable}) = (~).(x)
 
-# deepcopy!(x::Variable,y::AbstractArray) = deepcopy!(x.x,y)
-# deepcopy!{T<:AbstractVariable}(x::Vector{T},y::AbstractArray) = deepcopy!(~x,y)
 
-# domainType(x::Variable) = eltype(x.x)
 
-# fun_type(x::AbstractVariable)   =   domainType(x) <: Complex ? "ℂ^$(size(x))" : "ℝ^$(size(x))"
-# function fun_type{V <: AbstractVariable}(x::Vector{V})
-# 	str = ""
-# 	for i in eachindex(x)
-# 		str *= fun_type(x[i])
-# 		i != length(x) && (str *= ", ")
-# 	end
-# 	return str
-# end
+
