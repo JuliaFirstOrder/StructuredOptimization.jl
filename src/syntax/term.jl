@@ -1,18 +1,20 @@
-immutable Term{T <: ProximableFunction}
-	f::T
-	A::AffineExpression
+immutable Term{T1 <: ProximableFunction, T2 <: AbstractAffineExpression}
+	f::T1
+	A::T2
+	Term{T1,T2}(f::T1, ex::T2) where {T1,T2} = new{T1,T2}(f,ex)
+end
+	
+function Term{T<:ProximableFunction}(f::T, ex::AbstractAffineExpression)
+	A = convert(AffineExpression,ex)
+	Term{T,typeof(A)}(f, A)
 end
 
-function Term{T1 <: ProximableFunction, T2 <: AbstractAffineExpression}(f::T1, ex::T2) 
-	A = convert(AffineExpression,ex)
-	Term(f, A)
-end
 
 # Properties
 
 variables(t::Term) = variables(t.A)
 operator(t::Term) = operator(t.A)
-tilt(t::Term) = operator(t.A)
+tilt(t::Term) = tilt(f.A)
 # is_smooth(t::Term) = is_smooth(t.f)
 #
 # is_smooth(terms::Vararg{Term}) = all(is_smooth.(terms))
@@ -120,7 +122,12 @@ hingeloss(x::Variable, args...) = hingeloss(eye(x), args...)
 hingeloss{R <: Real}(A::AbstractAffineExpression, b::Array{R,1}) =
 Term(variable(A), [HingeLoss(b, 1.0)], [A])
 
-# tidy up stuff
+# extract functions from terms 
+get_all_functions(t::Term) = tilt(t.A) == 0. ? t.f : PrecomposeDiagonal(t.f, 1., tilt(t.A))
+get_all_functions{N}(t::NTuple{N,Term}) = SeparableSum(get_all_functions.(t))
+
+# extract operators from terms
+
 # returns all variables of a cost function, in terms of appearance
 get_all_variables(t::Term) = variables(t) 
 
@@ -138,20 +145,46 @@ function get_all_variables{N}(t::NTuple{N,Term})
 end
 
 # returns all operators with an order dictated by xAll 
-#function get_all_operators{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})  
-#	ops = ()
-#	for ti in t
-#		xi   = variables(ti)
-#		opsi = operator(ti)
-#		
-#	end
-#end
 
+#single term, single variable
+get_all_operators(xAll::Tuple{Variable}, t::Term)  = operator(t)
 
+get_all_operators{N}(xAll::NTuple{N,Variable}, t::Term) = get_all_operators(xAll, (t,))
 
+#multiple terms, multiple variables
+function get_all_operators{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})  
+	ops = ()
+	for ti in t
+		xi   = variables(ti)
+		opsi = operator(ti)
+		ops = (ops..., sort_and_expand(xAll,xi,opsi))
+	end
+	return vcat(ops...)
+end
 
+function sort_and_expand{N}(xAll::NTuple{N,Variable}, xL::Tuple{Variable}, L::LinearOperator)
+	ops = ()
+	for i in eachindex(xAll)
+		if xAll[i] == xL[1]
+			ops = (ops...,L)
+		else
+			ops = (ops...,Zeros(eltype(~xAll[i]),size(xAll[i]),codomainType(L),size(L,1)))
+		end
+	end
+	return hcat(ops...)
+end
 
-
-
+function sort_and_expand{N1,N2,M}(xAll::NTuple{N1,Variable}, xL::NTuple{N2,Variable}, L::HCAT{M,N2})
+	ops = ()
+	for i in eachindex(xAll)
+		if xAll[i] in xL
+			idx = findfirst(xAll[i].== xL)
+			ops = (ops...,L[idx])
+		else
+			ops = (ops...,Zeros(eltype(~xAll[i]),size(xAll[i]),codomainType(L),size(L,1)))
+		end
+	end
+	return HCAT(ops,L.mid,M)
+end
 
 

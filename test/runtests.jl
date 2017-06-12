@@ -25,11 +25,11 @@ end
 @testset "syntax/Terms" begin
   include("test_terms.jl")
 end
-#
-#@testset "Problems construction" begin
-#  include("test_problem.jl")
-#end
-#
+
+@testset "Problems construction" begin
+  include("test_problem.jl")
+end
+
 @testset "Solvers" begin
   include("test_solvers.jl")
 end
