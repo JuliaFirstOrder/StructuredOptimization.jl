@@ -22,6 +22,7 @@ function extract_functions(t::Term)
 	return f
 end
 extract_functions{N}(t::NTuple{N,Term}) = SeparableSum(extract_functions.(t))
+extract_functions(t::Tuple{Term}) = extract_functions(t[1])
 
 # extract operators from terms
 

@@ -32,7 +32,8 @@ ndims(x::Variable) = ndims(x.x)
 returns the `Array` object containing the value of `x`.
 """
 ~(x::Variable) = x.x
-~(x::Tuple{Variable}) = (~).(x)
+~(x::Tuple{Variable}) = (~)(x[1])
+~{N}(x::NTuple{N,Variable}) = (~).(x)
 
 
 
