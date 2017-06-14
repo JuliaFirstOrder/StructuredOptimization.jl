@@ -1,29 +1,53 @@
-immutable Term{T1 <: ProximableFunction, T2 <: AbstractAffineExpression}
-	f::T1
-	A::T2
-	Term{T1,T2}(f::T1, ex::T2) where {T1,T2} = new{T1,T2}(f,ex)
+
+immutable Term{T1<:Real, T2 <: ProximableFunction, T3 <: AbstractAffineExpression}
+	lambda::T1
+	f::T2
+	A::T3
+	Term{T1,T2,T3}(lambda::T1, f::T2, ex::T3) where {T1,T2,T3} = new{T1,T2,T3}(lambda,f,ex)
 end
 	
 function Term{T<:ProximableFunction}(f::T, ex::AbstractAffineExpression)
 	A = convert(AffineExpression,ex)
-	Term{T,typeof(A)}(f, A)
+	Term{Int,T,typeof(A)}(1,f, A)
 end
 
 
 # Properties
 
 variables(t::Term) = variables(t.A)
+variables{N}(t::NTuple{N,Term}) = variables.(t)
 operator(t::Term) = operator(t.A)
-tilt(t::Term) = tilt(f.A)
-# is_smooth(t::Term) = is_smooth(t.f)
-#
-# is_smooth(terms::Vararg{Term}) = all(is_smooth.(terms))
-#
-# is_proximable(t::Term) = length(t.A.Ls) == 1 && is_gram_diagonal(t.A.Ls[1])
-#
-# is_convex(t::Term) = is_convex(t.f)
-#
-# is_strongly_convex(t::Term) = is_strongly_convex(t.f) && length(t.A) == 1 && is_full_column_rank(t.A[1])
+operator{N}(t::NTuple{N,Term}) = operator.(t)
+displacement(t::Term) = displacement(t.A)
+displacement{N}(t::NTuple{N,Term}) = displacement.(t)
+
+is_smooth(t::Term) = is_smooth(t.f)
+is_smooth{N}(t::NTuple{N,Term}) = is_smooth.(t)
+
+is_convex(t::Term) = is_convex(t.f)
+is_convex{N}(t::NTuple{N,Term}) = is_convex.(t)
+
+#is_strongly_convex(t::Term) = is_strongly_convex(t.f) && is_full_column_rank(operator(t.A))
+#is_strongly_convex{N}(t::NTuple{N,Term}) = is_strongly_convex.(t)
+
+#importing properties from AbstractOperators
+is_f = [:is_eye, 
+	:is_null, 
+	:is_diagonal,
+	:is_gram_diagonal, 
+	:is_invertible, 
+	:is_full_row_rank, 
+	:is_full_column_rank]
+
+for f in is_f
+	@eval begin
+		import AbstractOperators: $f
+		$f(t::Term) = $f(operator(t))
+		$f{N}(t::NTuple{N,Term}) = $f.(t)
+	end
+end
+
+# Operations
 
 # Define sum of terms simply as their vcat
 
@@ -35,7 +59,12 @@ import Base: +
 
 import Base: *
 
-(*)(a, t::Term) = Term(Postcompose(t.f, a), t.A)
+function (*){T1<:Real, T, T2, T3}(a::T1, t::Term{T,T2,T3})  
+	coeff = *(promote(a,t.lambda)...)
+	Term{typeof(coeff),T2,T3}(coeff, t.f, t.A)
+end
+
+# Constructors
 
 # Norms
 
@@ -60,9 +89,10 @@ end
 
 import Base: <=
 
-(<=)(t::Term{T} where T <: NormL0, r::Integer) = Term(IndBallL0(r), t.A)
-(<=)(t::Term{T} where T <: NormL1, r::Real) = Term(IndBallL1(r), t.A)
-(<=)(t::Term{T} where T <: NormL2, r::Real) = Term(IndBallL2(r), t.A)
+(<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL0,T3}, r::Integer) = 
+Term(IndBallL0(round(Int,r/t.lambda)), t.A)
+(<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL1,T3}, r::Real) =    Term(IndBallL1(r/t.lambda), t.A)
+(<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL2,T3}, r::Real) =    Term(IndBallL2(r/t.lambda), t.A)
 
 # Least square terms
 
@@ -72,10 +102,10 @@ ls(ex) = Term(SqrNormL2(), ex)
 
 import Base: ^
 
-function (^)(t::Term{T} where T <: NormL2, exp::Integer)
+function (^){T1, T2  <: NormL2, T3}(t::Term{T1,T2,T3}, exp::Integer)
 	if exp == 2
 		# The coefficient 2.0 is due to the fact that SqrNormL2 divides by 2.0
-		return Term(SqrNormL2(2.0), t.A)
+		return t.lambda^2*Term(SqrNormL2(2.0), t.A)
 	else
 		error("function not implemented")
 	end
@@ -107,84 +137,19 @@ import Base: rank
 # We should probably fix this: it allows weird things in expressing problems.
 # Maybe we should have Rank <: ProximableFunction (with no prox! nor gradient!
 # defined), that gives IndBallRank when combined with <=.
-rank(ex::AbstractAffineExpression) = Term(IndBallRank(1), ex)
+immutable Rank <: ProximableFunction end
+rank(ex::AbstractAffineExpression) = Term(Rank(), ex)
 
 import Base: <=
 
-(<=)(t::Term{T} where T <: IndBallRank, r::Integer) = Term(IndBallRank(r), t.A)
+(<=)(t::Term{T1,T2,T3} where {T1, T2 <: Rank, T3}, r::Int) = Term(IndBallRank(round(Int,r/t.lambda)), t.A)
 
 # Hinge loss
 
 export hingeloss
 
-hingeloss(x::Variable, args...) = hingeloss(eye(x), args...)
+hingeloss{R <: Real}(ex::AbstractAffineExpression, b::Array{R,1}) =
+Term(HingeLoss(b), ex)
 
-hingeloss{R <: Real}(A::AbstractAffineExpression, b::Array{R,1}) =
-Term(variable(A), [HingeLoss(b, 1.0)], [A])
-
-# extract functions from terms 
-get_all_functions(t::Term) = tilt(t.A) == 0. ? t.f : PrecomposeDiagonal(t.f, 1., tilt(t.A))
-get_all_functions{N}(t::NTuple{N,Term}) = SeparableSum(get_all_functions.(t))
-
-# extract operators from terms
-
-# returns all variables of a cost function, in terms of appearance
-get_all_variables(t::Term) = variables(t) 
-
-function get_all_variables{N}(t::NTuple{N,Term})  
-	x = variables.(t)
-	xAll = x[1]
-	for i = 2:length(x)
-		for xi in x[i]
-			if (xi in xAll) == false
-				xAll = (xAll...,xi)
-			end
-		end
-	end
-	return xAll
-end
-
-# returns all operators with an order dictated by xAll 
-
-#single term, single variable
-get_all_operators(xAll::Tuple{Variable}, t::Term)  = operator(t)
-
-get_all_operators{N}(xAll::NTuple{N,Variable}, t::Term) = get_all_operators(xAll, (t,))
-
-#multiple terms, multiple variables
-function get_all_operators{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})  
-	ops = ()
-	for ti in t
-		xi   = variables(ti)
-		opsi = operator(ti)
-		ops = (ops..., sort_and_expand(xAll,xi,opsi))
-	end
-	return vcat(ops...)
-end
-
-function sort_and_expand{N}(xAll::NTuple{N,Variable}, xL::Tuple{Variable}, L::LinearOperator)
-	ops = ()
-	for i in eachindex(xAll)
-		if xAll[i] == xL[1]
-			ops = (ops...,L)
-		else
-			ops = (ops...,Zeros(eltype(~xAll[i]),size(xAll[i]),codomainType(L),size(L,1)))
-		end
-	end
-	return hcat(ops...)
-end
-
-function sort_and_expand{N1,N2,M}(xAll::NTuple{N1,Variable}, xL::NTuple{N2,Variable}, L::HCAT{M,N2})
-	ops = ()
-	for i in eachindex(xAll)
-		if xAll[i] in xL
-			idx = findfirst(xAll[i].== xL)
-			ops = (ops...,L[idx])
-		else
-			ops = (ops...,Zeros(eltype(~xAll[i]),size(xAll[i]),codomainType(L),size(L,1)))
-		end
-	end
-	return HCAT(ops,L.mid,M)
-end
 
 

@@ -1,3 +1,6 @@
+include("problems/extract.jl")
+include("problems/split.jl")
+
 export problem, minimize
 
 function problem(terms...)

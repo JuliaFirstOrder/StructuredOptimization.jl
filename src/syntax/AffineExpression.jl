@@ -1,5 +1,5 @@
 import Base: +, -, *, convert
-export variables, operator, tilt
+export variables, operator, displacement
 
 immutable AffineExpression{N} <: AbstractAffineExpression
 	x::NTuple{N,Variable}
@@ -47,11 +47,11 @@ AffineExpression{1}((x,),Eye(T,size(x)),zero(T))
 # multipy expressions
 function (*){T1 <: LinearOperator, T2 <: AbstractAffineExpression}(L::T1, a::T2) 
 	A = convert(AffineExpression,a)
-	if typeof(tilt(A)) <: Number 
-		b = tilt(A) == 0. ? zero(codomainType(operator(A))) : 
-		L*(tilt(A)*ones(codomainType(operator(A)),size(operator(A),1))) 
+	if typeof(displacement(A)) <: Number 
+		b = displacement(A) == 0. ? zero(codomainType(operator(A))) : 
+		L*(displacement(A)*ones(codomainType(operator(A)),size(operator(A),1))) 
 	else
-		b = L*tilt(A)
+		b = L*displacement(A)
 	end
 	AffineExpression{length(A.x)}(A.x,L*operator(A),b)
 end
@@ -60,7 +60,7 @@ end
 function (+){T1 <: AbstractAffineExpression, T2 <: AbstractAffineExpression}(a::T1, b::T2) 
 	A = convert(AffineExpression,a)
 	B = convert(AffineExpression,b)
-	b = tilt(A)+tilt(B)
+	b = displacement(A)+displacement(B)
 	if variables(A) == variables(B)
 		return AffineExpression{length(A.x)}(A.x,operator(A)+operator(B),b)
 	else
@@ -78,7 +78,7 @@ end
 function (-){T1 <: AbstractAffineExpression, T2 <: AbstractAffineExpression}(a::T1, b::T2) 
 	A = convert(AffineExpression,a)
 	B = convert(AffineExpression,b)
-	b = tilt(A)-tilt(B)
+	b = displacement(A)-displacement(B)
 	if variables(A) == variables(B)
 		return AffineExpression{length(A.x)}(A.x,operator(A)-operator(B),b)
 	else
@@ -156,19 +156,19 @@ end
 # sum with array/scalar
 function (+){T1 <: AbstractAffineExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2) 
 	A = convert(AffineExpression,a)
-	return AffineExpression{length(A.x)}(A.x,operator(A),tilt(A)+b)
+	return AffineExpression{length(A.x)}(A.x,operator(A),displacement(A)+b)
 end
 
 (+){T1 <: Union{AbstractArray,Number}, T2 <: AbstractAffineExpression}(a::T1, b::T2) = b+a 
 
 function (-){T1 <: AbstractAffineExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2) 
 	A = convert(AffineExpression,a)
-	return AffineExpression{length(A.x)}(A.x,operator(A),tilt(A)-b)
+	return AffineExpression{length(A.x)}(A.x,operator(A),displacement(A)-b)
 end
 
 function (-){T1 <: Union{AbstractArray,Number}, T2 <: AbstractAffineExpression}(a::T1, b::T2) 
 	B = convert(AffineExpression,b)
-	return AffineExpression{length(B.x)}(B.x,-operator(B),a-tilt(B))
+	return AffineExpression{length(B.x)}(B.x,-operator(B),a-displacement(B))
 end
 
 # AbstractOperators binding
@@ -192,7 +192,7 @@ end
 #Scale
 function (*){T1<:Number, T<:AbstractAffineExpression}(coeff::T1, a::T)
 	A = convert(AffineExpression,a)
-	return AffineExpression{length(A.x)}(A.x,coeff*operator(A),tilt(A)-b)
+	return AffineExpression{length(A.x)}(A.x,coeff*operator(A),displacement(A)-b)
 end
 
 #TODO Reshape
@@ -241,12 +241,5 @@ end
 # Properties
 variables(A::AffineExpression)    = A.x
 operator(A::AffineExpression)     = A.L
-tilt(A::AffineExpression)         = A.b
+displacement(A::AffineExpression) = A.b
 
-is_eye(             A::AffineExpression) = is_eye(             A.L)
-is_null(            A::AffineExpression) = is_null(            A.L)
-is_diagonal(        A::AffineExpression) = is_diagonal(        A.L)
-is_gram_diagonal(   A::AffineExpression) = is_gram_diagonal(   A.L)
-is_invertible(      A::AffineExpression) = is_invertible(      A.L)
-is_full_row_rank(   A::AffineExpression) = is_full_row_rank(   A.L)
-is_full_column_rank(A::AffineExpression) = is_full_column_rank(A.L)

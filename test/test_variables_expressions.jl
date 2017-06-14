@@ -39,14 +39,14 @@ ex2 = opB1*ex1
 ex3 = opB1*(opA1*x1+opA2*x2)
 @test variables(ex3) == (x1,x2)
 @test norm(operator(ex3)*(~x1,~x2) - B1*(A1*(~x1)+A2*(~x2))) < 1e-12
-# multiply with tilted Array AffineExpression with multiple variables
+# multiply with displacemented Array AffineExpression with multiple variables
 ex3 = opB1*(opA1*x1+opA2*x2+b)
 @test variables(ex3) == (x1,x2)
-@test norm(tilt(ex3) - B1*b) < 1e-12
-# multiply with tilted scalar AffineExpression with multiple variables
+@test norm(displacement(ex3) - B1*b) < 1e-12
+# multiply with displacemented scalar AffineExpression with multiple variables
 ex3 = opB1*(opA1*x1+opA2*x2+b0)
 @test variables(ex3) == (x1,x2)
-@test norm(tilt(ex3) - B1*(ones(size(B1,2))*b0)) < 1e-12
+@test norm(displacement(ex3) - B1*(ones(size(B1,2))*b0)) < 1e-12
 
 @test_throws ArgumentError MatrixOp(randn(n,m1+1))*x1
 @test_throws ArgumentError MatrixOp(randn(n,m1))*Variable(Complex{Float64},m1)
@@ -105,15 +105,15 @@ exs4 = exs1+(xc+xd)
 
 # (+) sum Array
 ex1 = xd+b
-@test norm(tilt(ex1) - b) == 0.
+@test norm(displacement(ex1) - b) == 0.
 
 # (+) sum scalar
 ex2 = opB*xb+b0
-@test (tilt(ex2) - b0) == 0.
+@test (displacement(ex2) - b0) == 0.
 
-# (+) sum tilted expressions
+# (+) sum displacemented expressions
 ex3 = ex1+ex2
-@test norm(tilt(ex3) - (b+b0)) == 0.
+@test norm(displacement(ex3) - (b+b0)) == 0.
 
 # (-) sum different variables no HCAT
 ex1 = opA*xa-opB*xb 
@@ -140,15 +140,15 @@ exs4 = exs1-(xc-xd)
 
 # (-) sum Array
 ex1 = xd-b
-@test norm(tilt(ex1) + b) == 0.
+@test norm(displacement(ex1) + b) == 0.
 
 # (-) sum scalar
 ex2 = opB*xb-b0
-@test (tilt(ex2) + b0) == 0.
+@test (displacement(ex2) + b0) == 0.
 
-# (+) sum tilted expressions
+# (+) sum displacemented expressions
 ex3 = ex1-ex2
-@test norm(tilt(ex3) - (-b+b0)) == 0.
+@test norm(displacement(ex3) - (-b+b0)) == 0.
 
 @test_throws ArgumentError MatrixOp(randn(10,20))*Variable(20)+randn(11)
 @test_throws ArgumentError MatrixOp(randn(10,20))*Variable(20)+(3+im)
