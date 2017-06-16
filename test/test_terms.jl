@@ -144,9 +144,9 @@ cf = norm(A*x + z)
 
 cf = norm(w + z)^2
 @test RegLS.is_smooth(cf) == true
-@test RegLS.is_gram_diagonal(cf) == false
+@test RegLS.is_AcA_diagonal(cf) == false
 
 cf = norm(x, 1) + norm(y, 2)
 @test RegLS.is_smooth(cf) == (false,false)
-@test RegLS.is_gram_diagonal(cf) == (true,true)
+@test RegLS.is_AcA_diagonal(cf) == (true,true)
 

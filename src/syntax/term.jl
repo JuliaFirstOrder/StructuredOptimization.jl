@@ -34,7 +34,9 @@ is_convex{N}(t::NTuple{N,Term}) = is_convex.(t)
 is_f = [:is_eye, 
 	:is_null, 
 	:is_diagonal,
-	:is_gram_diagonal, 
+	:is_AcA_diagonal, 
+	:is_AAc_diagonal, 
+	:is_orthogonal, 
 	:is_invertible, 
 	:is_full_row_rank, 
 	:is_full_column_rank]

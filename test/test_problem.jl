@@ -113,28 +113,28 @@ smooth, nonsmooth = RegLS.split_smooth(cf)
 @test smooth == (cf,)
 @test nonsmooth == ()
 
-cf = norm(x,1)+norm(y,2)+norm(x+y,Inf)
+cf = norm(x,1)+norm(y,2)+norm(randn(5,5)*x+y,Inf)
 xAll = RegLS.extract_variables(cf)
-gram, nongram = RegLS.split_gram_diagonal(cf)
-@test gram[1] == cf[1] 
-@test gram[2] == cf[2] 
-@test nongram[1] == cf[3] 
+AAc, nonAAc = RegLS.split_AAc_diagonal(cf)
+@test AAc[1] == cf[1] 
+@test AAc[2] == cf[2] 
+@test nonAAc[1] == cf[3] 
 
 @printf("\nTesting extracting Proximable functions\n")
 # testing is_proximable
-@test RegLS.is_proximable(xAll,gram) == true
-@test RegLS.is_proximable(xAll,nongram) == false
+@test RegLS.is_proximable(xAll,AAc) == true
+@test RegLS.is_proximable(xAll,nonAAc) == false
 
 cf = norm(x[1:2],1)+norm(x[3:5])
 xAll = RegLS.extract_variables(cf)
 
-@test all(RegLS.is_gram_diagonal(cf)) == true
+@test all(RegLS.is_AAc_diagonal(cf)) == true
 @test RegLS.is_proximable(xAll,cf) == true
 
 cf = norm(x[1:2],1)+norm(x[3:5])+norm(x,Inf)
 xAll = RegLS.extract_variables(cf)
 
-@test all(RegLS.is_gram_diagonal(cf)) == true
+@test all(RegLS.is_AAc_diagonal(cf)) == true
 @test RegLS.is_proximable(xAll,cf) == false
 
 # testing extract_proximable
@@ -169,6 +169,16 @@ xAll = (x1,x2)
 f = RegLS.extract_proximable(xAll,cf)
 @test norm(f.fs[1](~x1)-norm(~x1+b1,2) ) < 1e-12
 @test norm(f.fs[2](~x2)-10*norm(~x2-b2,1) ) < 1e-12
+
+x1 = Variable(randn(5))
+b1 = randn(5)
+x2 = Variable(randn(5))
+b2 = randn(5)
+
+cf = 10*norm(x2+x1+b2,1)
+xAll = (x1,x2)
+@test RegLS.is_proximable(xAll,cf) == true
+#f = RegLS.extract_proximable(xAll,cf) #TODO
 
 # multiple variables, missing terms
 x1 = Variable(randn(5))

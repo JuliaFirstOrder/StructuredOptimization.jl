@@ -1,9 +1,9 @@
 
 # check terms are proximable
-is_proximable{N}(xAll::NTuple{N,Variable}, t::Term) = is_gram_diagonal(t)
+is_proximable{N}(xAll::NTuple{N,Variable}, t::Term) = is_AAc_diagonal(t)
 
 function is_proximable{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
-	all(is_gram_diagonal(t)) == false && return false
+	all(is_AAc_diagonal(t)) == false && return false
 	var_appears = zeros(Int,N)
 	is_there_a_GetIndex = false
 	for i in eachindex(xAll)
