@@ -151,5 +151,11 @@ export hingeloss
 hingeloss{R <: Real}(ex::AbstractAffineExpression, b::Array{R,1}) =
 Term(HingeLoss(b), ex)
 
+# other stuff, to make Term work with iterators
+import Base: start, next, done, isempty
+start(t::Term) = false
+next(t::Term, state) = (t, true)
+done(t::Term, state) =  state
+isempty(t::Term) =  false
 
 

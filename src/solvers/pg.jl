@@ -42,7 +42,7 @@ PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, adaptive = adaptive
 ################################################################################
 ################################################################################
 
-function apply(slv::PG, x0::T, f::ProximableFunction, L::LinearOperator, g::ProximableFunction) where {T <: Union{AbstractArray, Tuple}}
+function apply!(slv::PG, x0::T, f::ProximableFunction, L::LinearOperator, g::ProximableFunction) where {T <: Union{AbstractArray, Tuple}}
 
 	tic()
 

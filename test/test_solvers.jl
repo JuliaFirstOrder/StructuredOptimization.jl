@@ -20,7 +20,7 @@ L = MatrixOp(A1)
 # Apply PG
 
 x = zeros(n)
-sol = RegLS.apply(PG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(PG(tol=tol), x, f, L, g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
@@ -35,7 +35,7 @@ subgr_proj[x .> 0] = lam
 # Apply FPG
 
 x = zeros(n)
-sol = RegLS.apply(FPG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(FPG(tol=tol), x, f, L, g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
@@ -51,7 +51,7 @@ subgr_proj[x .> 0] = lam
 
 x = zeros(n)
 zerofpr = ZeroFPR(tol=tol,maxit=1000,verbose=1)
-sol = RegLS.apply(zerofpr, x, f, L, g)
+sol = RegLS.apply!(zerofpr, x, f, L, g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
@@ -82,7 +82,7 @@ L = HCAT(MatrixOp(A1), MatrixOp(A2))
 # Apply PG
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply(PG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(PG(tol=tol), x, f, L, g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
@@ -95,7 +95,7 @@ pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
 # Apply FPG
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply(FPG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(FPG(tol=tol), x, f, L, g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
@@ -108,7 +108,7 @@ pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
 # Apply ZeroFPR
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply(ZeroFPR(tol=tol), x, f, L, g)
+sol = RegLS.apply!(ZeroFPR(tol=tol), x, f, L, g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
@@ -137,14 +137,14 @@ L = VCAT(MatrixOp(A1), MatrixOp(A2))
 # Apply PG
 
 x = zeros(n)
-sol = RegLS.apply(PG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(PG(tol=tol), x, f, L, g)
 
 # Apply FPG
 
 x = zeros(n)
-sol = RegLS.apply(FPG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(FPG(tol=tol), x, f, L, g)
 
 # Apply ZeroFPR
 
 x = zeros(n)
-sol = RegLS.apply(ZeroFPR(tol=tol), x, f, L, g)
+sol = RegLS.apply!(ZeroFPR(tol=tol), x, f, L, g)

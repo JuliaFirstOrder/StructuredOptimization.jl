@@ -205,10 +205,24 @@ B = randn(5, 7)
 b = randn(5)
 
 prob = problem(ls(A*x + b), norm(x, 2) <= 1.0)
-slv = solve(prob, PG())
+slv = RegLS.solve!(prob, PG())
 
 ~x .= 0.
 prob = problem(ls(A*x - B*y + b) + norm(y, 1), norm(x, 2) <= 1.0)
-slv = solve(prob, PG())
+slv = RegLS.solve!(prob, FPG())
+
+@printf("\n Testing @minimize \n")
+~x .= 0.
+~y .= 0.
+slv = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with PG()
+~x .= 0.
+slv = @minimize ls(A*x - b) st norm(x, 1) <= 1.0 with PG() 
+~x .= 0.
+slv = @minimize ls(A*x - b) st norm(x, 1) <= 1.0 
+~x .= 0.
+slv = @minimize ls(A*x - b) + norm(x, 1) with PG() 
+~x .= 0.
+slv = @minimize ls(A*x - b) + norm(x, 1) 
+
 
 

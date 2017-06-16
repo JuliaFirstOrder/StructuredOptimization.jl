@@ -36,5 +36,11 @@ returns the `Array` object containing the value of `x`.
 ~{N}(x::NTuple{N,Variable}) = (~).(x)
 
 
+# other stuff, to make Variable work with iterators
+import Base: start, next, done, isempty
+start(t::Variable) = false
+next(t::Variable, state) = (t, true)
+done(t::Variable, state) =  state
+isempty(t::Variable) =  false
 
 
