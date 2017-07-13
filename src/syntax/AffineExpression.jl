@@ -48,7 +48,7 @@ AffineExpression{1}((x,),Eye(T,size(x)),zero(T))
 function (*){T1 <: LinearOperator, T2 <: AbstractAffineExpression}(L::T1, a::T2) 
 	A = convert(AffineExpression,a)
 	if typeof(displacement(A)) <: Number 
-		b = displacement(A) == 0. ? zero(codomainType(operator(A))) : 
+		b = displacement(A) == 0. ? zero(codomainType(L)) : 
 		L*(displacement(A)*ones(codomainType(operator(A)),size(operator(A),1))) 
 	else
 		b = L*displacement(A)
