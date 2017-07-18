@@ -3,7 +3,7 @@ __precompile__()
 module RegLS
 
 using AbstractOperators, ProximalOperators
-import ProximalOperators: RealOrComplex, 
+import ProximalOperators: RealOrComplex,
 			  is_affine,
 			  is_cone,
 			  is_convex,
