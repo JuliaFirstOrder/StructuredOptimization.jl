@@ -14,10 +14,6 @@ srand(0)
   include("test_deep.jl")
 end
 
-@testset "Functions" begin
-  include("test_functions.jl")
-end
-
 @testset "syntax/AffineExpression" begin
   include("test_variables_expressions.jl")
 end

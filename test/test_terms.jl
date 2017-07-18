@@ -55,11 +55,11 @@ cf = 3.0 <= x
 
 cf = x >= 1.0
 @test cf.lambda == 1
-@test cf.f(~x) == (IndBox(-Inf, 1.0))(~x)
+@test cf.f(~x) == (IndBox(1.0, Inf))(~x)
 
 cf = 1.0 >= x
 @test cf.lambda == 1
-@test cf.f(~x) == (IndBox(1.0, Inf))(~x)
+@test cf.f(~x) == (IndBox(-Inf,1.0))(~x)
 
 cf = x in [-5.0, 5.0]
 @test cf.lambda == 1
