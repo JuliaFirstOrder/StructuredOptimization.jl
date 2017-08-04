@@ -1,7 +1,7 @@
 import Base: convert, size, eltype, ndims, ~
 export Variable
 
-immutable Variable{T, N, A <: AbstractArray{T,N}} <: AbstractAffineExpression
+immutable Variable{T, N, A <: AbstractArray{T,N}} <: AbstractExpression
 	x::A
 end
 

@@ -1,7 +1,7 @@
 import Base: +, -, *, convert
 export variables, operator, displacement
 
-immutable AffineExpression{N} <: AbstractAffineExpression
+immutable AffineExpression{N} <: AbstractExpression
 	x::NTuple{N,Variable}
 	L::AbstractOperator
 	b::Union{Number, AbstractArray}
@@ -50,7 +50,7 @@ AffineExpression{1}((x,),Eye(T,size(x)),zero(T))
 # constructors
 
 # multipy expressions
-function (*){T1 <: AbstractOperator, T2 <: AbstractAffineExpression}(L::T1, a::T2) 
+function (*){T1 <: AbstractOperator, T2 <: AbstractExpression}(L::T1, a::T2) 
 	A = convert(AffineExpression,a)
 	if typeof(displacement(A)) <: Number 
 		b = displacement(A) == 0. ? zero(codomainType(L)) : 
@@ -62,7 +62,7 @@ function (*){T1 <: AbstractOperator, T2 <: AbstractAffineExpression}(L::T1, a::T
 end
 
 # sum expressions
-function (+){T1 <: AbstractAffineExpression, T2 <: AbstractAffineExpression}(a::T1, b::T2) 
+function (+){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2) 
 	A = convert(AffineExpression,a)
 	B = convert(AffineExpression,b)
 	b = displacement(A)+displacement(B)
@@ -80,7 +80,7 @@ function (+){T1 <: AbstractAffineExpression, T2 <: AbstractAffineExpression}(a::
 
 end
 
-function (-){T1 <: AbstractAffineExpression, T2 <: AbstractAffineExpression}(a::T1, b::T2) 
+function (-){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2) 
 	A = convert(AffineExpression,a)
 	B = convert(AffineExpression,b)
 	b = displacement(A)-displacement(B)
@@ -159,19 +159,19 @@ function Usum_op{NA,NB,M,L1<:HCAT{M,NB},
 end
 
 # sum with array/scalar
-function (+){T1 <: AbstractAffineExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2) 
+function (+){T1 <: AbstractExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2) 
 	A = convert(AffineExpression,a)
 	return AffineExpression{length(A.x)}(A.x,operator(A),displacement(A)+b)
 end
 
-(+){T1 <: Union{AbstractArray,Number}, T2 <: AbstractAffineExpression}(a::T1, b::T2) = b+a 
+(+){T1 <: Union{AbstractArray,Number}, T2 <: AbstractExpression}(a::T1, b::T2) = b+a 
 
-function (-){T1 <: AbstractAffineExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2) 
+function (-){T1 <: AbstractExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2) 
 	A = convert(AffineExpression,a)
 	return AffineExpression{length(A.x)}(A.x,operator(A),displacement(A)-b)
 end
 
-function (-){T1 <: Union{AbstractArray,Number}, T2 <: AbstractAffineExpression}(a::T1, b::T2) 
+function (-){T1 <: Union{AbstractArray,Number}, T2 <: AbstractExpression}(a::T1, b::T2) 
 	B = convert(AffineExpression,b)
 	return AffineExpression{length(B.x)}(B.x,-operator(B),a-displacement(B))
 end
@@ -181,21 +181,21 @@ end
 import Base: *, reshape
 
 #MatrixOp
-function (*){T<:AbstractAffineExpression}(M::AbstractMatrix, a::T)
+function (*){T<:AbstractExpression}(M::AbstractMatrix, a::T)
 	A = convert(AffineExpression,a)
 	op = MatrixOp(codomainType(operator(A)),size(operator(A),1),M)
 	return op*A
 end
 
 #DiagOp
-function Base.broadcast{T<:AbstractAffineExpression}(::typeof(*), d::AbstractArray, a::T)
+function Base.broadcast{T<:AbstractExpression}(::typeof(*), d::AbstractArray, a::T)
 	A = convert(AffineExpression,a)
 	op = DiagOp(codomainType(operator(A)),size(operator(A),1),d)
 	return op*A
 end
 
 #Scale
-function (*){T1<:Number, T<:AbstractAffineExpression}(coeff::T1, a::T)
+function (*){T1<:Number, T<:AbstractExpression}(coeff::T1, a::T)
 	A = convert(AffineExpression,a)
 	return AffineExpression{length(A.x)}(A.x,coeff*operator(A),displacement(A)-b)
 end
@@ -235,7 +235,7 @@ fun = [imported; exported]
 for i = 1:size(fun,1)
 	f,fAbsOp = fun[i,1],fun[i,2]
 	@eval begin
-		function $f{T<:AbstractAffineExpression}(a::T,args...)
+		function $f{T<:AbstractExpression}(a::T,args...)
 			A = convert(AffineExpression,a)
 			op = $fAbsOp(codomainType(operator(A)),size(operator(A),1), args...)
 			return op*A

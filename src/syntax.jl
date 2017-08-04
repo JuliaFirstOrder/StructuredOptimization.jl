@@ -1,4 +1,4 @@
-abstract type AbstractAffineExpression end
+abstract type AbstractExpression end
 
 include("syntax/variable.jl")
 include("syntax/AffineExpression.jl")

@@ -1,12 +1,12 @@
 
-immutable Term{T1<:Real, T2 <: ProximableFunction, T3 <: AbstractAffineExpression}
+immutable Term{T1<:Real, T2 <: ProximableFunction, T3 <: AbstractExpression}
 	lambda::T1
 	f::T2
 	A::T3
 	Term{T1,T2,T3}(lambda::T1, f::T2, ex::T3) where {T1,T2,T3} = new{T1,T2,T3}(lambda,f,ex)
 end
 	
-function Term{T<:ProximableFunction}(f::T, ex::AbstractAffineExpression)
+function Term{T<:ProximableFunction}(f::T, ex::AbstractExpression)
 	A = convert(AffineExpression,ex)
 	Term{Int,T,typeof(A)}(1,f, A)
 end
@@ -72,7 +72,7 @@ end
 
 import Base: norm
 
-function norm(ex::AbstractAffineExpression, p=2)
+function norm(ex::AbstractExpression, p=2)
 	if p == 0
 		f = NormL0()
 	elseif p == 1
@@ -117,12 +117,12 @@ end
 
 import Base: <=, >=, in
 
-(<=)(ex::AbstractAffineExpression, ub) = Term(IndBox(-Inf, ub), ex)
-(<=)(lb, ex::AbstractAffineExpression) = Term(IndBox(lb, +Inf), ex)
-(>=)(ex::AbstractAffineExpression, lb) = Term(IndBox(lb, +Inf), ex)
-(>=)(ub, ex::AbstractAffineExpression) = Term(IndBox(-Inf, ub), ex)
+(<=)(ex::AbstractExpression, ub) = Term(IndBox(-Inf, ub), ex)
+(<=)(lb, ex::AbstractExpression) = Term(IndBox(lb, +Inf), ex)
+(>=)(ex::AbstractExpression, lb) = Term(IndBox(lb, +Inf), ex)
+(>=)(ub, ex::AbstractExpression) = Term(IndBox(-Inf, ub), ex)
 
-function in(ex::AbstractAffineExpression, bnds::AbstractArray)
+function in(ex::AbstractExpression, bnds::AbstractArray)
 	if length(bnds) != 2
 		error("should provide 2 bounds!")
 	end
@@ -140,7 +140,7 @@ import Base: rank
 # Maybe we should have Rank <: ProximableFunction (with no prox! nor gradient!
 # defined), that gives IndBallRank when combined with <=.
 immutable Rank <: ProximableFunction end
-rank(ex::AbstractAffineExpression) = Term(Rank(), ex)
+rank(ex::AbstractExpression) = Term(Rank(), ex)
 
 import Base: <=
 
@@ -150,7 +150,7 @@ import Base: <=
 
 export hingeloss
 
-hingeloss{R <: Real}(ex::AbstractAffineExpression, b::Array{R,1}) =
+hingeloss{R <: Real}(ex::AbstractExpression, b::Array{R,1}) =
 Term(HingeLoss(b), ex)
 
 # other stuff, to make Term work with iterators
