@@ -3,9 +3,14 @@ export variables, operator, displacement
 
 immutable AffineExpression{N} <: AbstractAffineExpression
 	x::NTuple{N,Variable}
-	L::LinearOperator
+	L::AbstractOperator
 	b::Union{Number, AbstractArray}
 	function AffineExpression{N}(x::NTuple{N,Variable},L,b) where {N}
+
+		# checks operator is Linear
+		is_linear(L) == false && throw(ArgumentError(
+	"AffineExperssion must be linear"))
+
 		# checks on L
 		ndoms(L,1) > 1 && throw(ArgumentError(
 	"cannot create expression with LinearOperator with `ndoms(L,1) > 1`"))
@@ -45,7 +50,7 @@ AffineExpression{1}((x,),Eye(T,size(x)),zero(T))
 # constructors
 
 # multipy expressions
-function (*){T1 <: LinearOperator, T2 <: AbstractAffineExpression}(L::T1, a::T2) 
+function (*){T1 <: AbstractOperator, T2 <: AbstractAffineExpression}(L::T1, a::T2) 
 	A = convert(AffineExpression,a)
 	if typeof(displacement(A)) <: Number 
 		b = displacement(A) == 0. ? zero(codomainType(L)) : 
@@ -94,8 +99,8 @@ function (-){T1 <: AbstractAffineExpression, T2 <: AbstractAffineExpression}(a::
 end
 
 
-function Usum_op{L1<:LinearOperator,
-		 L2<:LinearOperator}(xA::Tuple{Variable},
+function Usum_op{L1<:AbstractOperator,
+		 L2<:AbstractOperator}(xA::Tuple{Variable},
 		                     xB::Tuple{Variable}, 
 				     A::L1, 
 				     B::L2,sign::Bool)
@@ -105,7 +110,7 @@ function Usum_op{L1<:LinearOperator,
 end
 
 function Usum_op{N,M,L1<:HCAT{M,N},
-		 L2<:LinearOperator}(xA::NTuple{N,Variable},
+		 L2<:AbstractOperator}(xA::NTuple{N,Variable},
 		                     xB::Tuple{Variable}, 
 				     A::L1, 
 				     B::L2,sign::Bool)
@@ -122,7 +127,7 @@ function Usum_op{N,M,L1<:HCAT{M,N},
 	return xNew, opNew
 end
 
-function Usum_op{N,M,L1<:LinearOperator,
+function Usum_op{N,M,L1<:AbstractOperator,
 		 L2<:HCAT{M,N}     }(xA::Tuple{Variable},
 		                     xB::NTuple{N,Variable}, 
 				     A::L1, 

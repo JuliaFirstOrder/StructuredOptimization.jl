@@ -29,18 +29,18 @@ ZeroFPR(;
 ZeroFPR(tol, maxit, verbose, mem, halt, gamma, 0, Inf, Inf, NaN, adaptive, 0, 0, 0, 0)
 
 function apply!(slv::ZeroFPR, x0::T,
-	f::ProximableFunction, L::LinearOperator,
+	f::ProximableFunction, L::AbstractOperator,
 	g::ProximableFunction) where {T <: Union{AbstractArray, Tuple}}
 	# if is_quadratic(f)
-		# return apply!(slv, x0, Nullable{ProximableFunction}(), Nullable{LinearOperator}(), Nullable(f), Nullable(L), g)
+		# return apply!(slv, x0, Nullable{ProximableFunction}(), Nullable{AbstractOperator}(), Nullable(f), Nullable(L), g)
 	# else
-		return apply!(slv, x0, Nullable(f), Nullable(L), Nullable{ProximableFunction}(), Nullable{LinearOperator}(), g)
+		return apply!(slv, x0, Nullable(f), Nullable(L), Nullable{ProximableFunction}(), Nullable{AbstractOperator}(), g)
 	# end
 end
 
 function apply!(slv::ZeroFPR, x0::T,
-	s::ProximableFunction, L_s::LinearOperator,
-	q::ProximableFunction, L_q::LinearOperator,
+	s::ProximableFunction, L_s::AbstractOperator,
+	q::ProximableFunction, L_q::AbstractOperator,
 	g::ProximableFunction) where {T <: Union{AbstractArray, Tuple}}
 		return apply!(slv, x0, Nullable(s), Nullable(L_s), Nullable(q), Nullable(L_q), g)
 end
@@ -54,7 +54,7 @@ end
 function apply!(slv::ZeroFPR, x0::T,
 	Ns::Nullable{FS}, NL_s::Nullable{LS}, # smooth term
 	Nq::Nullable{FQ}, NL_q::Nullable{LQ}, # quadratic term
-	g::ProximableFunction) where {T <: Union{AbstractArray, Tuple}, FQ <: ProximableFunction, LQ <: LinearOperator, FS <: ProximableFunction, LS <: LinearOperator}
+	g::ProximableFunction) where {T <: Union{AbstractArray, Tuple}, FQ <: ProximableFunction, LQ <: AbstractOperator, FS <: ProximableFunction, LS <: AbstractOperator}
 
 	tic()
 

@@ -44,7 +44,7 @@ function extract_operators{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
 	return vcat(ops...)
 end
 
-function sort_and_expand{N}(xAll::NTuple{N,Variable}, xL::Tuple{Variable}, L::LinearOperator)
+function sort_and_expand{N}(xAll::NTuple{N,Variable}, xL::Tuple{Variable}, L::AbstractOperator)
 	ops = ()
 	for i in eachindex(xAll)
 		if xAll[i] == xL[1]

@@ -3,7 +3,7 @@ immutable Dual
 	x::Vector{Variable} #primal variables
 	cf::Term
 	p::ProximableFunction
-	Ainv::Vector{LinearOperator}
+	Ainv::Vector{AbstractOperator}
 end
 
 function Dual(smooth::Term, nonsmooth::Term)
@@ -17,7 +17,7 @@ function Dual(smooth::Term, nonsmooth::Term)
 	B = [operator(affine(nonsmooth)[1])]
 	typeof(B[1]) <: HCAT ? B = B[1].A : nothing
 
-	Ainv = Array{LinearOperator,1}(length(terms(smooth)))
+	Ainv = Array{AbstractOperator,1}(length(terms(smooth)))
 
 	for i in eachindex(variable(smooth))
 		A = operator(affine(smooth)[i])
