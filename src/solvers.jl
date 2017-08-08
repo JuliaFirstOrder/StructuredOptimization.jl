@@ -7,7 +7,7 @@ include("solvers/pg.jl")
 include("solvers/zerofpr.jl")
 include("solvers/utils.jl")
 
-default_slv = ZeroFPR
+default_slv = PG
 
 # To print out solver objects
 

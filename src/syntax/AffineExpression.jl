@@ -21,7 +21,7 @@ immutable AffineExpression{N} <: AbstractExpression
 		check_sz = length(szx) == 1 ? szx[1] != szL : szx != szL
 		check_sz && throw(ArgumentError(
 	"Size of the operator domain $(size(L, 2)) must match size of the variable $(size.(x))"))
-		
+
 		dmL = domainType(L)
 		dmx = eltype.(x)
 		check_dm = length(dmx) == 1 ? dmx[1] != dmL : dmx != dmL
@@ -29,13 +29,13 @@ immutable AffineExpression{N} <: AbstractExpression
 	"Type of the operator domain $(domainType(L)) must match type of the variable $(eltype.(x))"))
 
 		#checks on b
-		if typeof(b) <: AbstractArray 
+		if typeof(b) <: AbstractArray
 			size(L,1) != size(b) && throw(ArgumentError(
 	"cannot sum Array of dimensions $(size(b)) with expression with codomain size $(size(L,1))"))
 			codomainType(L) != eltype(b) && throw(ArgumentError(
 	"cannot sum $(typeof(b)) with expression with codomain $(codomainType(L))"))
 		else
-			if typeof(b) <: Complex && codomainType(L) <: Real 
+			if typeof(b) <: Complex && codomainType(L) <: Real
 				throw(ArgumentError(
 	"cannot sum $(typeof(b)) to an expression with codomain $(codomainType(L))"))
 			end
@@ -44,17 +44,17 @@ immutable AffineExpression{N} <: AbstractExpression
 	end
 end
 
-convert{T,N,A}(::Type{AffineExpression},x::Variable{T,N,A}) = 
-AffineExpression{1}((x,),Eye(T,size(x)),zero(T)) 
+convert{T,N,A}(::Type{AffineExpression},x::Variable{T,N,A}) =
+AffineExpression{1}((x,),Eye(T,size(x)),zero(T))
 
 # constructors
 
 # multipy expressions
-function (*){T1 <: AbstractOperator, T2 <: AbstractExpression}(L::T1, a::T2) 
+function (*){T1 <: AbstractOperator, T2 <: AbstractExpression}(L::T1, a::T2)
 	A = convert(AffineExpression,a)
-	if typeof(displacement(A)) <: Number 
-		b = displacement(A) == 0. ? zero(codomainType(L)) : 
-		L*(displacement(A)*ones(codomainType(operator(A)),size(operator(A),1))) 
+	if typeof(displacement(A)) <: Number
+		b = displacement(A) == 0. ? zero(codomainType(L)) :
+		L*(displacement(A)*ones(codomainType(operator(A)),size(operator(A),1)))
 	else
 		b = L*displacement(A)
 	end
@@ -62,7 +62,7 @@ function (*){T1 <: AbstractOperator, T2 <: AbstractExpression}(L::T1, a::T2)
 end
 
 # sum expressions
-function (+){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2) 
+function (+){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
 	A = convert(AffineExpression,a)
 	B = convert(AffineExpression,b)
 	b = displacement(A)+displacement(B)
@@ -74,13 +74,13 @@ function (+){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
 		opB = operator(B)
 		xB = variables(B)
 
-		xNew, opNew = Usum_op(xA,xB,opA,opB,true) 
+		xNew, opNew = Usum_op(xA,xB,opA,opB,true)
 		return AffineExpression{length(xNew)}(xNew,opNew,b)
 	end
 
 end
 
-function (-){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2) 
+function (-){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
 	A = convert(AffineExpression,a)
 	B = convert(AffineExpression,b)
 	b = displacement(A)-displacement(B)
@@ -92,7 +92,7 @@ function (-){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
 		opB = operator(B)
 		xB = variables(B)
 
-		xNew, opNew = Usum_op(xA,xB,opA,opB,false) 
+		xNew, opNew = Usum_op(xA,xB,opA,opB,false)
 		return AffineExpression{length(xNew)}(xNew,opNew,b)
 	end
 
@@ -101,18 +101,18 @@ end
 
 function Usum_op{L1<:AbstractOperator,
 		 L2<:AbstractOperator}(xA::Tuple{Variable},
-		                     xB::Tuple{Variable}, 
-				     A::L1, 
+		                     xB::Tuple{Variable},
+				     A::L1,
 				     B::L2,sign::Bool)
-	xNew  = (xA...,xB...) 
+	xNew  = (xA...,xB...)
 	opNew = sign ? hcat(A,B) : hcat(A,-B)
 	return xNew, opNew
 end
 
 function Usum_op{N,M,L1<:HCAT{M,N},
 		 L2<:AbstractOperator}(xA::NTuple{N,Variable},
-		                     xB::Tuple{Variable}, 
-				     A::L1, 
+		                     xB::Tuple{Variable},
+				     A::L1,
 				     B::L2,sign::Bool)
 	if xB[1] in xA
 		idx = findfirst(xB.==xA)
@@ -120,17 +120,17 @@ function Usum_op{N,M,L1<:HCAT{M,N},
 		xNew = xA
 		opNew = hcat(A[1:idx-1],S,A[idx+1:N]  )
 	else
-		xNew  = (xA...,xB...) 
+		xNew  = (xA...,xB...)
 		opNew = sign ? hcat(A,B) : hcat(A,-B)
 	end
-		
+
 	return xNew, opNew
 end
 
 function Usum_op{N,M,L1<:AbstractOperator,
 		 L2<:HCAT{M,N}     }(xA::Tuple{Variable},
-		                     xB::NTuple{N,Variable}, 
-				     A::L1, 
+		                     xB::NTuple{N,Variable},
+				     A::L1,
 				     B::L2,sign::Bool)
 	if xA[1] in xB
 		idx = findfirst(xA.==xB)
@@ -138,17 +138,17 @@ function Usum_op{N,M,L1<:AbstractOperator,
 		xNew = xB
 		opNew = sign ? hcat(B[1:idx-1],S,B[idx+1:N]  ) : -hcat(B[1:idx-1],S,B[idx+1:N]  )
 	else
-		xNew  = (xA...,xB...) 
+		xNew  = (xA...,xB...)
 		opNew = sign ? hcat(A,B) : hcat(A,-B)
 	end
-		
+
 	return xNew, opNew
 end
 
 function Usum_op{NA,NB,M,L1<:HCAT{M,NB},
 		 L2<:HCAT{M,NB}     }(xA::NTuple{NA,Variable},
-		                      xB::NTuple{NB,Variable}, 
-				      A::L1, 
+		                      xB::NTuple{NB,Variable},
+				      A::L1,
 				      B::L2,sign::Bool)
 	xNew = xA
 	opNew = A
@@ -159,19 +159,19 @@ function Usum_op{NA,NB,M,L1<:HCAT{M,NB},
 end
 
 # sum with array/scalar
-function (+){T1 <: AbstractExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2) 
+function (+){T1 <: AbstractExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2)
 	A = convert(AffineExpression,a)
 	return AffineExpression{length(A.x)}(A.x,operator(A),displacement(A)+b)
 end
 
-(+){T1 <: Union{AbstractArray,Number}, T2 <: AbstractExpression}(a::T1, b::T2) = b+a 
+(+){T1 <: Union{AbstractArray,Number}, T2 <: AbstractExpression}(a::T1, b::T2) = b+a
 
-function (-){T1 <: AbstractExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2) 
+function (-){T1 <: AbstractExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2)
 	A = convert(AffineExpression,a)
 	return AffineExpression{length(A.x)}(A.x,operator(A),displacement(A)-b)
 end
 
-function (-){T1 <: Union{AbstractArray,Number}, T2 <: AbstractExpression}(a::T1, b::T2) 
+function (-){T1 <: Union{AbstractArray,Number}, T2 <: AbstractExpression}(a::T1, b::T2)
 	B = convert(AffineExpression,b)
 	return AffineExpression{length(B.x)}(B.x,-operator(B),a-displacement(B))
 end
@@ -202,7 +202,7 @@ end
 
 #TODO Reshape
 
-imported = [:getindex :GetIndex; 
+imported = [:getindex :GetIndex;
 	    :fft      :DFT;
 	    :ifft     :IDFT;
 	    :dct      :DCT;
@@ -247,4 +247,3 @@ end
 variables(A::AffineExpression)    = A.x
 operator(A::AffineExpression)     = A.L
 displacement(A::AffineExpression) = A.b
-
