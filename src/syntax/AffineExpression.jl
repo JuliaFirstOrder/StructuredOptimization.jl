@@ -98,7 +98,6 @@ function (-){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
 
 end
 
-
 function Usum_op{L1<:AbstractOperator,
 		 L2<:AbstractOperator}(xA::Tuple{Variable},
 		                     xB::Tuple{Variable},
