@@ -1,12 +1,12 @@
 
 immutable Dual
 	x::Vector{Variable} #primal variables
-	cf::CompositeFunction
+	cf::Term
 	p::ProximableFunction
-	Ainv::Vector{LinearOperator}
+	Ainv::Vector{AbstractOperator}
 end
 
-function Dual(smooth::CompositeFunction, nonsmooth::CompositeFunction)
+function Dual(smooth::Term, nonsmooth::Term)
 
 	length(terms(smooth)) != length(variable(smooth)) && error("not enough terms smooth for dual")
 	!(isLeastSquares(smooth)) && error("terms in smooth must all be least squares")
@@ -17,16 +17,16 @@ function Dual(smooth::CompositeFunction, nonsmooth::CompositeFunction)
 	B = [operator(affine(nonsmooth)[1])]
 	typeof(B[1]) <: HCAT ? B = B[1].A : nothing
 
-	Ainv = Array{LinearOperator,1}(length(terms(smooth)))
+	Ainv = Array{AbstractOperator,1}(length(terms(smooth)))
 
 	for i in eachindex(variable(smooth))
 		A = operator(affine(smooth)[i])
 		typeof(A)<: HCAT ? A = A.A[i] : nothing
-		isInvertible(A) == true ? nothing : error("operator not easily invertable")
+		is_invertible(A) == true ? nothing : error("operator not easily invertable")
 		Ainv[i] = inv(A)
 	end
 
-	cf = CompositeFunction() #new dual cost function
+	cf = Term() #new dual cost function
 	for i in eachindex(variable(smooth))
 		lambda = (terms(smooth)[i].lambda)
 		if lambda == 1.0

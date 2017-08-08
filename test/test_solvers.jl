@@ -1,279 +1,150 @@
+@printf("\nTesting solvers\n")
+
 srand(0)
+tol = 1e-6;
 
-################################################################################
-################################################################################
-################################################################################
-### Regularized least squares, with two variable blocks to make things weird
-################################################################################
-println("Testing: regularized least squares, with two variable blocks to make things weird")
+###########################################################################
+# Lasso
+###########################################################################
 
-m, n1, n2 = 30, 50, 100
-
-A1 = randn(m, n1)
-A2 = randn(m, n2)
+m, n, l = 10, 50, 30
+A1 = randn(m, n)
 b = randn(m)
+lam_max = norm(A1'*b, Inf)
+lam = 0.3*lam_max
 
-lam1 = 0.2
-lam2 = 1.0
+f = PrecomposeDiagonal(SqrNormL2(), 1.0, -b)
+g = NormL1(lam)
+L = MatrixOp(A1)
 
-# Solve with FPG
+# Apply PG
 
-x1_fpg = Variable(n1)
-x2_fpg = Variable(n2)
-expr = ls(A1*x1_fpg + A2*x2_fpg - b) + lam1*norm(x1_fpg, 1) + lam2*norm(x2_fpg, 2)
-prob = problem(expr)
-@time sol = solve(prob, FPG(tol=1e-10,verbose=0))
-println(sol)
+x = zeros(n)
+sol = RegLS.apply!(PG(tol=tol), x, f, L, g)
 
-# Solve with ZeroFPR
+gstep = x - (A1'*(A1*x-b))
+pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
+@test norm(pgstep - x) <= tol
+# project subgr onto the subdifferential of the L1-norm at x
+subgr = -A1'*(A1*x-b)
+subgr_proj = min.(max.(subgr, -lam), lam)
+subgr_proj[x .< 0] = -lam
+subgr_proj[x .> 0] = lam
+@test norm(subgr - subgr_proj, Inf) <= 1e-5
 
-x1_zerofpr = Variable(n1)
-x2_zerofpr = Variable(n2)
-expr = ls(A1*x1_zerofpr + A2*x2_zerofpr - b) + lam1*norm(x1_zerofpr, 1) + lam2*norm(x2_zerofpr, 2)
-prob = problem(expr)
-@time sol = solve(prob, ZeroFPR(tol=1e-10,verbose=0))
-println(sol)
+# Apply FPG
 
-# Solve with minimize, use default solver/options
+x = zeros(n)
+sol = RegLS.apply!(FPG(tol=tol), x, f, L, g)
 
-x1 = Variable(n1)
-x2 = Variable(n2)
-@time sol = minimize(ls(A1*x1 + A2*x2 - b) + lam1*norm(x1, 1) + lam2*norm(x2, 2))
-println(sol)
+gstep = x - (A1'*(A1*x-b))
+pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
+@test norm(pgstep - x) <= tol
+# project subgr onto the subdifferential of the L1-norm at x
+subgr = -A1'*(A1*x-b)
+subgr_proj = min.(max.(subgr, -lam), lam)
+subgr_proj[x .< 0] = -lam
+subgr_proj[x .> 0] = lam
+@test norm(subgr - subgr_proj, Inf) <= 1e-5
 
-@test norm(~x1_fpg - ~x1_zerofpr, Inf)/(1+norm(~x1_zerofpr, Inf)) <= 1e-6
-@test norm(~x2_fpg - ~x2_zerofpr, Inf)/(1+norm(~x2_zerofpr, Inf)) <= 1e-6
-@test norm(~x1 - ~x1_zerofpr, Inf)/(1+norm(~x1_zerofpr, Inf)) <= 1e-6
-@test norm(~x2 - ~x2_zerofpr, Inf)/(1+norm(~x2_zerofpr, Inf)) <= 1e-6
+# Apply ZeroFPR
 
-res = A1*~x1_fpg + A2*~x2_fpg - b
-grad1 = A1'*res
-grad2 = A2'*res
-ind1_zero = (~x1_fpg .== 0)
-subgr1 = lam1*sign(~x1_fpg)
-subdiff1_low, subdiff1_upp = copy(subgr1), copy(subgr1)
-subdiff1_low[ind1_zero] = -lam1
-subdiff1_upp[ind1_zero] = +lam1
-subgr2 = lam2*(~x2_fpg/norm(~x2_fpg, 2))
+x = zeros(n)
+zerofpr = ZeroFPR(tol=tol,maxit=1000,verbose=1)
+sol = RegLS.apply!(zerofpr, x, f, L, g)
 
-@test maximum(subdiff1_low + grad1) <= 1e-6
-@test maximum(-subdiff1_upp - grad1) <= 1e-6
-@test norm(grad2 + subgr2) <= 1e-6
+gstep = x - (A1'*(A1*x-b))
+pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
+@test norm(pgstep - x) <= tol
+# project subgr onto the subdifferential of the L1-norm at x
+subgr = -A1'*(A1*x-b)
+subgr_proj = min.(max.(subgr, -lam), lam)
+subgr_proj[x .< 0] = -lam
+subgr_proj[x .> 0] = lam
+@test norm(subgr - subgr_proj, Inf) <= 1e-5
 
-################################################################################
-################################################################################
-################################################################################
-### Lasso problem with known solution
-################################################################################
-println("Testing: lasso problem with known solution")
+###########################################################################
+# Regularized/constrained least squares with two variable blocks
+###########################################################################
 
-m, n, nnz_x_star = 200, 100, 10
-A = randn(m, n)
-lam = 1.0
-x_star = randn(n)
-x_star[nnz_x_star+1:end] = 0.0
-y_star = lam*sign(x_star)
-b = A*x_star + A'\y_star
-@test norm(A'*(A*x_star - b) + lam*sign(x_star)) <= 1e-12
+m, n, l = 10, 30, 40
+A1 = randn(m, n)
+A2 = randn(m, l)
+x1 = randn(n)
+x2 = randn(l)
+x2 = 1.1.*x2./norm(x2)
+b = A1*x1 + A2*x2
 
-# Solve with PG
+f = PrecomposeDiagonal(SqrNormL2(), 1.0, -b)
+g = SeparableSum((NormL1(lam), IndBallL2(1.0)))
+L = HCAT(MatrixOp(A1), MatrixOp(A2))
 
-x_pg = Variable(n)
-expr = ls(A*x_pg - b) + lam*norm(x_pg, 1)
-prob = problem(expr)
-@time sol = solve(prob, PG(tol=1e-10,verbose=0))
-println(sol)
+# Apply PG
 
-@test norm(~x_pg - x_star, Inf) <= 1e-8
-@test norm(A'*(A*~x_pg - b) + lam*sign(~x_pg)) <= 1e-6
+x = (zeros(n), zeros(l))
+sol = RegLS.apply!(PG(tol=tol), x, f, L, g)
 
-# Solve with FPG
+res = A1*x[1]+A2*x[2]-b
+gstep1 = x[1] - A1'*res
+gstep2 = x[2] - A2'*res
+pgstep1 = sign.(gstep1).*max.(0, abs.(gstep1) .- lam)
+pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
+@test norm(x[1] - pgstep1) <= tol
+@test norm(x[2] - pgstep2) <= tol
 
-x_fpg = Variable(n)
-expr = ls(A*x_fpg - b) + lam*norm(x_fpg, 1)
-prob = problem(expr)
-@time sol = solve(prob, FPG(tol=1e-10,verbose=0))
-println(sol)
+# Apply FPG
 
-@test norm(~x_fpg - x_star, Inf) <= 1e-8
-@test norm(A'*(A*~x_fpg - b) + lam*sign(~x_fpg)) <= 1e-6
+x = (zeros(n), zeros(l))
+sol = RegLS.apply!(FPG(tol=tol), x, f, L, g)
 
-# Solve with ZeroFPR
+res = A1*x[1]+A2*x[2]-b
+gstep1 = x[1] - A1'*res
+gstep2 = x[2] - A2'*res
+pgstep1 = sign.(gstep1).*max.(0, abs.(gstep1) .- lam)
+pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
+@test norm(x[1] - pgstep1) <= tol
+@test norm(x[2] - pgstep2) <= tol
 
-x_zerofpr = Variable(n)
-expr = ls(A*x_zerofpr - b) + lam*norm(x_zerofpr, 1)
-prob = problem(expr)
-@time sol = solve(prob, ZeroFPR(tol=1e-10,verbose=0))
-println(sol)
+# Apply ZeroFPR
 
-@test norm(~x_zerofpr - x_star, Inf) <= 1e-8
-@test norm(A'*(A*~x_zerofpr - b) + lam*sign(~x_zerofpr)) <= 1e-5
+x = (zeros(n), zeros(l))
+sol = RegLS.apply!(ZeroFPR(tol=tol), x, f, L, g)
 
-################################################################################
-################################################################################
-################################################################################
-### Problem with smooth, non-quadratic term
-################################################################################
-println("Testing: problem with smooth, non-quadratic term")
+res = A1*x[1]+A2*x[2]-b
+gstep1 = x[1] - A1'*res
+gstep2 = x[2] - A2'*res
+pgstep1 = sign.(gstep1).*max.(0, abs.(gstep1) .- lam)
+pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
+@test norm(x[1] - pgstep1) <= tol
+@test norm(x[2] - pgstep2) <= tol
 
-m, n, nnz_x_orig = 200, 500, 10
-A = randn(m, n)
-lam = 1.0
-x_orig = randn(n)
-x_orig[nnz_x_orig+1:end] = 0.0
-b = A*x_orig + randn(m)
+###########################################################################
+# L2-regularized least squares with two data blocks (just to play)
+###########################################################################
 
-# Solve with PG
+m1, m2, n, = 30, 40, 50
+A1 = randn(m1, n)
+A2 = randn(m2, n)
+b1 = randn(m1)
+b2 = randn(m2)
 
-x_pg = Variable(n)
-expr = smooth(norm(A*x_pg - b, 2)) + lam*norm(x_pg, 1)
-prob = problem(expr)
-@time sol = solve(prob, PG(tol=1e-8,verbose=0))
-println(sol)
+f1 = PrecomposeDiagonal(SqrNormL2(), 1.0, -b1)
+f2 = PrecomposeDiagonal(SqrNormL2(), 1.0, -b2)
+f = SeparableSum((f1, f2))
+g = NormL2(1.0)
+L = VCAT(MatrixOp(A1), MatrixOp(A2))
 
-# Solve with FPG
+# Apply PG
 
-x_fpg = Variable(n)
-expr = smooth(norm(A*x_fpg - b, 2)) + lam*norm(x_fpg, 1)
-prob = problem(expr)
-@time sol = solve(prob, FPG(tol=1e-8,verbose=0))
-println(sol)
+x = zeros(n)
+sol = RegLS.apply!(PG(tol=tol), x, f, L, g)
 
-# Solve with ZeroFPR
+# Apply FPG
 
-x_zerofpr = Variable(n)
-expr = smooth(norm(A*x_zerofpr - b, 2)) + lam*norm(x_zerofpr, 1)
-prob = problem(expr)
-@time sol = solve(prob, ZeroFPR(tol=1e-8,verbose=0))
-println(sol)
+x = zeros(n)
+sol = RegLS.apply!(FPG(tol=tol), x, f, L, g)
 
-# Solve with minimize, default solver/options
+# Apply ZeroFPR
 
-x = Variable(n)
-@time sol = minimize(smooth(norm(A*x - b, 2)) + lam*norm(x, 1))
-println(sol)
-
-################################################################################
-################################################################################
-################################################################################
-### Box-constrained least-squares
-################################################################################
-println("Testing: box-constrained least-squares")
-
-m, n = 500, 200
-A = randn(m, n)
-lb, ub = -1.0, 1.0
-x_orig = 2.0*randn(n)
-x_orig = max(lb, min(ub, x_orig))
-b = A*x_orig + randn(m)
-
-# Solve with PG
-
-x_pg = Variable(n)
-expr = ls(A*x_pg - b)
-prob = problem(expr, x_pg in [lb, ub])
-@time sol = solve(prob, PG(tol=1e-8,verbose=0))
-println(sol)
-
-@test norm(~x_pg - max(lb, min(ub, ~x_pg)), Inf) <= 1e-12
-@test norm(~x_pg - max(lb, min(ub, ~x_pg - A'*(A*~x_pg - b))), Inf)/(1+norm(~x_pg, Inf)) <= 1e-8
-
-# Solve with FPG
-
-x_fpg = Variable(n)
-expr = ls(A*x_fpg - b)
-prob = problem(expr, x_fpg in [lb, ub])
-@time sol = solve(prob, FPG(tol=1e-8,verbose=0))
-println(sol)
-
-@test norm(~x_fpg - max(lb, min(ub, ~x_fpg)), Inf) <= 1e-12
-@test norm(~x_fpg - max(lb, min(ub, ~x_fpg - A'*(A*~x_fpg - b))), Inf)/(1+norm(~x_fpg, Inf)) <= 1e-8
-
-# Solve with ZeroFPR
-
-x_zerofpr = Variable(n)
-expr = ls(A*x_zerofpr - b)
-prob = problem(expr, x_zerofpr in [lb, ub])
-@time sol = solve(prob, ZeroFPR(tol=1e-8,verbose=0))
-println(sol)
-
-@test norm(~x_zerofpr - max(lb, min(ub, ~x_zerofpr)), Inf) <= 1e-12
-@test norm(~x_zerofpr - max(lb, min(ub, ~x_zerofpr - A'*(A*~x_zerofpr - b))), Inf)/(1+norm(~x_zerofpr, Inf)) <= 1e-8
-
-# Solve with minimize, default solver/options
-
-x = Variable(n)
-@time sol = minimize(ls(A*x - b), x in [lb, ub])
-println(sol)
-
-@test norm(~x - max(lb, min(ub, ~x)), Inf) <= 1e-12
-@test norm(~x - max(lb, min(ub, ~x - A'*(A*~x - b))), Inf)/(1+norm(~x, Inf)) <= 1e-8
-
-################################################################################
-################################################################################
-################################################################################
-### Non-negative least-squares from a known solution
-################################################################################
-println("Testing: non-negative least-squares from a known solution")
-
-# Lagrangian:
-#
-#   0.5||Ax-b||^2 + y'(x-z) + [z >= 0]
-#
-# Optimality conditions:
-#
-#   A'(Ax-b) + y = 0, or A'b = A'Ax + y
-#   x = z
-#   z >= 0
-#   y <= 0
-#   y'z = 0
-
-m, n, nnz_x_star = 500, 200, 100
-A = randn(m, n)
-x_star = rand(n)
-x_star[nnz_x_star+1:end] = 0.0
-y_star = -rand(n)
-y_star[1:nnz_x_star] = 0.0
-b = A*x_star + A'\y_star
-
-# Solve with PG
-
-x_pg = Variable(n)
-expr = ls(A*x_pg - b)
-prob = problem(expr, x_pg >= 0.0)
-@time sol = solve(prob, PG(tol=1e-8,verbose=0))
-println(sol)
-
-@test all(~x_pg .>= 0.0)
-@test norm(~x_pg - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
-
-# Solve with FPG
-
-x_fpg = Variable(n)
-expr = ls(A*x_fpg - b)
-prob = problem(expr, x_fpg >= 0.0)
-@time sol = solve(prob, FPG(tol=1e-8,verbose=0))
-println(sol)
-
-@test all(~x_fpg .>= 0.0)
-@test norm(~x_fpg - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
-
-# Solve with ZeroFPR
-
-x_zerofpr = Variable(n)
-expr = ls(A*x_zerofpr - b)
-prob = problem(expr, x_zerofpr >= 0.0)
-@time sol = solve(prob, ZeroFPR(tol=1e-8,verbose=0))
-println(sol)
-
-@test all(~x_zerofpr .>= 0.0)
-@test norm(~x_zerofpr - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
-
-# Solve with minimize, default solver/options
-
-x = Variable(n)
-@time sol = minimize(ls(A*x - b), x >= 0.0)
-println(sol)
-
-@test all(~x .>= 0.0)
-@test norm(~x - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
+x = zeros(n)
+sol = RegLS.apply!(ZeroFPR(tol=tol), x, f, L, g)

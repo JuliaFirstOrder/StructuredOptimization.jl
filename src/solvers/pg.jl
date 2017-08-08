@@ -1,3 +1,5 @@
+export PG, FPG
+
 type PG <: ForwardBackwardSolver
 	tol::Float64
 	maxit::Int64
@@ -5,61 +7,24 @@ type PG <: ForwardBackwardSolver
 	halt::Function
 	gamma::Float64
 	it::Int
-	fpr::AbstractArray
 	normfpr::Float64
 	cost::Float64
 	time::Float64
-	linesearch::Bool
+	adaptive::Bool
 	fast::Bool
 	cnt_matvec::Int
 	cnt_prox::Int
 end
-
-fun_name(S::PG) = S.fast ? "Fast Proximal Gradient" : "Proximal Gradient"
-
-"""
-# Proximal Gradient Solver
-
-## Usage
-
-
-* `slv = PG()` creates a `Solver` object that can be used in the function `solve`.
-* Can be used with convex regularizers only.
-* After solving a problem use `show(slv)` to visualize number of iterations, fixed point residual value, cost funtion value and time elapsed.
-
-
-## Keyword Arguments
-
-* `tol::Float64=1e-8`: tolerance
-* `maxit::Int64=10000`: maximum number of iterations
-* `verbose::Int64=1`: `0` verbose off, `1` print every 100 iteration, `2` print every iteration
-* `halt::Function`: custom stopping criterion function
-  * this function may be specified by the user and must have the following structure:
-
-    `myhalt(slv::ForwardBackwardSolver,normfpr0::Float64,Fcurr::Float64,Fprev::Float64)`
-
-    * `normfpr0` is the fixed point residual at x0
-    * `Fcurr` is the objective value at the current iteration
-    * `Fprev` is the objective value at the previous iteration
-    * example: `myhalt(slv,normfpr0,FBE,FBEx) = slv.normfpr < tol`
-
-* `gamma::Float64=Inf`: stepsize γ, if γ = Inf upper bound is computed using:
-
-  γ = || x0-(x0+ɛ) || / || ∇f(x0) - ∇f(x0+ɛ) ||
-
-* `linesearch::Bool=true`: activates linesearch on stepsize γ
-* `fast::Bool=true`: switches between proximal gradient and fast proximal gradient
-"""
 
 PG(;
 	tol::Float64 = 1e-8,
 	maxit::Int64 = 10000,
 	verbose::Int64 = 1,
 	halt::Function = halt_default,
-	linesearch::Bool = true,
+	adaptive::Bool = true,
 	fast::Bool = false,
 	gamma::Float64 = Inf) =
-PG(tol, maxit, verbose, halt, gamma,  0, [], Inf, Inf, NaN, linesearch, fast, 0, 0)
+PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, adaptive, fast, 0, 0)
 
 # alias for fast = true
 FPG(;
@@ -67,43 +32,26 @@ FPG(;
 	maxit::Int64 = 10000,
 	verbose::Int64 = 1,
 	halt::Function = halt_default,
-	linesearch::Bool = true,
+	adaptive::Bool = true,
 	gamma::Float64 = Inf) =
-PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, linesearch = linesearch, fast = true, gamma = gamma)
+PG(tol = tol, maxit = maxit, verbose = verbose, halt = halt, adaptive = adaptive, fast = true, gamma = gamma)
 
-# (p::PG)(; tol::Float64   = p.tol,
-# 	maxit::Int64     = p.maxit,
-# 	verbose::Int64   = p.verbose,
-# 	halt::Function   = p.halt,
-# 	linesearch::Bool = p.linesearch,
-# 	gamma::Float64   = p.gamma        ) =
-# PG(tol, maxit, verbose, halt, gamma,  0, Inf, Inf, NaN, linesearch, p.fast, 0, 0)
-#
-# import Base: copy
-#
-# copy(slv::PG) = PG(copy(slv.tol),
-# 	           copy(slv.maxit),
-# 	           copy(slv.verbose),
-# 	           slv.halt,
-# 	           copy(slv.gamma),
-# 	           copy(slv.it),
-# 	           copy(slv.normfpr),
-# 	           copy(slv.cost),
-# 	           copy(slv.time),
-# 	           copy(slv.linesearch),
-# 	           copy(slv.fast),
-# 	           copy(slv.cnt_matvec),
-# 	           copy(slv.cnt_prox))
+################################################################################
+################################################################################
+# Proximal gradient algorithm
+################################################################################
+################################################################################
 
-function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
+function apply!(slv::PG, x0::T, f::ProximableFunction, L::AbstractOperator, g::ProximableFunction) where {T <: Union{AbstractArray, Tuple}}
 
 	tic()
 
-	x = deepcopy(~variable(f))
+	x = deepcopy(x0)
 
-	res_x = residual(f, x)
+	grad_f_x = deepcopy(x0)
+	res_x = L*x
 	grad_f_res, f_x = gradient(f, res_x)
-	grad_f_x = At_mul_B(f, grad_f_res)
+	Ac_mul_B!(grad_f_x, L, grad_f_res)
 	slv.cnt_matvec += 2
 	g_x = Inf
 	cost_xprev = Inf
@@ -111,18 +59,18 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
 
 	if slv.gamma == Inf
 		# compute upper bound for Lipschitz constant
-		res_x_eps = residual(f, x+sqrt(eps()))
+		grad_f_x_eps = deepcopy(x0)
+		res_x_eps = L*(x .+ sqrt(eps()))
 		grad_f_res_eps, = gradient(f, res_x_eps)
-		grad_f_x_eps = At_mul_B(f, grad_f_res_eps)
+		Ac_mul_B!(grad_f_x_eps, L, grad_f_res_eps)
 		slv.cnt_matvec += 2
-		Lf = deepvecnorm(grad_f_x-grad_f_x_eps)/(sqrt(eps()*deeplength(x)))
+		Lf = deepvecnorm(grad_f_x .- grad_f_x_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = 1.0/Lf
 	end
 
 	# initialize variables
 
 	fpr = deepcopy(x)
-	slv.fpr = fpr
 	y = deepcopy(x)
 	xprev = deepcopy(x)
 	res_y = deepcopy(res_x)
@@ -135,15 +83,15 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
 
 		# line search on gamma
 		for j = 1:32
-			gradstep .= y .- slv.gamma.*grad_f_y
+			deepaxpy!(gradstep, y, -slv.gamma, grad_f_y)
 			g_x = prox!(x, g, gradstep, slv.gamma)
 			slv.cnt_prox += 1
-			fpr .= y .- x
+			deepaxpy!(fpr, y, -1.0, x)
 			slv.normfpr = deepvecnorm(fpr)
-			residual!(res_x, f, x)
-			f_x = cost(f, res_x)
+			A_mul_B!(res_x, L, x)
+			f_x = f(res_x)
 			slv.cnt_matvec += 1
-			if slv.linesearch == false break end
+			if slv.adaptive == false break end
 			uppbnd = f_y - real(deepvecdot(grad_f_y, fpr)) + (0.5/slv.gamma)*(slv.normfpr^2)
 			if f_x <= uppbnd + 1e-6*abs(f_y) break end
 			slv.gamma = 0.5*slv.gamma
@@ -162,8 +110,12 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
 		# extrapolation
 
 		if slv.fast
-			y .= x .+ (slv.it-1)/(slv.it+2) .* (x .- xprev)
-			res_y .= res_x .+ (slv.it-1)/(slv.it+2) .* (res_x .- res_xprev)
+			# y = x + (it-1)/(it+2) * (x - xprev)
+			deepaxpy!(y, x, (slv.it-1)/(slv.it+2), x)
+			deepaxpy!(y, y, -(slv.it-1)/(slv.it+2), xprev)
+			# res_y = res_x + (it-1)/(it+2) * (res_x - res_xprev)
+			deepaxpy!(res_y, res_x, (slv.it-1)/(slv.it+2), res_x)
+			deepaxpy!(res_y, res_y, -(slv.it-1)/(slv.it+2), res_xprev)
 		else
 			# no need to copy, just move references around
 			y = x
@@ -173,7 +125,7 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
 		# compute gradient and f(y)
 
 		f_y = gradient!(grad_f_res, f, res_y)
-		At_mul_B!(grad_f_y, f, grad_f_res)
+		Ac_mul_B!(grad_f_y, L, grad_f_res)
 
 		slv.cnt_matvec += 1
 
@@ -186,7 +138,7 @@ function solve(f::CompositeFunction, g::ProximableFunction, slv::PG)
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
-	deepcopy!(~variable(f), x)
+	deepcopy!(x0, x)
 
 	slv.time = toq()
 

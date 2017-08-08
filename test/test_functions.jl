@@ -1,4 +1,4 @@
-println("\n testing functions \n")
+@printf("\nTesting functions\n")
 
 x0 = randn(10)
 lambda = 0.1
@@ -19,7 +19,7 @@ x1, fx0 = RegLS.gradstep(f, x0, gamma)
 ###########-------------###########
 
 x0 = randn(10)
-mu = maximum(abs(x0))*0.3
+mu = maximum(abs.(x0))*0.3
 lambda = pi
 gamma = 1e-2
 f = RegLS.MoreauEnvelope(lambda, NormL1(mu))

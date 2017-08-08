@@ -1,11 +1,11 @@
 immutable SmoothedPrimal
-	s::CompositeFunction          #smooth cost function
-	n::CompositeFunction          #nonsmooth cost function
+	s::Term          #smooth cost function
+	n::Term          #nonsmooth cost function
 	p::ProximableFunction
 	gamma0::AbstractArray
 end
 
-SmoothedPrimal(s::CompositeFunction, n::CompositeFunction, p::ProximableFunction) =
+SmoothedPrimal(s::Term, n::Term, p::ProximableFunction) =
 SmoothedPrimal(s,n,p,logspace(1, -6, 10))
 
 function solve(P::SmoothedPrimal, slv::Solver = default_slv())
