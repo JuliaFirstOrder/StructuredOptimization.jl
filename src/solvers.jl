@@ -7,7 +7,7 @@ include("solvers/pg.jl")
 include("solvers/zerofpr.jl")
 include("solvers/utils.jl")
 
-default_slv = FPG #TODO change this to ZeroFPR once ready
+default_slv = ZeroFPR
 
 # To print out solver objects
 
@@ -21,4 +21,3 @@ function Base.show(io::IO, slv::ForwardBackwardSolver)
 	println(io, "prox   eval: $(slv.cnt_prox)")
 	print(  io, "matvec eval: $(slv.cnt_matvec)")
 end
-
