@@ -64,9 +64,7 @@ function apply!(slv::ZeroFPR, x0::T,
 	fpr_x = deepcopy(x0)
 	xbar = deepcopy(x0)
 
-	# TODO: re-enable actual L-BFGS, we are using Eye just to test
-	# lbfgs = LBFGS(x, slv.mem)
-	lbfgs = -AbstractOperators.DCAT(map(Eye, deepsize(x))...)
+	lbfgs = LBFGS(x, slv.mem)
 	beta = 0.05
 
 	if !isnull(Ns)
@@ -78,7 +76,7 @@ function apply!(slv::ZeroFPR, x0::T,
 		Ac_mul_B!(grad_s_x, L_s, grad_s_res)
 	else
 		s_x = 0.0
-	  grad_s_x = 0.0
+		grad_s_x = 0.0
 	end
 
 	f_x = s_x
@@ -172,7 +170,7 @@ function apply!(slv::ZeroFPR, x0::T,
 
 		if slv.it == 1 normfpr0 = slv.normfpr end
 
-		# evaluate f+g and FBE at x
+		# evaluate FBE at x and f+g at xbar
 
 		FBE_x = uppbnd + g_xbar
 		slv.cost = f_xbar + g_xbar
@@ -186,7 +184,7 @@ function apply!(slv::ZeroFPR, x0::T,
 		if !isnull(Ns)
 			Ac_mul_B!(grad_s_xbar, L_s, grad_s_res)
 		else
-		  grad_s_xbar = 0.0
+			grad_s_xbar = 0.0
 		end
 
 		grad_f_xbar = grad_s_xbar
@@ -200,9 +198,9 @@ function apply!(slv::ZeroFPR, x0::T,
 
 		# compute direction according to L-BFGS
 
-		# if slv.it > 1
-		# 	update!(lbfgs, xbar, xbar_prev, fpr_xbar, fpr_xbar_prev)
-		# end
+		if slv.it > 1
+			update!(lbfgs, xbar, xbar_prev, fpr_xbar, fpr_xbar_prev)
+		end
 		A_mul_B!(d, lbfgs, fpr_xbar)
 
 		# store xbar and fpr_xbar for later use
