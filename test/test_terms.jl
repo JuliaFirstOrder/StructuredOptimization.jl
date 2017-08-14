@@ -82,7 +82,7 @@ cf = 2*rank(X) <= 6
 @test cf.lambda == 1
 @test cf.f(~X) == (IndBallRank(3))(~X)
 
-cf = rank(X) 
+cf = rank(X)
 @test_throws MethodError cf.f(~X)
 
 b = randn(size(~x))
@@ -147,6 +147,5 @@ cf = norm(w + z)^2
 @test RegLS.is_AcA_diagonal(cf) == false
 
 cf = norm(x, 1) + norm(y, 2)
-@test RegLS.is_smooth(cf) == (false,false)
-@test RegLS.is_AcA_diagonal(cf) == (true,true)
-
+@test RegLS.is_smooth.(cf) == (false,false)
+@test RegLS.is_AcA_diagonal.(cf) == (true,true)

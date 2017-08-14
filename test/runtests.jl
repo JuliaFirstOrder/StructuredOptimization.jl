@@ -6,8 +6,6 @@ using Base.Profile
 
 srand(0)
 
-### Passing:
-
 @testset "RegLS" begin
 
 @testset "Tuple operations" begin
@@ -30,13 +28,13 @@ end
   include("test_solvers.jl")
 end
 
+@testset "Usage" begin
+  include("test_usage_small.jl")
+  include("test_usage.jl")
 end
 
-### Yet to be checked:
+# @testset "Performance" begin
+#     include("test_performance.jl")
+# end
 
-# include("test_costfunction.jl")
-# include("test_matcomp.jl")
-# include("test_svm.jl")
-# include("test_minimize.jl")
-# include("test_solvers_lasso.jl")
-# include("test_solvers.jl")
+end

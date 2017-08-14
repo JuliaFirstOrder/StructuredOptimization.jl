@@ -1,51 +1,51 @@
-
-immutable Term{T1<:Real, T2 <: ProximableFunction, T3 <: AbstractExpression}
+immutable Term{T1 <: Real, T2 <: ProximableFunction, T3 <: AbstractExpression}
 	lambda::T1
 	f::T2
 	A::T3
 	Term{T1,T2,T3}(lambda::T1, f::T2, ex::T3) where {T1,T2,T3} = new{T1,T2,T3}(lambda,f,ex)
 end
-	
+
 function Term{T<:ProximableFunction}(f::T, ex::AbstractExpression)
 	A = convert(AffineExpression,ex)
 	Term{Int,T,typeof(A)}(1,f, A)
 end
 
-
 # Properties
 
 variables(t::Term) = variables(t.A)
-variables{N}(t::NTuple{N,Term}) = variables.(t)
+# variables{N}(t::NTuple{N,Term}) = variables.(t)
 operator(t::Term) = operator(t.A)
-operator{N}(t::NTuple{N,Term}) = operator.(t)
+# operator{N}(t::NTuple{N,Term}) = operator.(t)
 displacement(t::Term) = displacement(t.A)
-displacement{N}(t::NTuple{N,Term}) = displacement.(t)
+# displacement{N}(t::NTuple{N,Term}) = displacement.(t)
 
 is_smooth(t::Term) = is_smooth(t.f)
-is_smooth{N}(t::NTuple{N,Term}) = is_smooth.(t)
+# is_smooth{N}(t::NTuple{N,Term}) = is_smooth.(t)
 
 is_convex(t::Term) = is_convex(t.f)
-is_convex{N}(t::NTuple{N,Term}) = is_convex.(t)
+# is_convex{N}(t::NTuple{N,Term}) = is_convex.(t)
+
+is_quadratic(t::Term) = is_quadratic(t.f)
 
 #is_strongly_convex(t::Term) = is_strongly_convex(t.f) && is_full_column_rank(operator(t.A))
 #is_strongly_convex{N}(t::NTuple{N,Term}) = is_strongly_convex.(t)
 
 #importing properties from AbstractOperators
-is_f = [:is_eye, 
-	:is_null, 
+is_f = [:is_eye,
+	:is_null,
 	:is_diagonal,
-	:is_AcA_diagonal, 
-	:is_AAc_diagonal, 
-	:is_orthogonal, 
-	:is_invertible, 
-	:is_full_row_rank, 
+	:is_AcA_diagonal,
+	:is_AAc_diagonal,
+	:is_orthogonal,
+	:is_invertible,
+	:is_full_row_rank,
 	:is_full_column_rank]
 
 for f in is_f
 	@eval begin
 		import AbstractOperators: $f
 		$f(t::Term) = $f(operator(t))
-		$f{N}(t::NTuple{N,Term}) = $f.(t)
+		# $f{N}(t::NTuple{N,Term}) = $f.(t)
 	end
 end
 
@@ -61,7 +61,7 @@ import Base: +
 
 import Base: *
 
-function (*){T1<:Real, T, T2, T3}(a::T1, t::Term{T,T2,T3})  
+function (*){T1<:Real, T, T2, T3}(a::T1, t::Term{T,T2,T3})
 	coeff = *(promote(a,t.lambda)...)
 	Term{typeof(coeff),T2,T3}(coeff, t.f, t.A)
 end
@@ -91,7 +91,7 @@ end
 
 import Base: <=
 
-(<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL0,T3}, r::Integer) = 
+(<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL0,T3}, r::Integer) =
 Term(IndBallL0(round(Int,r/t.lambda)), t.A)
 (<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL1,T3}, r::Real) =    Term(IndBallL1(r/t.lambda), t.A)
 (<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL2,T3}, r::Real) =    Term(IndBallL2(r/t.lambda), t.A)
@@ -159,5 +159,3 @@ start(t::Term) = false
 next(t::Term, state) = (t, true)
 done(t::Term, state) =  state
 isempty(t::Term) =  false
-
-

@@ -1,3 +1,18 @@
+abstract type ForwardBackwardSolver <: Solver end
+
+# To print out ForwardBackwardSolver objects
+
+function Base.show(io::IO, slv::ForwardBackwardSolver)
+	println(io, solver_name(slv) )
+	println(io, "iterations : $(slv.it) / $(slv.maxit)")
+	println(io, "fpr        : $(slv.normfpr/slv.gamma)")
+	println(io, "cost       : $(slv.cost)")
+	println(io, "gamma      : $(slv.gamma)")
+	println(io, "time       : $(slv.time)")
+	println(io, "prox   eval: $(slv.cnt_prox)")
+	print(  io, "matvec eval: $(slv.cnt_matvec)")
+end
+
 # Solver trace
 
 function print_status(slv::ForwardBackwardSolver)
