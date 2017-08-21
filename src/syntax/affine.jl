@@ -100,9 +100,9 @@ end
 
 function Usum_op{L1<:AbstractOperator,
 		 L2<:AbstractOperator}(xA::Tuple{Variable},
-		                     xB::Tuple{Variable},
-				     A::L1,
-				     B::L2,sign::Bool)
+				       xB::Tuple{Variable},
+				       A::L1,
+				       B::L2,sign::Bool)
 	xNew  = (xA...,xB...)
 	opNew = sign ? hcat(A,B) : hcat(A,-B)
 	return xNew, opNew
@@ -110,9 +110,9 @@ end
 
 function Usum_op{N,M,L1<:HCAT{M,N},
 		 L2<:AbstractOperator}(xA::NTuple{N,Variable},
-		                     xB::Tuple{Variable},
-				     A::L1,
-				     B::L2,sign::Bool)
+				       xB::Tuple{Variable},
+				       A::L1,
+				       B::L2,sign::Bool)
 	if xB[1] in xA
 		idx = findfirst(xB.==xA)
 		S = sign ? A[idx]+B : A[idx]-B
