@@ -42,7 +42,7 @@ H = RegLS.extract_operators(xAll,cf)
 f = RegLS.extract_functions(cf)
 @test typeof(f) <: PrecomposeDiagonal
 
-# multiple terms, multiple variables
+## multiple terms, multiple variables
 n1,n2,n3,n4,n5 = 3,3,4,4,7
 A = randn(n5,n1)
 x1,x2,x3,x4,x5 = Variable(randn(n1)),Variable(randn(n2)),Variable(randn(n3)),Variable(randn(n4)),Variable(randn(n5))
