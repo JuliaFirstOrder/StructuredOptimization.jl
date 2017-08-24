@@ -37,36 +37,35 @@ extract_operators{N}(xAll::NTuple{N,Variable}, t::Term) = extract_operators(xAll
 function extract_operators{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
 	ops = ()
 	for ti in t
-		xi   = variables(ti)
-		opsi = operator(ti)
-		ops = (ops..., sort_and_expand(xAll,xi,opsi))
+		tex = expand(xAll,ti)
+		ops = (ops...,sort_and_extract(xAll,tex))
 	end
 	return vcat(ops...)
 end
 
-function sort_and_expand{N}(xAll::NTuple{N,Variable}, xL::Tuple{Variable}, L::AbstractOperator)
-	ops = ()
-	for i in eachindex(xAll)
-		if xAll[i] == xL[1]
-			ops = (ops...,L)
-		else
-			ops = (ops...,Zeros(eltype(~xAll[i]),size(xAll[i]),codomainType(L),size(L,1)))
+function expand{N,T1,T2,T3}(xAll::NTuple{N,Variable}, t::Term{T1,T2,T3})
+	xt   = variables(t)
+	C    = codomainType(operator(t))
+	size_out = size(operator(t),1)
+	ex = t.A
+
+	for x in xAll
+		if !( x in variables(t) ) 
+			ex += Zeros(eltype(~x),size(x),C,size_out)*x
 		end
 	end
-	return hcat(ops...)
+	return Term{T1,T2,typeof(ex)}(t.lambda, t.f, ex)
 end
 
-function sort_and_expand{N1,N2,M}(xAll::NTuple{N1,Variable}, xL::NTuple{N2,Variable}, L::HCAT{M,N2})
-	ops = ()
+sort_and_extract(xAll::Tuple{Variable}, t::Term) = operator(t)
+
+function sort_and_extract{N}(xAll::NTuple{N,Variable}, t::Term)
+	p = zeros(Int,N)
+	xL = variables(t)
 	for i in eachindex(xAll)
-		if xAll[i] in xL
-			idx = findfirst(xAll[i].== xL)
-			ops = (ops...,L[idx])
-		else
-			ops = (ops...,Zeros(eltype(~xAll[i]),size(xAll[i]),codomainType(L),size(L,1)))
-		end
+		p[i] = findfirst( xi -> xi == xAll[i], xL)
 	end
-	return HCAT(ops,L.mid,M)
+	return operator(t)[p]
 end
 
 function extract_proximable{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
