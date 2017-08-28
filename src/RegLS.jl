@@ -43,7 +43,7 @@ macro minimize(cf::Expr, s::Symbol, cstr::Expr)
 	end
 end
 
-macro minimize(cf::Expr, s::Symbol, cstr::Expr, w::Symbol, slv::Expr)
+macro minimize(cf::Expr, s::Symbol, cstr::Expr, w::Symbol, slv::Union{Symbol,Expr})
 	cost = esc(cf)
 	s != :(st) && error("wrong symbol after cost function! use `st`")
 	constraints = esc(cstr)

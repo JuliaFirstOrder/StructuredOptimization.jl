@@ -3,6 +3,7 @@
 # Simple Terms
 
 x = Variable(randn(10))
+X = Variable(randn(3,4))
 A = randn(4,10)
 
 cf = norm(x, 0)
@@ -36,6 +37,17 @@ cf = norm(x)
 cf = pi*norm(x,2)
 @test cf.lambda - pi == 0
 @test cf.f(~x) == norm(~x)
+
+
+cf = 3*sum(norm(X),1)
+@test cf.lambda - 3 == 0
+@test cf.f(~X) == sum(sqrt.(sum((~X).^2,1))) 
+
+cf = 4*sum(norm(X),2)
+@test cf.lambda - 4 == 0
+@test cf.f(~X) == sum(sqrt.(sum((~X).^2,2))) 
+
+@test_throws ErrorException 4*sum(norm(X,1),2)
 
 cf = norm(x, 2) <= 2.3
 @test cf.lambda == 1

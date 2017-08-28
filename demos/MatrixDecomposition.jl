@@ -1,5 +1,4 @@
 using RegLS
-using ProximalOperators
 using Images, ImageView
 
 srand(123)
@@ -8,6 +7,7 @@ Nframes = 2621 #number of frames
 frames =  randperm(Nframes)[1:N]
 n,m = 120,160 #frame size
 
+# TODO this link is not working anymore!!
 # data from http://research.microsoft.com/en-us/um/people/jckrumm/wallflower/testimages.htm
 # Bootstrapt.zip
 R,G,B = zeros(Float64,n,m,N),zeros(Float64,n,m,N),zeros(Float64,n,m,N)
@@ -26,15 +26,14 @@ F = [reshape(R,n*m,N); reshape(G,n*m,N); reshape(B,n*m,N)]'
 
 X = Variable(N*n*m,3)
 Y = Variable(N,3*n*m)
-slv = ZeroFPR()
-slv = FPG()
-slv = slv(verbose = 1, tol = 1e-3, linesearch = false, gamma = 0.5)
+slv = FPG
+slv = slv(verbose = 2, tol = 1e-3, adaptive = false, gamma = 0.5)
 
-@time slv = minimize(ls(reshape(X,N,3*n*m)+Y-F)+0.1*sum(norm(X),2), [rank(Y) <= 1], slv)
+@minimize ls(reshape(X,N,3*n*m)+Y-F)+0.1*sum(norm(X),2) st rank(Y) <= 1 with slv 
 println(slv)
 
 Frg = copy(~X)
-Frg[Frg.!=0] = Frg[Frg.!=0]+reshape(~Y,N*m*n*3)[Frg.!=0]
+Frg[Frg.!=0] = Frg[Frg.!=0]+reshape(~Y,N*m*n,3)[Frg.!=0]
 Frg[repmat(sum(Frg,2).==0,1,3)] = 1 #put white in null pixels
 Frg = reshape(Frg,N,3*n*m)
 

@@ -301,8 +301,8 @@ function apply!(slv::ZeroFPR, x0::T,
 			gradient!(A_Lq_d, q, Lq_d)
 			deepaxpy!(A_Lq_d, A_Lq_d, -1.0, b)
 			Ac_mul_B!(Lqc_A_Lq_d, Lq, A_Lq_d)
-			lin_coeff_q_d = deepvecdot(gradq_xbar, d)
-			quad_coeff_q_d = deepvecdot(Lqc_A_Lq_d, d)/2
+			lin_coeff_q_d = real(deepvecdot(gradq_xbar, d))
+			quad_coeff_q_d = real(deepvecdot(Lqc_A_Lq_d, d)/2)
 		end
 
 		for j = 1:32

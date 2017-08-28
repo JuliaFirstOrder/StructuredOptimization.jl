@@ -87,6 +87,19 @@ function norm(ex::AbstractExpression, p=2)
 	return Term(f, ex)
 end
 
+# Mixed Norms
+
+import Base: sum
+
+function sum{T1,T2,T3}(t::Term{T1,T2,T3}, dim = 1)
+	if T2 <: NormL2
+		f = NormL21(t.lambda,dim) 
+	else
+		error("function not implemented")
+	end
+	return Term(f, t.A)
+end
+
 # Norm constraints
 
 import Base: <=

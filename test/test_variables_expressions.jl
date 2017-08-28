@@ -51,6 +51,26 @@ ex3 = opB1*(opA1*x1+opA2*x2+b0)
 @test_throws ArgumentError MatrixOp(randn(n,m1+1))*x1
 @test_throws ArgumentError MatrixOp(randn(n,m1))*Variable(Complex{Float64},m1)
 
+
+##### reshape ####
+m,n = 8,10
+A = randn(n,m)
+x = Variable(randn(m))
+b = randn(n)
+B = reshape(b,2,5)
+
+ex = reshape(x,4,2)
+@test vecnorm(operator(ex)*~x - reshape(~x,4,2)) < 1e-12
+
+ex2 = reshape(A*x,2,5)
+@test vecnorm(operator(ex2)*~x - reshape(A*~x,2,5)) < 1e-12
+
+ex3 = reshape(A*x,2,5)+B
+@test vecnorm(operator(ex2)*~x+displacement(ex3)- reshape(A*~x,2,5)-B) < 1e-12
+
+ex4 = reshape(A*x-b,2,5)
+@test vecnorm(operator(ex4)*~x+displacement(ex4)- reshape(A*~x-b,2,5)) < 1e-12
+
 #### + ####
 
 # sum same variable

@@ -199,7 +199,17 @@ function (*){T1<:Number, T<:AbstractExpression}(coeff::T1, a::T)
 	return AffineExpression{length(A.x)}(A.x,coeff*operator(A),displacement(A)-b)
 end
 
-#TODO Reshape
+#Reshape
+function reshape{T<:AbstractExpression}(a::T, dims...)
+	A = convert(AffineExpression,a)
+	op = Reshape(A.L, dims...)
+	if typeof(displacement(A)) <: Number
+		b = displacement(A)
+	else
+		b = reshape(displacement(A), dims...)
+	end
+	return AffineExpression{length(A.x)}(A.x,op,b)
+end
 
 imported = [:getindex :GetIndex;
 	    :fft      :DFT;
