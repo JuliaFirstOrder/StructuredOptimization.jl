@@ -31,7 +31,8 @@ is_quadratic(t::Term) = is_quadratic(t.f)
 #is_strongly_convex{N}(t::NTuple{N,Term}) = is_strongly_convex.(t)
 
 #importing properties from AbstractOperators
-is_f = [:is_eye,
+is_f = [:is_linear,
+	:is_eye,
 	:is_null,
 	:is_diagonal,
 	:is_AcA_diagonal,
@@ -55,7 +56,13 @@ end
 
 import Base: +
 
-(+)(args::Vararg{Term}) = tuple(args...)
+(+)(a::Term,b::Term) = (a,b)
+(+){N}(a::NTuple{N,Term},b::Term) = (a...,b)
+(+){N}(a::Term,b::NTuple{N,Term}) = (a,b...)
+(+){N}(a::NTuple{N,Term},b::Tuple{}) = a
+(+){N}(a::Tuple{},b::NTuple{N,Term}) = b
+(+){N,M}(a::NTuple{N,Term},b::NTuple{M,Term}) = (a...,b...)
+
 
 # Define multiplication by constant
 
@@ -102,12 +109,14 @@ end
 
 # Norm constraints
 
-import Base: <=
+import Base: <=, ==
 
 (<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL0,T3}, r::Integer) =
 Term(IndBallL0(round(Int,r/t.lambda)), t.A)
 (<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL1,T3}, r::Real) =    Term(IndBallL1(r/t.lambda), t.A)
 (<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL2,T3}, r::Real) =    Term(IndBallL2(r/t.lambda), t.A)
+
+(==)(t::Term{T1,T2,T3} where {T1,T2 <: NormL2,T3}, r::Real) =    Term(IndSphereL2(r/t.lambda), t.A)
 
 # Least square terms
 

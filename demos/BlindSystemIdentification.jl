@@ -20,19 +20,19 @@ for i = 1:Km
 end
 
 h = Variable(randn(Nh,Km))
-cf = emptycostfun() #empty cost function
+cf = () #empty cost function
 	
 #create cost function
 for i = 1:Km-1,j = i+1:Km
 	cf += ls( filt( zeropad(h[:,j],Nzp), y[:,i]) - filt( zeropad(h[:,i],Nzp), y[:,j]) )
 end
 
-tol = 1e-8
-verb = 0
+tol = 1e-3
+verb = 1
 slv = ZeroFPR(tol = tol, verbose = verb)
 #slv = FPG(tol = tol, verbose = verb)
 
-slv = minimize(cf,norm(h) == 1, slv )
+slv = @minimize cf st norm(h) == 1 with slv 
 println(slv)
 
 # Normalized Projection Misalignment

@@ -25,12 +25,12 @@ export @minimize, st, with
 immutable st end
 immutable with end
 
-macro minimize(cf::Expr)
+macro minimize(cf::Union{Expr,Symbol})
 	cost = esc(cf)
 	return :(     solve!( problem($(cost)), default_slv())    )
 end
 
-macro minimize(cf::Expr, s::Symbol, cstr::Expr)
+macro minimize(cf::Union{Expr,Symbol}, s::Symbol, cstr::Union{Expr,Symbol})
 	cost = esc(cf)
 	if s == :(st)
 		constraints = esc(cstr)
@@ -43,7 +43,7 @@ macro minimize(cf::Expr, s::Symbol, cstr::Expr)
 	end
 end
 
-macro minimize(cf::Expr, s::Symbol, cstr::Expr, w::Symbol, slv::Union{Symbol,Expr})
+macro minimize(cf::Union{Expr,Symbol}, s::Symbol, cstr::Union{Expr,Symbol}, w::Symbol, slv::Union{Symbol,Expr})
 	cost = esc(cf)
 	s != :(st) && error("wrong symbol after cost function! use `st`")
 	constraints = esc(cstr)

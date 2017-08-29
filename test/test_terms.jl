@@ -38,7 +38,6 @@ cf = pi*norm(x,2)
 @test cf.lambda - pi == 0
 @test cf.f(~x) == norm(~x)
 
-
 cf = 3*sum(norm(X),1)
 @test cf.lambda - 3 == 0
 @test cf.f(~X) == sum(sqrt.(sum((~X).^2,1))) 
@@ -52,6 +51,10 @@ cf = 4*sum(norm(X),2)
 cf = norm(x, 2) <= 2.3
 @test cf.lambda == 1
 @test cf.f(~x) == (IndBallL2(2.3))(~x)
+
+cf = norm(x, 2) == 2.3
+@test cf.lambda == 1
+@test cf.f(~x) == (IndSphereL2(2.3))(~x)
 
 cf = norm(x, Inf)
 @test cf.lambda == 1
@@ -107,6 +110,21 @@ cf = hingeloss(x,b)
 
 x = Variable(10)
 cf = ls(x) + 10*norm(x, 1)
+@test cf[1].lambda == 1
+@test cf[1].f(~x) == 0.5*norm(~x)^2
+@test cf[2].lambda == 10
+@test cf[2].f(~x) == norm(~x,1)
+
+x = Variable(10)
+cf = () #empty cost function 
+cf += 10*norm(x, 1)
+@test length(cf) == 1
+@test cf[1].lambda == 10
+@test cf[1].f(~x) == 10*norm(~x,1)
+
+x = Variable(10)
+cf = () #empty cost function 
+cf += ls(x) + 10*norm(x, 1)
 @test cf[1].lambda == 1
 @test cf[1].f(~x) == 0.5*norm(~x)^2
 @test cf[2].lambda == 10
