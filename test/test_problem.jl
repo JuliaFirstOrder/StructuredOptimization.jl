@@ -233,3 +233,5 @@ slv = @minimize ls(A*x - b) st norm(x, 1) <= 1.0
 slv = @minimize ls(A*x - b) + norm(x, 1) with PG()
 ~x .= 0.
 slv = @minimize ls(A*x - b) + norm(x, 1)
+~x .= 0.
+slv = @minimize ls(A*x - b) 

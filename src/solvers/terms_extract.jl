@@ -84,19 +84,23 @@ function extract_proximable{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
 		end
 		fs = (fs...,fx)
 	end
-	return SeparableSum(fs)
+	if length(fs) > 1
+		return SeparableSum(fs)  ##probably change constructor in Prox?
+	else
+		return fs[1]
+	end
 end
 
 extract_proximable(xAll::Tuple{Variable}, t::Term) = extract_functions(t)
 extract_proximable{N}(xAll::NTuple{N,Variable}, t::Term) = extract_proximable(xAll,(t,))
 extract_proximable(xAll::Tuple{Variable}, t::Tuple{Term}) =  extract_proximable(xAll,t[1])
 
-function extract_proximable{M}(xAll::Tuple{Variable}, t::NTuple{M,Term})
-	#this case should happen only when all Terms in t are GetIndex
-	fs, idxs = [], []
-	for ti in t
-		push!(fs,extract_functions(ti))
-		push!(idxs,operator(ti).idx)
-	end
-	return SlicedSeparableSum(fs,idxs)
-end
+#function extract_proximable{M}(xAll::Tuple{Variable}, t::NTuple{M,Term})
+#	#this case should happen only when all Terms in t are GetIndex
+#	fs, idxs = [], []
+#	for ti in t
+#		push!(fs,extract_functions(ti))
+#		push!(idxs,operator(ti).idx)
+#	end
+#	return SlicedSeparableSum(fs,idxs)
+#end
