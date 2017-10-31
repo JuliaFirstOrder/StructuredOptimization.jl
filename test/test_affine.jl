@@ -183,6 +183,14 @@ x = Variable(randn(m))
 ex = A*x
 @test norm(operator(ex)*(~x)-op*(~x)) <1e-12
 
+# MatrixMul
+n,m = 3,4
+b = randn(m)
+op = MatrixMul(Float64,(n,m),b)
+X = Variable(randn(n,m))
+ex = X*b
+@test norm(operator(ex)*(~X)-op*(~X)) <1e-12
+
 # DiagOp
 n = 3
 d = randn(n)
@@ -210,6 +218,13 @@ n = 5
 op = IDFT(Float64,(n,))
 x = Variable(randn(n))
 ex = ifft(x)
+@test norm(operator(ex)*(~x)-op*(~x)) <1e-12
+
+# RDFT
+n = 5
+op = RDFT(Float64,(n,))
+x = Variable(randn(n))
+ex = rfft(x)
 @test norm(operator(ex)*(~x)-op*(~x)) <1e-12
 
 # DCT

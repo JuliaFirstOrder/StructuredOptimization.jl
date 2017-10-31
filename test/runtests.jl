@@ -13,7 +13,7 @@ srand(0)
 end
 
 @testset "syntax/AffineExpression" begin
-  include("test_variables_expressions.jl")
+  include("test_affine.jl")
 end
 
 @testset "syntax/Terms" begin

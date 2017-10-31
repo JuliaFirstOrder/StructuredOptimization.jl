@@ -179,6 +179,13 @@ end
 # special cases
 import Base: *, reshape
 
+#MatrixMul
+function (*){T<:AbstractExpression}(m::T, a::AbstractVector)
+	M = convert(AffineExpression,m)
+	op = MatrixMul(codomainType(operator(M)),size(operator(M),2),a)
+	return op*M
+end
+
 #MatrixOp
 function (*){T<:AbstractExpression}(M::AbstractMatrix, a::T)
 	A = convert(AffineExpression,a)
@@ -213,6 +220,7 @@ end
 
 imported = [:getindex :GetIndex;
 	    :fft      :DFT;
+	    :rfft     :RDFT;
 	    :ifft     :IDFT;
 	    :dct      :DCT;
 	    :idct     :IDCT;
