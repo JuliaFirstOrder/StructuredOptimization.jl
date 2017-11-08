@@ -68,19 +68,27 @@ function sort_and_extract{N}(xAll::NTuple{N,Variable}, t::Term)
 	return operator(t)[p]
 end
 
-function extract_proximable{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
+function extract_proximable(xAll::NTuple{N,Variable}, t::NTuple{M,Term}) where {N,M}
 	fs = ()
 	for x in xAll
 		tx = () #terms containing x
 		for ti in t
 			if x in variables(ti)
-				tx = (tx...,ti)
+				tx = (tx...,ti) #collect terms containing x
 			end
 		end
 		if isempty(tx)
 			fx = IndFree()
-		else
-			fx = extract_proximable((x,),tx)
+		elseif length(tx) == 1          #only one term per variable
+			fx = extract_proximable(x,tx[1])
+		else                            #multiple terms per variable
+			                        #currently this happens only with GetIndex
+			fxi,idxs = [],[]
+			for ti in tx
+				push!(fxi,extract_functions(ti))
+				push!(idxs,operator(ti).idx)
+			end
+			fx = SlicedSeparableSum(fxi,idxs)
 		end
 		fs = (fs...,fx)
 	end
@@ -91,16 +99,6 @@ function extract_proximable{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
 	end
 end
 
-extract_proximable(xAll::Tuple{Variable}, t::Term) = extract_functions(t)
-extract_proximable{N}(xAll::NTuple{N,Variable}, t::Term) = extract_proximable(xAll,(t,))
-extract_proximable(xAll::Tuple{Variable}, t::Tuple{Term}) =  extract_proximable(xAll,t[1])
+extract_proximable(xAll::Variable, t::Term) =  extract_functions(t)
+extract_proximable(xAll::NTuple{N,Variable}, t::Term) where {N} = extract_proximable(xAll,(t,))
 
-#function extract_proximable{M}(xAll::Tuple{Variable}, t::NTuple{M,Term})
-#	#this case should happen only when all Terms in t are GetIndex
-#	fs, idxs = [], []
-#	for ti in t
-#		push!(fs,extract_functions(ti))
-#		push!(idxs,operator(ti).idx)
-#	end
-#	return SlicedSeparableSum(fs,idxs)
-#end

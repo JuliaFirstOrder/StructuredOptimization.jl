@@ -3,41 +3,39 @@ using AbstractOperators
 using DSP
 
 srand(17)
+save_stuff = false
 
-fs = 8e3
-Nt = round(Int64,fs/35) #time samples
+fs = 16e3
+Nt = 2^8 #time samples
 y0 = zeros(Nt)
-SNR = 15
+SNR = 10
 
-s = 10 #super-resolution factor
-f_s = 0:fs/(s*Nt-1):fs        # super resolution frequency axis
-t = 0:1/fs:(Nt-1)/fs    # time axis
-f = 0:fs/Nt:fs/2        # frequency axis
-K = 14                  # number of sinusoids
-fk = f_s[randperm(500)[1:K]] #sinusoids frequencies
+s = 6 #super-resolution factor
+f_s  = linspace(0,  fs,       s*Nt+1)[1:end-1]     # super resolution frequency axis
+f_s2 = linspace(0,fs/2,div(s*Nt,2)+1)              # super resolution frequency axis (up to Nyquist)
+t  = 0:1/fs:(Nt-1)/fs                              # time axis
+f  = linspace(0,fs,Nt+1)[1:end-1]                  # frequency axis
+f2 = linspace(0,fs/2,div(Nt,2)+1)                  # frequency axis
+K = 14                                             # number of sinusoids
+fk = f_s2[randperm(div(s*Nt,2)+1)[1:K]]            #sinusoids frequencies
 ak = 0.1*randn(K)+0.7           # amplitude
 
 for i in eachindex(fk) y0 .+= ak[i].*sin.(2*π*fk[i].*t) end
-y = y0+10^(-SNR/10)*sqrt(var(y0))*randn(length(y0))
-xdft = rfft(y)          # dft of y
+y = y0.+10^(-SNR/10)*sqrt(var(y0))*randn(length(y0))
+xdft = fft(y)          # dft of y
 
-xzp = fft([y;zeros((s-1)*length(y))])
+xzp = rfft([y;zeros((s-1)*length(y))])
 
-
-F = (DFT(s*Nt)')[1:Nt] 
+F = (s*Nt*IRDFT((div(s*Nt,2)+1,),s*Nt))[1:Nt] 
 lambda_max = norm(F'*y, Inf)
 
-x = Variable(zeros(Complex{Float64},s*Nt))
-lambda = 0.02*lambda_max
+x = Variable(zeros(Complex{Float64},div(s*Nt,2)+1))
+lambda = 0.06*lambda_max
 
-@minimize ls(F*x-y)+lambda*norm(x,1) with ZeroFPR(tol = 1e-4)
-
+@minimize ls(F*x-y)+lambda*norm(x,1)  
 x1 = copy(~x)
 
-#~x .= x1.*(abs.(x1) .> 0.07)
-
-@minimize ls(F*x-y) st norm(x,0) <= K*2 with ZeroFPR(tol = 1e-4)
-
+@minimize ls(F*x-y) st norm(x,0) <= K 
 x0 = copy(~x)
 
 Nf = 573 #just to cut off stuff not plotted 
@@ -50,12 +48,10 @@ plot(t,y0, label = "ground truth")
 plot(t,F*x1, "k", label = "recovered")
 legend()
 subplot(2,1,2)
-plot(f_s[1:Nf],abs.(xzp./Nt )[1:Nf] , label = "dft zero pad.")
+plot(f_s2,abs.(xzp./Nt ), label = "dft zero pad.")
 plot(f,        abs.(xdft./Nt)       , label = "dft")
-plot(fk,       abs.(ak)/2     , "rd", label = "true amp.")
-plot(f_s[1:Nf],abs.(x1)[1:Nf] , "k*", label = "LASSO")
-#plot(f_s[1:Nf],abs.(x1t)[1:Nf] , "mo", label = "IC")
-plot(f_s[1:Nf],abs.(x0)[1:Nf] , "go", label = "IndBallL0")
-xlim([0;2000])
+plot(fk,       abs.(ak)/2     , "r*", label = "true amp.")
+plot(f_s2,abs.(x1), "k*", label = "LASSO")
+plot(f_s2,abs.(x0), "go", label = "IndBallL0")
+xlim([0;fs/2])
 legend()
-

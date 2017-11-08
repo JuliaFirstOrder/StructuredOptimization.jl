@@ -149,13 +149,13 @@ f = RegLS.extract_proximable(xAll,cf)
 @test norm(f(~x) - 10*norm(~x-b,1)) < 1e-12
 
 # single variable, multiple terms with GetIndex
-# x = Variable(randn(5))
-# b = randn(2)
-# cf = 10*norm(x[1:2]-b,1)+norm(x[3:5],2)
-# xAll = RegLS.extract_variables(cf)
-# @test RegLS.is_proximable(cf) == true
-# f = RegLS.extract_proximable(xAll,cf)
-# @test norm(f(~x) - sum([10*norm((~x)[1:2]-b,1);norm((~x)[3:5],2)])) < 1e-12
+ x = Variable(randn(5))
+ b = randn(2)
+ cf = 10*norm(x[1:2]-b,1)+norm(x[3:5],2)
+ xAll = RegLS.extract_variables(cf)
+ @test RegLS.is_proximable(cf) == true
+ f = RegLS.extract_proximable(xAll,cf)
+ @test norm(f(~x) - sum([10*norm((~x)[1:2]-b,1);norm((~x)[3:5],2)])) < 1e-12
 
 # multiple variables, multiple terms
 x1 = Variable(randn(5))
@@ -194,17 +194,17 @@ f = RegLS.extract_proximable(xAll,cf)
 @test norm(f.fs[2](~x2)-10*norm(~x2-b2,1) ) < 1e-12
 
 # multiple variables, multiple terms, with GetIndex
-# x1 = Variable(randn(5))
-# b1 = randn(5)
-# x2 = Variable(randn(3))
-# b2 = randn(3)
-#
-# cf = norm(x1[3:5]+b1[3:5],1)+10*norm(x2-b2,1)+norm(x1[1:2]+b1[1:2],2)
-# xAll = (x1,x2)
-# @test RegLS.is_proximable(cf) == true
-# f = RegLS.extract_proximable(xAll,cf)
-# @test norm(f.fs[1](~x1)-norm((~x1)[1:2]+b1[1:2],2)-norm((~x1)[3:5]+b1[3:5],1) ) < 1e-12
-# @test norm(f.fs[2](~x2)-10*norm(~x2-b2,1) ) < 1e-12
+x1 = Variable(randn(5))
+b1 = randn(5)
+x2 = Variable(randn(3))
+b2 = randn(3)
+
+cf = norm(x1[3:5]+b1[3:5],1)+10*norm(x2-b2,1)+norm(x1[1:2]+b1[1:2],2)
+xAll = (x1,x2)
+@test RegLS.is_proximable(cf) == true
+f = RegLS.extract_proximable(xAll,cf)
+@test norm(f.fs[1](~x1)-norm((~x1)[1:2]+b1[1:2],2)-norm((~x1)[3:5]+b1[3:5],1) ) < 1e-12
+@test norm(f.fs[2](~x2)-10*norm(~x2-b2,1) ) < 1e-12
 
 @printf("\nTesting problem construction\n")
 

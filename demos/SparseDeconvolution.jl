@@ -2,6 +2,7 @@ using RegLS
 using AbstractOperators
 using RIM
 
+save_stuff = false
 srand(123)
 
 Fs = 4000        # sampling frequency
@@ -36,7 +37,7 @@ x1 = copy(~x0)
 
 ~x0 .= 0.
 
-@minimize ls(H*x0-y)+1e-12*norm(x0,1) with ZeroFPR(verbose = 0) 
+@minimize ls(H*x0-y)+1e-12*norm(x0,1) 
 
 xu = copy(~x0) #unregularized
 

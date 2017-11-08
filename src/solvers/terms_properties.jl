@@ -1,27 +1,3 @@
-# check terms are proximable
-# is_proximable{N}(xAll::NTuple{N,Variable}, t::Term) = is_AAc_diagonal(t)
-#
-# function is_proximable{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
-# 	all(is_AAc_diagonal(t)) == false && return false
-# 	var_appears = zeros(Int,N)
-# 	is_there_a_GetIndex = false
-# 	for i in eachindex(xAll)
-# 		for ti in t
-# 			if xAll[i] in variables(ti)
-# 				# special case if operator is GetIndex,
-# 				# there can be multiple terms with same varibles
-# 				if typeof(operator(ti)) <: GetIndex
-# 					if is_there_a_GetIndex == false var_appears[i] += 1 end
-# 					is_there_a_GetIndex = true
-# 				else
-# 					var_appears[i] += 1
-# 				end
-# 			end
-# 		end
-# 	end
-# 	return all(var_appears .<= 1) ? true : false
-# end
-
 is_proximable(term::Term) = is_AAc_diagonal(term)
 
 function is_proximable(terms::Tuple)
@@ -36,13 +12,20 @@ function is_proximable(terms::Tuple)
 	end
 	# Check that each variable occurs in only one term
 	for v in vars
-		if length([t for t in terms if v in variables(t)]) != 1
-			return false
+		tv = [t for t in terms if v in variables(t)]
+		if length(tv) != 1
+			#TODO make this more general
+			if all( (<:).(typeof.(operator.(tv)), GetIndex) )
+				return true
+			else
+				return false
+			end
 		end
 	end
 	# NOTE: I see why GetIndex requires a special case. However, it is a more
 	# general case than just GetIndex, and I would postpone its implementation,
 	# unless we have a very concrete and important example where this is
 	# strictly required...
+	# I agree... but we have this in the Audio Declipping demo!
 	return true
 end
