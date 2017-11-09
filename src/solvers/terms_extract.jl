@@ -83,10 +83,11 @@ function extract_proximable(xAll::NTuple{N,Variable}, t::NTuple{M,Term}) where {
 			fx = extract_proximable(x,tx[1])
 		else                            #multiple terms per variable
 			                        #currently this happens only with GetIndex
-			fxi,idxs = [],[]
+		
+			fxi,idxs = (),()
 			for ti in tx
-				push!(fxi,extract_functions(ti))
-				push!(idxs,operator(ti).idx)
+				fxi  = (fxi..., extract_functions(ti))
+				idxs = (idxs...,operator(ti).idx     )
 			end
 			fx = SlicedSeparableSum(fxi,idxs)
 		end
