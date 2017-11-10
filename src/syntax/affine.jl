@@ -1,15 +1,11 @@
 import Base: +, -, *, convert
 export variables, operator, displacement
 
-immutable AffineExpression{N} <: AbstractExpression
+immutable Expression{N} <: AbstractExpression
 	x::NTuple{N,Variable}
 	L::AbstractOperator
 	b::Union{Number, AbstractArray}
-	function AffineExpression{N}(x::NTuple{N,Variable},L,b) where {N}
-
-		# checks operator is Linear
-		is_linear(L) == false && throw(ArgumentError(
-	"AffineExperssion must be linear"))
+	function Expression{N}(x::NTuple{N,Variable},L,b) where {N}
 
 		# checks on L
 		ndoms(L,1) > 1 && throw(ArgumentError(
@@ -44,30 +40,30 @@ immutable AffineExpression{N} <: AbstractExpression
 	end
 end
 
-convert{T,N,A}(::Type{AffineExpression},x::Variable{T,N,A}) =
-AffineExpression{1}((x,),Eye(T,size(x)),zero(T))
+convert{T,N,A}(::Type{Expression},x::Variable{T,N,A}) =
+Expression{1}((x,),Eye(T,size(x)),zero(T))
 
 # constructors
 
-# multipy expressions
+# multipy expressions with AbstractOperator
 function (*){T1 <: AbstractOperator, T2 <: AbstractExpression}(L::T1, a::T2)
-	A = convert(AffineExpression,a)
+	A = convert(Expression,a)
 	if typeof(displacement(A)) <: Number
 		b = displacement(A) == 0. ? zero(codomainType(L)) :
 		L*(displacement(A)*ones(codomainType(operator(A)),size(operator(A),1)))
 	else
 		b = L*displacement(A)
 	end
-	AffineExpression{length(A.x)}(A.x,L*operator(A),b)
+	Expression{length(A.x)}(A.x,L*operator(A),b)
 end
 
 # sum expressions
 function (+){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
-	A = convert(AffineExpression,a)
-	B = convert(AffineExpression,b)
+	A = convert(Expression,a)
+	B = convert(Expression,b)
 	b = displacement(A)+displacement(B)
 	if variables(A) == variables(B)
-		return AffineExpression{length(A.x)}(A.x,operator(A)+operator(B),b)
+		return Expression{length(A.x)}(A.x,operator(A)+operator(B),b)
 	else
 		opA = operator(A)
 		xA = variables(A)
@@ -75,17 +71,17 @@ function (+){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
 		xB = variables(B)
 
 		xNew, opNew = Usum_op(xA,xB,opA,opB,true)
-		return AffineExpression{length(xNew)}(xNew,opNew,b)
+		return Expression{length(xNew)}(xNew,opNew,b)
 	end
 
 end
 
 function (-){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
-	A = convert(AffineExpression,a)
-	B = convert(AffineExpression,b)
+	A = convert(Expression,a)
+	B = convert(Expression,b)
 	b = displacement(A)-displacement(B)
 	if variables(A) == variables(B)
-		return AffineExpression{length(A.x)}(A.x,operator(A)-operator(B),b)
+		return Expression{length(A.x)}(A.x,operator(A)-operator(B),b)
 	else
 		opA = operator(A)
 		xA = variables(A)
@@ -93,28 +89,30 @@ function (-){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
 		xB = variables(B)
 
 		xNew, opNew = Usum_op(xA,xB,opA,opB,false)
-		return AffineExpression{length(xNew)}(xNew,opNew,b)
+		return Expression{length(xNew)}(xNew,opNew,b)
 	end
 
 end
 
-function Usum_op{L1<:AbstractOperator,
-		 L2<:AbstractOperator}(xA::Tuple{Variable},
-				       xB::Tuple{Variable},
-				       A::L1,
-				       B::L2,sign::Bool)
+#unsigned sum operators with single variables
+function Usum_op(xA::Tuple{Variable},
+		 xB::Tuple{Variable},
+		 A::L1,
+		 B::L2,sign::Bool) where {L1<:AbstractOperator,
+					  L2<:AbstractOperator}
 	xNew  = (xA...,xB...)
 	opNew = sign ? hcat(A,B) : hcat(A,-B)
 	return xNew, opNew
 end
 
-function Usum_op{N,M,L1<:HCAT{M,N},
-		 L2<:AbstractOperator}(xA::NTuple{N,Variable},
-				       xB::Tuple{Variable},
-				       A::L1,
-				       B::L2,sign::Bool)
+#unsigned sum: HCAT + AbstractOperator
+function Usum_op(xA::NTuple{N,Variable},
+		 xB::Tuple{Variable},
+		 A::L1,
+		 B::L2,sign::Bool) where {N,M,L1<:HCAT{M,N},
+					  L2<:AbstractOperator}
 	if xB[1] in xA
-		idx = findfirst(xB.==xA)
+		idx = findfirst(xA.==xB[1])
 		S = sign ? A[idx]+B : A[idx]-B
 		xNew = xA
 		opNew = hcat(A[1:idx-1],S,A[idx+1:N]  )
@@ -126,13 +124,15 @@ function Usum_op{N,M,L1<:HCAT{M,N},
 	return xNew, opNew
 end
 
-function Usum_op{N,M,L1<:AbstractOperator,
-		 L2<:HCAT{M,N}     }(xA::Tuple{Variable},
-		                     xB::NTuple{N,Variable},
-				     A::L1,
-				     B::L2,sign::Bool)
+#unsigned sum: AbstractOperator+HCAT
+function Usum_op(xA::Tuple{Variable},
+		 xB::NTuple{N,Variable},
+		 A::L1,
+		 B::L2,sign::Bool) where {N,M,
+					  L1<:AbstractOperator,
+					  L2<:HCAT{M,N}     }
 	if xA[1] in xB
-		idx = findfirst(xA.==xB)
+		idx = findfirst(xA.==xB[1])
 		S = sign ? A+B[idx] : B[idx]-A
 		xNew = xB
 		opNew = sign ? hcat(B[1:idx-1],S,B[idx+1:N]  ) : -hcat(B[1:idx-1],S,B[idx+1:N]  )
@@ -144,11 +144,13 @@ function Usum_op{N,M,L1<:AbstractOperator,
 	return xNew, opNew
 end
 
-function Usum_op{NA,NB,M,L1<:HCAT{M,NB},
-		 L2<:HCAT{M,NB}     }(xA::NTuple{NA,Variable},
-		                      xB::NTuple{NB,Variable},
-				      A::L1,
-				      B::L2,sign::Bool)
+#unsigned sum: HCAT+HCAT
+function Usum_op(xA::NTuple{NA,Variable},
+		 xB::NTuple{NB,Variable},
+		 A::L1,
+		 B::L2,sign::Bool) where {NA,NB,M,
+					  L1<:HCAT{M,NB},
+					  L2<:HCAT{M,NB}     }
 	xNew = xA
 	opNew = A
 	for i in eachindex(xB)
@@ -157,70 +159,107 @@ function Usum_op{NA,NB,M,L1<:HCAT{M,NB},
 	return xNew,opNew
 end
 
+#unsigned sum: multivar AbstractOperator + AbstractOperator
+function Usum_op(xA::NTuple{N,Variable},
+		 xB::Tuple{Variable},
+		 A::L1,
+		 B::L2,sign::Bool) where {N,
+					  L1<:AbstractOperator,
+					  L2<:AbstractOperator}
+	if xB[1] in xA
+		Z = Zeros(A)       #this will be an HCAT
+		xNew, opNew = Usum_op(xA,xB,Z,B,sign)
+		opNew += A
+	else
+		xNew  = (xA...,xB...)
+		opNew = sign ? hcat(A,B) : hcat(A,-B)
+	end
+	return xNew, opNew
+end
+
 # sum with array/scalar
-function (+){T1 <: AbstractExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2)
-	A = convert(AffineExpression,a)
-	return AffineExpression{length(A.x)}(A.x,operator(A),displacement(A)+b)
+function (+)(a::T1, b::T2) where {T1 <: AbstractExpression, T2 <: Union{AbstractArray,Number}}
+	A = convert(Expression,a)
+	return Expression{length(A.x)}(A.x,operator(A),displacement(A)+b)
 end
 
-(+){T1 <: Union{AbstractArray,Number}, T2 <: AbstractExpression}(a::T1, b::T2) = b+a
+(+)(a::T1, b::T2) where {T1 <: Union{AbstractArray,Number}, T2 <: AbstractExpression} = b+a
 
-function (-){T1 <: AbstractExpression, T2 <: Union{AbstractArray,Number}}(a::T1, b::T2)
-	A = convert(AffineExpression,a)
-	return AffineExpression{length(A.x)}(A.x,operator(A),displacement(A)-b)
+function (-)(a::T1, b::T2) where {T1 <: AbstractExpression, T2 <: Union{AbstractArray,Number}}
+	A = convert(Expression,a)
+	return Expression{length(A.x)}(A.x,operator(A),displacement(A)-b)
 end
 
-function (-){T1 <: Union{AbstractArray,Number}, T2 <: AbstractExpression}(a::T1, b::T2)
-	B = convert(AffineExpression,b)
-	return AffineExpression{length(B.x)}(B.x,-operator(B),a-displacement(B))
+function (-)(a::T1, b::T2) where {T1 <: Union{AbstractArray,Number}, T2 <: AbstractExpression}
+	B = convert(Expression,b)
+	return Expression{length(B.x)}(B.x,-operator(B),a-displacement(B))
 end
 
 # AbstractOperators binding
 # special cases
 import Base: *, reshape
 
-#MatrixMul
-function (*){T<:AbstractExpression}(m::T, a::AbstractVector)
-	M = convert(AffineExpression,m)
-	op = MatrixMul(codomainType(operator(M)),size(operator(M),2),a)
+#NonLinearCompose
+function (*)(ex1::T1, ex2::T2) where {T1<:AbstractExpression,T2<:AbstractExpression}
+	ex1 = convert(Expression,ex1)
+	ex2 = convert(Expression,ex2)
+	op = NonLinearCompose(operator(ex1),operator(ex2))
+	d = (displacement(ex1) != 0 && displacement(ex2) != 0) ? displacement(ex1)*displacement(ex2) : 
+	zero(codomainType(op))
+	x = (variables(ex1)...,variables(ex2)...) 
+	exp3 = Expression{length(x)}(x,op,d)
+	if displacement(ex2) != 0.
+		exp3 += Expression{length(ex1.x)}(ex1.x,ex1.L,0.)*displacement(ex2)
+	end
+	if displacement(ex1) != 0.
+		exp3 += displacement(ex1)*Expression{length(ex2.x)}(ex2.x,ex2.L,0.)
+	end
+	return exp3 
+end
+
+#LMatrixOp
+function (*)(m::T, a::Union{AbstractVector,AbstractMatrix}) where {T<:AbstractExpression}
+	M = convert(Expression,m)
+	op = LMatrixOp(codomainType(operator(M)),size(operator(M),1),a)
 	return op*M
 end
 
 #MatrixOp
-function (*){T<:AbstractExpression}(M::AbstractMatrix, a::T)
-	A = convert(AffineExpression,a)
+function (*)(M::AbstractMatrix, a::T) where {T<:AbstractExpression}
+	A = convert(Expression,a)
 	op = MatrixOp(codomainType(operator(A)),size(operator(A),1),M)
 	return op*A
 end
 
 #DiagOp
-function Base.broadcast{T<:AbstractExpression}(::typeof(*), d::AbstractArray, a::T)
-	A = convert(AffineExpression,a)
+function Base.broadcast(::typeof(*), d::AbstractArray, a::T) where {T<:AbstractExpression}
+	A = convert(Expression,a)
 	op = DiagOp(codomainType(operator(A)),size(operator(A),1),d)
 	return op*A
 end
 
 #Scale
-function (*){T1<:Number, T<:AbstractExpression}(coeff::T1, a::T)
-	A = convert(AffineExpression,a)
-	return AffineExpression{length(A.x)}(A.x,coeff*operator(A),displacement(A)-b)
+function (*)(coeff::T1, a::T) where {T1<:Number, T<:AbstractExpression}
+	A = convert(Expression,a)
+	return Expression{length(A.x)}(A.x,coeff*operator(A),displacement(A)-b)
 end
 
 #Reshape
-function reshape{T<:AbstractExpression}(a::T, dims...)
-	A = convert(AffineExpression,a)
+function reshape(a::T, dims...) where {T<:AbstractExpression}
+	A = convert(Expression,a)
 	op = Reshape(A.L, dims...)
 	if typeof(displacement(A)) <: Number
 		b = displacement(A)
 	else
 		b = reshape(displacement(A), dims...)
 	end
-	return AffineExpression{length(A.x)}(A.x,op,b)
+	return Expression{length(A.x)}(A.x,op,b)
 end
 
 imported = [:getindex :GetIndex;
 	    :fft      :DFT;
 	    :rfft     :RDFT;
+	    :irfft    :IRDFT;
 	    :ifft     :IDFT;
 	    :dct      :DCT;
 	    :idct     :IDCT;
@@ -233,6 +272,8 @@ exported = [:finitediff :FiniteDiff;
 	    :variation  :Variation;
 	    :mimofilt   :MIMOFilt;
 	    :zeropad    :ZeroPad;
+	    :sigmoid    :Sigmoid;
+	    :σ          :Sigmoid; #alias
 	    ]
 
 #importing functions from Base
@@ -248,12 +289,13 @@ for f in  exported[:,1]
 	end
 end
 
+
 fun = [imported; exported]
 for i = 1:size(fun,1)
 	f,fAbsOp = fun[i,1],fun[i,2]
 	@eval begin
 		function $f{T<:AbstractExpression}(a::T,args...)
-			A = convert(AffineExpression,a)
+			A = convert(Expression,a)
 			op = $fAbsOp(codomainType(operator(A)),size(operator(A),1), args...)
 			return op*A
 		end
@@ -261,6 +303,6 @@ for i = 1:size(fun,1)
 end
 
 # Properties
-variables(A::AffineExpression)    = A.x
-operator(A::AffineExpression)     = A.L
-displacement(A::AffineExpression) = A.b
+variables(A::Expression)    = A.x
+operator(A::Expression)     = A.L
+displacement(A::Expression) = A.b

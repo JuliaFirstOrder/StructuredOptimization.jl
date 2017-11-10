@@ -31,26 +31,46 @@ ex1 = opA1*x1
 @test operator(ex1)*(~x1) == A1*(~x1)
 B1 = randn(k, n)
 opB1 = MatrixOp(B1)
-# multiply with AffineExpression
+# multiply with Expression
 ex2 = opB1*ex1
 @test variables(ex2) == (x1,)
 @test norm(operator(ex2)*(~x1) - B1*A1*(~x1)) < 1e-12
-# multiply with AffineExpression with multiple variables
+# multiply with Expression with multiple variables
 ex3 = opB1*(opA1*x1+opA2*x2)
 @test variables(ex3) == (x1,x2)
 @test norm(operator(ex3)*(~x1,~x2) - B1*(A1*(~x1)+A2*(~x2))) < 1e-12
-# multiply with displacemented Array AffineExpression with multiple variables
+# multiply with displacemented Array Expression with multiple variables
 ex3 = opB1*(opA1*x1+opA2*x2+b)
 @test variables(ex3) == (x1,x2)
 @test norm(displacement(ex3) - B1*b) < 1e-12
-# multiply with displacemented scalar AffineExpression with multiple variables
+# multiply with displacemented scalar Expression with multiple variables
 ex3 = opB1*(opA1*x1+opA2*x2+b0)
 @test variables(ex3) == (x1,x2)
 @test norm(displacement(ex3) - B1*(ones(size(B1,2))*b0)) < 1e-12
-
 @test_throws ArgumentError MatrixOp(randn(n,m1+1))*x1
 @test_throws ArgumentError MatrixOp(randn(n,m1))*Variable(Complex{Float64},m1)
 
+n, m1, m2, k = 3, 4, 5, 6
+A1 = randn(n, m1)
+A2 = randn(n, m2)
+b1 = randn(n,n)
+b2 = randn(n,n)
+opA1 = MatrixOp(A1,n)
+opA2 = MatrixOp(A2,n)
+x1, x2  = Variable(randn(m1,n)), Variable(randn(m2,n))
+# multiply Expressions 
+ex = (opA1*x1)*(opA2*x2)
+@test variables(ex) == (x1,x2)
+@test norm(operator(ex)*(~x1,~x2) - (A1*(~x1))*(A2*(~x2))) < 1e-12
+ex = (opA1*x1-b1)*(opA2*x2)
+@test variables(ex) == (x1,x2)
+@test norm(operator(ex)*(~x1,~x2) - (A1*(~x1)-b1)*(A2*(~x2))) < 1e-12
+ex = (opA1*x1)*(opA2*x2+b2)
+@test variables(ex) == (x1,x2)
+@test norm(operator(ex)*(~x1,~x2) - (A1*(~x1))*(A2*(~x2)+b2)) < 1e-12
+ex = (opA1*x1+b1)*(opA2*x2+b2)
+@test variables(ex) == (x1,x2)
+@test norm(operator(ex)*(~x1,~x2)+displacement(ex) - (A1*(~x1)+b1)*(A2*(~x2)+b2)) < 1e-12
 
 ##### reshape ####
 m,n = 8,10
@@ -183,10 +203,10 @@ x = Variable(randn(m))
 ex = A*x
 @test norm(operator(ex)*(~x)-op*(~x)) <1e-12
 
-# MatrixMul
+# LMatrixOp
 n,m = 3,4
 b = randn(m)
-op = MatrixMul(Float64,(n,m),b)
+op = LMatrixOp(Float64,(n,m),b)
 X = Variable(randn(n,m))
 ex = X*b
 @test norm(operator(ex)*(~X)-op*(~X)) <1e-12
@@ -225,6 +245,13 @@ n = 5
 op = RDFT(Float64,(n,))
 x = Variable(randn(n))
 ex = rfft(x)
+@test norm(operator(ex)*(~x)-op*(~x)) <1e-12
+
+# IRDFT
+n = 5
+op = IRDFT(Complex{Float64},(n,),8)
+x = Variable(randn(n)+im*randn(n))
+ex = irfft(x,8)
 @test norm(operator(ex)*(~x)-op*(~x)) <1e-12
 
 # DCT
@@ -298,4 +325,12 @@ n = 5
 op = ZeroPad(Float64,(n,),10)
 x = Variable(randn(n))
 ex = zeropad(x,10)
+@test norm(operator(ex)*(~x)-op*(~x)) <1e-12
+
+# Sigmoid
+n = 5
+op = Sigmoid(Float64,(n,),10)
+x = Variable(randn(n))
+ex = sigmoid(x,10)
+ex = σ(x,10)
 @test norm(operator(ex)*(~x)-op*(~x)) <1e-12

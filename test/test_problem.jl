@@ -120,6 +120,11 @@ AAc, nonAAc = RegLS.split_AAc_diagonal(cf)
 @test AAc[2] == cf[2]
 @test nonAAc[1] == cf[3]
 
+cf = ls(sigmoid(x)) + ls(x)
+quad, smooth = RegLS.split_quadratic(cf)
+@test smooth[1] == cf[1]
+@test quad[1] == cf[2]
+
 @printf("\nTesting extracting Proximable functions\n")
 # testing is_proximable
 @test RegLS.is_proximable(AAc) == true
@@ -178,7 +183,7 @@ b2 = randn(5)
 cf = 10*norm(x2+x1+b2,1)
 xAll = (x1,x2)
 @test RegLS.is_proximable(cf) == true
-#f = RegLS.extract_proximable(xAll,cf) #TODO
+f = RegLS.extract_proximable(xAll,cf) #TODO
 
 # multiple variables, missing terms
 x1 = Variable(randn(5))
@@ -206,7 +211,7 @@ f = RegLS.extract_proximable(xAll,cf)
 @test norm(f.fs[1](~x1)-norm((~x1)[1:2]+b1[1:2],2)-norm((~x1)[3:5]+b1[3:5],1) ) < 1e-12
 @test norm(f.fs[2](~x2)-10*norm(~x2-b2,1) ) < 1e-12
 
-@printf("\nTesting problem construction\n")
+@printf("\nTesting problem construction primal\n")
 
 x = Variable(10)
 A = randn(5, 10)
@@ -235,3 +240,4 @@ slv = @minimize ls(A*x - b) + norm(x, 1) with PG()
 slv = @minimize ls(A*x - b) + norm(x, 1)
 ~x .= 0.
 slv = @minimize ls(A*x - b) 
+

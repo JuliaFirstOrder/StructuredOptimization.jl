@@ -6,29 +6,15 @@ immutable Term{T1 <: Real, T2 <: ProximableFunction, T3 <: AbstractExpression}
 end
 
 function Term{T<:ProximableFunction}(f::T, ex::AbstractExpression)
-	A = convert(AffineExpression,ex)
+	A = convert(Expression,ex)
 	Term{Int,T,typeof(A)}(1,f, A)
 end
 
 # Properties
 
 variables(t::Term) = variables(t.A)
-# variables{N}(t::NTuple{N,Term}) = variables.(t)
 operator(t::Term) = operator(t.A)
-# operator{N}(t::NTuple{N,Term}) = operator.(t)
 displacement(t::Term) = displacement(t.A)
-# displacement{N}(t::NTuple{N,Term}) = displacement.(t)
-
-is_smooth(t::Term) = is_smooth(t.f)
-# is_smooth{N}(t::NTuple{N,Term}) = is_smooth.(t)
-
-is_convex(t::Term) = is_convex(t.f)
-# is_convex{N}(t::NTuple{N,Term}) = is_convex.(t)
-
-is_quadratic(t::Term) = is_quadratic(t.f)
-
-#is_strongly_convex(t::Term) = is_strongly_convex(t.f) && is_full_column_rank(operator(t.A))
-#is_strongly_convex{N}(t::NTuple{N,Term}) = is_strongly_convex.(t)
 
 #importing properties from AbstractOperators
 is_f = [:is_linear,
@@ -46,9 +32,18 @@ for f in is_f
 	@eval begin
 		import AbstractOperators: $f
 		$f(t::Term) = $f(operator(t))
-		# $f{N}(t::NTuple{N,Term}) = $f.(t)
+		$f{N}(t::NTuple{N,Term}) = all($f.(t))
 	end
 end
+
+is_smooth(t::Term) = is_smooth(t.f)
+
+is_convex(t::Term)    = is_convex(t.f) && is_linear(t)
+
+is_quadratic(t::Term) = is_quadratic(t.f) && is_linear(t)
+
+is_strongly_convex(t::Term) = is_strongly_convex(t.f) && is_full_column_rank(operator(t.A))
+
 
 # Operations
 

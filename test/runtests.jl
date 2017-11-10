@@ -33,8 +33,4 @@ end
   include("test_usage.jl")
 end
 
-# @testset "Performance" begin
-#     include("test_performance.jl")
-# end
-
 end
