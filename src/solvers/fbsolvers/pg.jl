@@ -81,7 +81,7 @@ function apply!(slv::PG, x0::T, f::ProximableFunction, L::AbstractOperator, g::P
 	grad_f_x = deepcopy(x0)
 	res_x = L*x
 	grad_f_res, f_x = gradient(f, res_x)
-	Ac_mul_B!(grad_f_x, L, grad_f_res)
+	Ac_mul_B!(grad_f_x, jacobian(L,x), grad_f_res)
 	slv.cnt_matvec += 2
 	g_x = Inf
 	cost_xprev = Inf
@@ -90,9 +90,10 @@ function apply!(slv::PG, x0::T, f::ProximableFunction, L::AbstractOperator, g::P
 	if slv.gamma == Inf
 		# compute upper bound for Lipschitz constant
 		grad_f_x_eps = deepcopy(x0)
-		res_x_eps = L*(x .+ sqrt(eps()))
+		xeps = (x .+ sqrt(eps()))
+		res_x_eps = L*xeps
 		grad_f_res_eps, = gradient(f, res_x_eps)
-		Ac_mul_B!(grad_f_x_eps, L, grad_f_res_eps)
+		Ac_mul_B!(grad_f_x_eps, jacobian(L,xeps), grad_f_res_eps)
 		slv.cnt_matvec += 2
 		Lf = deepvecnorm(grad_f_x .- grad_f_x_eps)/(sqrt(eps()*deeplength(x)))
 		slv.gamma = 1.0/Lf
@@ -155,7 +156,7 @@ function apply!(slv::PG, x0::T, f::ProximableFunction, L::AbstractOperator, g::P
 		# compute gradient and f(y)
 
 		f_y = gradient!(grad_f_res, f, res_y)
-		Ac_mul_B!(grad_f_y, L, grad_f_res)
+		Ac_mul_B!(grad_f_y, jacobian(L,y), grad_f_res)
 
 		slv.cnt_matvec += 1
 

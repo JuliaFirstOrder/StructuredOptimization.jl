@@ -241,3 +241,21 @@ slv = @minimize ls(A*x - b) + norm(x, 1)
 ~x .= 0.
 slv = @minimize ls(A*x - b) 
 
+x = Variable(5)
+A = randn(10, 5)
+b = randn(10)
+
+#TODO many many more tests
+@printf("\n Testing @minimize nonlinear \n")
+slv = @minimize ls(sigmoid(A*x,10) - b)+1e-1*norm(x,1) with PG() 
+xpg = copy(~x)
+~x .= 0.
+slv = @minimize ls(sigmoid(A*x,10) - b)+1e-1*norm(x,1) with ZeroFPR() 
+xz = copy(~x)
+~x .= 0.
+
+@test norm(xz-xpg) <1e-7
+
+
+
+

@@ -74,7 +74,7 @@ end
 function apply!(slv::ZeroFPR, x0::T,
 	f::ProximableFunction, L::AbstractOperator,
 	g::ProximableFunction) where {T <: Union{AbstractArray, Tuple}}
-	if is_quadratic(f)
+	if is_quadratic(f) && is_linear(L)
 		return apply!(slv, x0, Nullable{ProximableFunction}(), Nullable{AbstractOperator}(), Nullable(f), Nullable(L), g)
 	else
 		return apply!(slv, x0, Nullable(f), Nullable(L), Nullable{ProximableFunction}(), Nullable{AbstractOperator}(), g)
@@ -114,11 +114,11 @@ function apply!(slv::ZeroFPR, x0::T,
 
 	if !isnull(N_s)
 		s = get(N_s)
-		Ls = get(NL_s)
+		Ls = get(N_Ls)
 		grads_x = deepsimilar(x0)
 		Ls_x = Ls*x
 		grads_Ls_x, s_x = gradient(s, Ls_x)
-		Ac_mul_B!(grads_x, Ls, grads_Ls_x)
+		Ac_mul_B!(grads_x, Jacobian(Ls,x), grads_Ls_x)
 	else
 		s_x = 0.0
 		grads_x = 0.0
@@ -146,7 +146,7 @@ function apply!(slv::ZeroFPR, x0::T,
 		if !isnull(N_s)
 			Ls_xeps = Ls*xeps
 			grads_Ls_xeps, = gradient(s, Ls_xeps)
-			grads_xeps = Ls'*grads_Ls_xeps
+			grads_xeps = jacobian(Ls,xeps)'*grads_Ls_xeps
 		else
 			grads_xeps = 0.0
 		end
@@ -257,7 +257,7 @@ function apply!(slv::ZeroFPR, x0::T,
 		# forward-backward steps from xbar
 
 		if !isnull(N_s)
-			Ac_mul_B!(grads_xbar, Ls, grads_Ls_xbar)
+			Ac_mul_B!(grads_xbar, jacobian(Ls,xbar), grads_Ls_xbar)
 		else
 			grads_xbar = 0.0
 		end
@@ -308,9 +308,10 @@ function apply!(slv::ZeroFPR, x0::T,
 		for j = 1:32
 			deepaxpy!(x, xbar_prev, tau, d)
 			if !isnull(N_s)
-				deepaxpy!(Ls_x, Ls_xbar, tau, Ls_d)
+				#deepaxpy!(Ls_x, Ls_xbar, tau, Ls_d)
+				A_mul_B!(Ls_x,Ls,x) #forward pass
 				s_x = gradient!(grads_Ls_x, s, Ls_x)
-				Ac_mul_B!(grads_x, Ls, grads_Ls_x)
+				Ac_mul_B!(grads_x, jacobian(Ls,x), grads_Ls_x)
 			else
 				s_x = 0.0
 				grads_x = 0.0
