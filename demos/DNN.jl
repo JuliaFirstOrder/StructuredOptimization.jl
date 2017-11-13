@@ -29,7 +29,7 @@ lambda1 = lambda*sqrt(2*L)
 lambda2 = lambda*sqrt(L*L)
 lambda3 = lambda*sqrt(L)
 
-slv = ZeroFPR(tol = 1e-4, maxit = 20000)
+slv = ZeroFPR(tol = 1e-4, maxit = 10000)
 reg = lambda1*norm(W1,1)+lambda2*norm(W2,1)+lambda3*norm(W3,1)
 
 slv = @minimize crossentropy(  S3*(S2*((S1*(A*W1))*W2)*W3)  ,bi)+reg with slv 
@@ -44,7 +44,7 @@ S3 = Sigmoid((2,1))
 using PyPlot
 figure()
 pcolormesh(xx,yy,[sum( S3*(S2*((S1*([xi yi]*~W1))*~W2)*~W3) )  for xi in xx, yi in yy]', cmap = "Oranges" ) 
-contour(xx,yy,[sum( S3*(S2*((S1*([xi yi]*~W1))*~W2)*~W3) )  for xi in xx, yi in yy]')
+contour(xx,yy,[sum( S3*(S2*((S1*([xi yi]*~W1))*~W2)*~W3) )  for xi in xx, yi in yy]', levels = [1.])
 plot(A[Na+1:end,1],A[Na+1:end,2], "ko")
 plot(A[1:Na,1],A[1:Na,2], "r*")
 

@@ -26,10 +26,10 @@ F = [reshape(R,n*m,N); reshape(G,n*m,N); reshape(B,n*m,N)]'
 
 X = Variable(N*n*m,3)
 Y = Variable(N,3*n*m)
-slv = FPG
-slv = slv(verbose = 2, tol = 1e-3, adaptive = false, gamma = 0.5)
+slv = ZeroFPR
+slv = slv(verbose = 1, tol = 1e-3, adaptive = false, gamma = 0.5)
 
-@minimize ls(reshape(X,N,3*n*m)+Y-F)+0.1*sum(norm(X),2) st rank(Y) <= 1 with slv 
+@minimize ls(reshape(X,N,3*n*m)+Y-F)+0.1*norm(X,2,1,2) st rank(Y) <= 1 with slv 
 println(slv)
 
 Frg = copy(~X)
@@ -48,4 +48,6 @@ Frgim = [ RGB(Frgf[i,ii,1],Frgf[i,ii,2],Frgf[i,ii,3]) for i = 1:n,ii =1:m]
 imshow(img)
 imshow(Frgim)
 imshow(Bkgim)
+
+return
 

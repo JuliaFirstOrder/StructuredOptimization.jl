@@ -2,12 +2,12 @@ immutable Term{T1 <: Real, T2 <: ProximableFunction, T3 <: AbstractExpression}
 	lambda::T1
 	f::T2
 	A::T3
-	Term{T1,T2,T3}(lambda::T1, f::T2, ex::T3) where {T1,T2,T3} = new{T1,T2,T3}(lambda,f,ex)
+	Term(lambda::T1, f::T2, ex::T3) where {T1,T2,T3} = new{T1,T2,T3}(lambda,f,ex)
 end
 
 function Term{T<:ProximableFunction}(f::T, ex::AbstractExpression)
 	A = convert(Expression,ex)
-	Term{Int,T,typeof(A)}(1,f, A)
+	Term(1,f, A)
 end
 
 # Properties
@@ -65,7 +65,7 @@ import Base: *
 
 function (*){T1<:Real, T, T2, T3}(a::T1, t::Term{T,T2,T3})
 	coeff = *(promote(a,t.lambda)...)
-	Term{typeof(coeff),T2,T3}(coeff, t.f, t.A)
+	Term(coeff, t.f, t.A)
 end
 
 # Constructors
@@ -89,29 +89,27 @@ function norm(ex::AbstractExpression, p=2)
 	return Term(f, ex)
 end
 
-# Mixed Norms
-
-import Base: sum
-
-function sum{T1,T2,T3}(t::Term{T1,T2,T3}, dim = 1)
-	if T2 <: NormL2
-		f = NormL21(t.lambda,dim) 
+# Mixed Norm
+function norm(ex::AbstractExpression, p1::Int, p2::Int, dim::Int =1 )
+	if p1 == 2 && p2 == 1
+		f = NormL21(1.0,dim) 
 	else
 		error("function not implemented")
 	end
-	return Term(f, t.A)
+	return Term(f, ex)
 end
 
 # Norm constraints
 
 import Base: <=, ==
 
-(<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL0,T3}, r::Integer) =
+(<=)(t::Term{T1,T2,T3}, r::Integer) where {T1,T2 <: NormL0,T3} =
 Term(IndBallL0(round(Int,r/t.lambda)), t.A)
-(<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL1,T3}, r::Real) =    Term(IndBallL1(r/t.lambda), t.A)
-(<=)(t::Term{T1,T2,T3} where {T1,T2 <: NormL2,T3}, r::Real) =    Term(IndBallL2(r/t.lambda), t.A)
+(<=)(t::Term{T1,T2,T3}, r::Real) where {T1, T2 <: NormL1, T3} = Term(IndBallL1(r/t.lambda), t.A)
+(<=)(t::Term{T1,T2,T3}, r::Real) where {T1, T2 <: NormL2, T3} = Term(IndBallL2(r/t.lambda), t.A)
+(<=)(t::Term{T1,T2,T3}, r::Real) where {T1, T4 <: IndBallL1, T2 <: Conjugate{T4}, T3} = Term(IndBallLinf(r/t.lambda), t.A)
 
-(==)(t::Term{T1,T2,T3} where {T1,T2 <: NormL2,T3}, r::Real) =    Term(IndSphereL2(r/t.lambda), t.A)
+(==)(t::Term{T1,T2,T3}, r::Real)  where {T1,T2 <: NormL2,T3} =    Term(IndSphereL2(r/t.lambda), t.A)
 
 # Least square terms
 
@@ -167,12 +165,12 @@ import Base: <=
 
 export hingeloss
 
-hingeloss{R <: Real}(ex::AbstractExpression, b::Array{R,1}) =
+hingeloss(ex::AbstractExpression, b::Array{R,1}) where {R <: Real} =
 Term(HingeLoss(b), ex)
 
 export sqrhingeloss
 
-sqrhingeloss{R <: Real}(ex::AbstractExpression, b::Array{R,1}) =
+sqrhingeloss(ex::AbstractExpression, b::Array{R,1}) where {R <: Real} =
 Term(SqrHingeLoss(b), ex)
 
 # CrossEntropy
@@ -186,15 +184,28 @@ Term(CrossEntropy(b), ex)
 
 export logbarrier
 
-logbarrier{R <: Real}(ex::AbstractExpression, a::R) =
+logbarrier(ex::AbstractExpression, a::R) where{R <: Real} =
 Term(LogBarrier(a), ex)
 
 # HuberLoss
 
 export huberloss
 
-huberloss{R <: Real}(ex::AbstractExpression, a::R) =
+huberloss(ex::AbstractExpression, a::R) where {R <: Real} =
 Term(HuberLoss(a), ex)
+
+# Convex conjugate
+
+import Base: conj
+
+function conj(t::Term) 
+	if typeof(operator(t)) <: Eye 
+		return Term(t.lambda,Conjugate(t.f),t.A) 
+	else
+		error("cannot perform convex conjugation")
+	end
+
+end
 
 # other stuff, to make Term work with iterators
 import Base: start, next, done, isempty

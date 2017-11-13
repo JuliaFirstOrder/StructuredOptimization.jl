@@ -38,15 +38,15 @@ cf = pi*norm(x,2)
 @test cf.lambda - pi == 0
 @test cf.f(~x) == norm(~x)
 
-cf = 3*sum(norm(X),1)
+cf = 3*norm(X,2,1)
 @test cf.lambda - 3 == 0
 @test cf.f(~X) == sum(sqrt.(sum((~X).^2,1))) 
 
-cf = 4*sum(norm(X),2)
+cf = 4*norm(X,2,1,2)
 @test cf.lambda - 4 == 0
 @test cf.f(~X) == sum(sqrt.(sum((~X).^2,2))) 
 
-@test_throws ErrorException 4*sum(norm(X,1),2)
+@test_throws ErrorException 4*norm(X,1,2)
 
 cf = norm(x, 2) <= 2.3
 @test cf.lambda == 1
@@ -59,6 +59,10 @@ cf = norm(x, 2) == 2.3
 cf = norm(x, Inf)
 @test cf.lambda == 1
 @test cf.f(~x) == norm(~x,Inf)
+
+cf = norm(x, Inf) <= 5.0
+@test cf.lambda == 1
+@test cf.f(~x) == (IndBallLinf(5.0))(~x)
 
 cf = x <= 3.0
 @test cf.lambda == 1
@@ -126,6 +130,13 @@ a = 1.
 cf = huberloss(x,a)
 @test cf.lambda == 1
 @test cf.f(~x) == (HuberLoss(a))(~x)
+
+cf = 2*norm(x,1)
+ccf = conj(cf)
+@test ccf.lambda == 2
+@test ccf.A == cf.A
+@test ccf.f == Conjugate(NormL1())
+@test_throws ErrorException conj(norm(randn(2,10)*x,1))
 
 # Summing terms
 

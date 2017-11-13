@@ -54,7 +54,7 @@ function expand{N,T1,T2,T3}(xAll::NTuple{N,Variable}, t::Term{T1,T2,T3})
 			ex += Zeros(eltype(~x),size(x),C,size_out)*x
 		end
 	end
-	return Term{T1,T2,typeof(ex)}(t.lambda, t.f, ex)
+	return Term(t.lambda, t.f, ex)
 end
 
 sort_and_extract(xAll::Tuple{Variable}, t::Term) = operator(t)
