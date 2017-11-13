@@ -105,6 +105,27 @@ cf = hingeloss(x,b)
 @test cf.lambda == 1
 @test cf.f(~x) == (HingeLoss(b))(~x)
 
+b = randn(size(~x))
+cf = sqrhingeloss(x,b)
+@test cf.lambda == 1
+@test cf.f(~x) == (SqrHingeLoss(b))(~x)
+
+x = Variable(rand(10))
+b = rand(size(~x))
+cf = crossentropy(x,b)
+@test cf.lambda == 1
+@test cf.f(~x) == (CrossEntropy(b))(~x)
+
+x = Variable(randn(10))
+a = 1.
+cf = logbarrier(x,a)
+@test cf.lambda == 1
+@test cf.f(~x) == (LogBarrier(a))(~x)
+
+a = 1.
+cf = huberloss(x,a)
+@test cf.lambda == 1
+@test cf.f(~x) == (HuberLoss(a))(~x)
 
 # Summing terms
 

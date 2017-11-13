@@ -163,12 +163,38 @@ import Base: <=
 
 (<=)(t::Term{T1,T2,T3} where {T1, T2 <: Rank, T3}, r::Int) = Term(IndBallRank(round(Int,r/t.lambda)), t.A)
 
-# Hinge loss
+# HingeLoss
 
 export hingeloss
 
 hingeloss{R <: Real}(ex::AbstractExpression, b::Array{R,1}) =
 Term(HingeLoss(b), ex)
+
+export sqrhingeloss
+
+sqrhingeloss{R <: Real}(ex::AbstractExpression, b::Array{R,1}) =
+Term(SqrHingeLoss(b), ex)
+
+# CrossEntropy
+
+export crossentropy
+
+crossentropy(ex::AbstractExpression, b::Array{R,1}) where {R <: Real} =
+Term(CrossEntropy(b), ex)
+
+# LogBarrier
+
+export logbarrier
+
+logbarrier{R <: Real}(ex::AbstractExpression, a::R) =
+Term(LogBarrier(a), ex)
+
+# HuberLoss
+
+export huberloss
+
+huberloss{R <: Real}(ex::AbstractExpression, a::R) =
+Term(HuberLoss(a), ex)
 
 # other stuff, to make Term work with iterators
 import Base: start, next, done, isempty

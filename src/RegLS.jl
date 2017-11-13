@@ -16,6 +16,9 @@ import ProximalOperators: RealOrComplex,
 			  is_smooth,
 			  is_strongly_convex
 
+include("ProxStuff/functions/sqrHingeLoss.jl") #to MOVE to ProximalOperators
+include("ProxStuff/functions/crossEntropy.jl") #to MOVE to ProximalOperators
+
 include("utilities/deep.jl")
 include("syntax/syntax.jl")
 include("solvers/solvers.jl")

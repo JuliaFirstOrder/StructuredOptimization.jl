@@ -12,6 +12,10 @@ srand(0)
   include("test_deep.jl")
 end
 
+@testset "TO MOVE ProximalOperators" begin
+  include("test_proxstuff.jl")
+end
+
 @testset "syntax/AffineExpression" begin
   include("test_affine.jl")
 end
