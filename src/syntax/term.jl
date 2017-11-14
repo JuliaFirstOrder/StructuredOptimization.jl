@@ -200,7 +200,7 @@ import Base: conj
 
 function conj(t::Term) 
 	if typeof(operator(t)) <: Eye 
-		return Term(t.lambda,Conjugate(t.f),t.A) 
+		return Term(1.0,Conjugate(Postcompose(t.f,t.lambda)),t.A) 
 	else
 		error("cannot perform convex conjugation")
 	end

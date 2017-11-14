@@ -21,12 +21,12 @@ lambda = 0.07
 L = Variation(Float64,size(R))
 
 Y1 = Variable(size(L,1)...)
-slv = @minimize ls(L'*Y1-R_w)+lambda*conj(norm(Y1,1)) with slv
+slv = @minimize ls(L'*Y1-R_w)+conj(lambda*norm(Y1,1)) with slv
 println(slv)
 R1 = -(L'*(~Y1)-R_w)
 
 Y1 = Variable(size(L,1)...)
-slv = @minimize ls(L'*Y1-R_w)+lambda*conj(norm(Y1,2,1,2)) with slv
+slv = @minimize ls(L'*Y1-R_w)+conj(lambda*norm(Y1,2,1,2)) with slv
 println(slv)
 R21 = -(L'*(~Y1)-R_w)
 

@@ -133,9 +133,8 @@ cf = huberloss(x,a)
 
 cf = 2*norm(x,1)
 ccf = conj(cf)
-@test ccf.lambda == 2
 @test ccf.A == cf.A
-@test ccf.f == Conjugate(NormL1())
+@test ccf.f == Conjugate(Postcompose(NormL1(),2))
 @test_throws ErrorException conj(norm(randn(2,10)*x,1))
 
 # Summing terms
