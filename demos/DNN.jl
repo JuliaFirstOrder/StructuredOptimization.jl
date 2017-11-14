@@ -1,6 +1,7 @@
 using RegLS
 
 srand(123)
+#construct dataset
 Na,Nb = 700,700
 rhoa = 5.
 a = vcat([ rhoa.*[ cos(theta)  sin(theta)] for theta in linspace(0,2*pi,Na) ]...)   
@@ -11,41 +12,45 @@ b = [b; vcat([ rhob.*[ cos(theta)  sin(theta)] for theta in linspace(0,2*pi,div(
 b .+= randn(size(b))
 bi = [ones(Bool,Na);zeros(Bool,Nb)]
 
-A = [[a[:,1];b[:,1]] [a[:,2];b[:,2]]]
+A = [a' b']
 #preprocess data
 A .-= mean(A)
-A ./= sqrt.(var(A,1))
+A ./= sqrt.(var(A,2))
 
-L = 7  #inner layers
-W1 = Variable(sqrt(2*L)*randn(2,L))
-S1 = Sigmoid((Na+Nb,L)) 
-W2 = Variable(sqrt(L*L)*randn(L,L))
-S2 = Sigmoid((Na+Nb,L)) 
-W3 = Variable(sqrt(L)*randn(L,1))
-S3 = Sigmoid((Na+Nb,1)) 
+L = 7  # inner layers
+W1 = Variable(sqrt(2*L)*randn(L,2)) # first layer
+S1 = Sigmoid((L,Na+Nb)) 
+W2 = Variable(sqrt(L*L)*randn(L,L)) # second layer
+S2 = Sigmoid((L,Na+Nb)) 
+W3 = Variable(sqrt(L)*randn(1,L))   # third layer
+S3 = Sigmoid((1,Na+Nb)) 
+
+nn = S3*(W3*(S2*(W2*(S1*(W1*A))))) #construct neural network operator
 
 lambda = 8e-5
 lambda1 = lambda*sqrt(2*L)
 lambda2 = lambda*sqrt(L*L)
 lambda3 = lambda*sqrt(L)
 
-slv = ZeroFPR(tol = 1e-4, maxit = 10000)
+slv = ZeroFPR(tol = 1e-4, maxit = 10000) 
 reg = lambda1*norm(W1,1)+lambda2*norm(W2,1)+lambda3*norm(W3,1)
 
-slv = @minimize crossentropy(  S3*(S2*((S1*(A*W1))*W2)*W3)  ,bi)+reg with slv 
+slv = @minimize crossentropy(nn,bi)+reg with slv 
 println(slv)
 
 xx = linspace(-3,3,200)
 yy = linspace(-3,3,200)
-S1 = Sigmoid((2,L)) 
-S2 = Sigmoid((2,L)) 
-S3 = Sigmoid((2,1)) 
+S1 = Sigmoid((L,)) 
+S2 = Sigmoid((L,)) 
+S3 = Sigmoid((1,)) 
+
+regions = [ (S3*(~W3*(S2*(~W2*(S1*(~W1*[xi;yi]))))))[1] for xi in xx, yi in yy]'
 
 using PyPlot
 figure()
-pcolormesh(xx,yy,[sum( S3*(S2*((S1*([xi yi]*~W1))*~W2)*~W3) )  for xi in xx, yi in yy]', cmap = "Oranges" ) 
-contour(xx,yy,[sum( S3*(S2*((S1*([xi yi]*~W1))*~W2)*~W3) )  for xi in xx, yi in yy]', levels = [1.])
-plot(A[Na+1:end,1],A[Na+1:end,2], "ko")
-plot(A[1:Na,1],A[1:Na,2], "r*")
+pcolormesh(xx,yy,regions, cmap = "Oranges" ) 
+contour(xx,yy,regions, levels = 0.7*[maximum(regions)] ) 
+plot(A[1,Na+1:end],A[2,Na+1:end], "ko")
+plot(A[1,1:Na],A[2,1:Na], "r*")
 
 
