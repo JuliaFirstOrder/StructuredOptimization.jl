@@ -1,5 +1,4 @@
-using ProximalOperators
-using RegLS
+using RegLS, AbstractOperators
 using DSP, WAV
 
 Fs = 16e3                           # sampling frequency

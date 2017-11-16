@@ -1,5 +1,5 @@
 using RegLS
-using ProximalOperators
+using AbstractOperators
 using Images
 using ImageView
 srand(123)

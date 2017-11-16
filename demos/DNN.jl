@@ -1,4 +1,4 @@
-using RegLS
+using RegLS, AbstractOperators
 
 srand(123)
 #construct dataset
