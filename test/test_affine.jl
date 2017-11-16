@@ -155,6 +155,83 @@ ex2 = opB*xb+b0
 ex3 = ex1+ex2
 @test norm(displacement(ex3) - (b+b0)) == 0.
 
+# #### (.+) sum 
+n = 3
+b = randn(n)
+
+x1 = Variable(randn(1))
+x2 = Variable(randn(n))
+ex1 = x1.+x2 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).+(~x2))) < 1e-9
+
+x1 = Variable(randn(1))
+x2 = Variable(randn(n))
+ex1 = x1.+(x2+2) 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).+(~x2))) < 1e-9
+@test displacement(ex1) == 2
+
+x1 = Variable(randn(1))
+x2 = Variable(randn(n))
+ex1 = (x1+2).+(x2+b) 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).+(~x2))) < 1e-9
+@test displacement(ex1) == (b.+2)
+
+x1 = Variable(randn(n))
+x2 = Variable(randn(1))
+ex1 = x1.+x2 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).+(~x2))) < 1e-9
+
+x1 = Variable(randn(n))
+x2 = Variable(randn(1))
+ex1 = x1.+(x2+2) 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).+(~x2))) < 1e-9
+@test displacement(ex1) == 2
+
+x1 = Variable(randn(n))
+x2 = Variable(randn(1))
+ex1 = (x1+b).+(x2+2) 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).+(~x2))) < 1e-9
+@test displacement(ex1) == (b.+2)
+
+# #### (.-) sum 
+
+n = 3
+b = randn(n)
+
+x1 = Variable(randn(1))
+x2 = Variable(randn(n))
+ex1 = x1.-x2 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).-(~x2))) < 1e-9
+
+x1 = Variable(randn(1))
+x2 = Variable(randn(n))
+ex1 = x1.-(x2+2) 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).-(~x2))) < 1e-9
+@test displacement(ex1) == -2
+
+x1 = Variable(randn(1))
+x2 = Variable(randn(n))
+ex1 = (x1+2).-(x2+b) 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).-(~x2))) < 1e-9
+@test displacement(ex1) == (2.-b)
+
+x1 = Variable(randn(n))
+x2 = Variable(randn(1))
+ex1 = x1.-x2 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).-(~x2))) < 1e-9
+
+x1 = Variable(randn(n))
+x2 = Variable(randn(1))
+ex1 = x1.-(x2+2) 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).-(~x2))) < 1e-9
+@test displacement(ex1) == -2
+
+x1 = Variable(randn(n))
+x2 = Variable(randn(1))
+ex1 = (x1+b).-(x2+2) 
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).-(~x2))) < 1e-9
+@test displacement(ex1) == (b.-2)
+
 # (-) sum different variables no HCAT
 ex1 = opA*xa-opB*xb 
 @test variables(ex1) == (xa,xb)

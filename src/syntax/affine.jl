@@ -4,8 +4,8 @@ export variables, operator, displacement
 immutable Expression{N} <: AbstractExpression
 	x::NTuple{N,Variable}
 	L::AbstractOperator
-	b::Union{Number, AbstractArray}
-	function Expression{N}(x::NTuple{N,Variable},L,b) where {N}
+	d::Union{Number, AbstractArray}
+	function Expression{N}(x::NTuple{N,Variable},L,d) where {N}
 
 		# checks on L
 		ndoms(L,1) > 1 && throw(ArgumentError(
@@ -24,19 +24,19 @@ immutable Expression{N} <: AbstractExpression
 		check_dm && throw(ArgumentError(
 	"Type of the operator domain $(domainType(L)) must match type of the variable $(eltype.(x))"))
 
-		#checks on b
-		if typeof(b) <: AbstractArray
-			size(L,1) != size(b) && throw(ArgumentError(
-	"cannot sum Array of dimensions $(size(b)) with expression with codomain size $(size(L,1))"))
-			codomainType(L) != eltype(b) && throw(ArgumentError(
-	"cannot sum $(typeof(b)) with expression with codomain $(codomainType(L))"))
+		#checks on d
+		if typeof(d) <: AbstractArray
+			size(L,1) != size(d) && throw(ArgumentError(
+	"cannot sum Array of dimensions $(size(d)) with expression with codomain size $(size(L,1))"))
+			codomainType(L) != eltype(d) && throw(ArgumentError(
+	"cannot sum $(typeof(d)) with expression with codomain $(codomainType(L))"))
 		else
-			if typeof(b) <: Complex && codomainType(L) <: Real
+			if typeof(d) <: Complex && codomainType(L) <: Real
 				throw(ArgumentError(
-	"cannot sum $(typeof(b)) to an expression with codomain $(codomainType(L))"))
+	"cannot sum $(typeof(d)) to an expression with codomain $(codomainType(L))"))
 			end
 		end
-		new{N}(x,L,b)
+		new{N}(x,L,d)
 	end
 end
 
@@ -46,24 +46,24 @@ Expression{1}((x,),Eye(T,size(x)),zero(T))
 # constructors
 
 # multipy expressions with AbstractOperator
-function (*){T1 <: AbstractOperator, T2 <: AbstractExpression}(L::T1, a::T2)
+function (*)(L::T1, a::T2) where {T1 <: AbstractOperator, T2 <: AbstractExpression}
 	A = convert(Expression,a)
 	if typeof(displacement(A)) <: Number
-		b = displacement(A) == 0. ? zero(codomainType(L)) :
+		d = displacement(A) == 0. ? zero(codomainType(L)) :
 		L*(displacement(A)*ones(codomainType(operator(A)),size(operator(A),1)))
 	else
-		b = L*displacement(A)
+		d = L*displacement(A)
 	end
-	Expression{length(A.x)}(A.x,L*operator(A),b)
+	Expression{length(A.x)}(A.x,L*operator(A),d)
 end
 
 # sum expressions
-function (+){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
+function (+)(a::T1, b::T2) where {T1 <: AbstractExpression, T2 <: AbstractExpression}
 	A = convert(Expression,a)
 	B = convert(Expression,b)
-	b = displacement(A)+displacement(B)
+	d = displacement(A)+displacement(B)
 	if variables(A) == variables(B)
-		return Expression{length(A.x)}(A.x,operator(A)+operator(B),b)
+		return Expression{length(A.x)}(A.x,operator(A)+operator(B),d)
 	else
 		opA = operator(A)
 		xA = variables(A)
@@ -71,17 +71,17 @@ function (+){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
 		xB = variables(B)
 
 		xNew, opNew = Usum_op(xA,xB,opA,opB,true)
-		return Expression{length(xNew)}(xNew,opNew,b)
+		return Expression{length(xNew)}(xNew,opNew,d)
 	end
 
 end
 
-function (-){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
+function (-)(a::T1, b::T2) where {T1 <: AbstractExpression, T2 <: AbstractExpression}
 	A = convert(Expression,a)
 	B = convert(Expression,b)
-	b = displacement(A)-displacement(B)
+	d = displacement(A)-displacement(B)
 	if variables(A) == variables(B)
-		return Expression{length(A.x)}(A.x,operator(A)-operator(B),b)
+		return Expression{length(A.x)}(A.x,operator(A)-operator(B),d)
 	else
 		opA = operator(A)
 		xA = variables(A)
@@ -89,7 +89,7 @@ function (-){T1 <: AbstractExpression, T2 <: AbstractExpression}(a::T1, b::T2)
 		xB = variables(B)
 
 		xNew, opNew = Usum_op(xA,xB,opA,opB,false)
-		return Expression{length(xNew)}(xNew,opNew,b)
+		return Expression{length(xNew)}(xNew,opNew,d)
 	end
 
 end
@@ -156,7 +156,7 @@ function Usum_op(xA::NTuple{NA,Variable},
 	for i in eachindex(xB)
 		xNew, opNew = Usum_op(xNew, (xB[i],), opNew, B[i], sign)
 	end
-	return xNew,opNew
+return xNew,opNew
 end
 
 #unsigned sum: multivar AbstractOperator + AbstractOperator
@@ -193,6 +193,57 @@ end
 function (-)(a::T1, b::T2) where {T1 <: Union{AbstractArray,Number}, T2 <: AbstractExpression}
 	B = convert(Expression,b)
 	return Expression{length(B.x)}(B.x,-operator(B),a-displacement(B))
+end
+
+#broadcasted + -
+import Base: broadcast
+
+function broadcast(::typeof(+),a::T1,b::T2) where  {T1 <: AbstractExpression, T2 <: AbstractExpression}
+	A = convert(Expression,a)
+	B = convert(Expression,b)
+	if size(operator(A),1) != size(operator(B),1)
+		if ndims(operator(A),1) > ndims(operator(B),1) || size(operator(B),1) == (1,)
+			da = A.d
+			db = B.d
+			A = Expression{length(A.x)}(A.x,A.L,0.) #remove displacement
+			B = Expression{length(B.x)}(variables(B),
+						    BroadCast(operator(B),size(operator(A),1)), 
+						    0.)
+		elseif ndims(operator(B),1) > ndims(operator(A),1) || size(operator(A),1) == (1,)
+			da = A.d
+			db = B.d
+			A = Expression{length(A.x)}(variables(A),
+						    BroadCast(operator(A),size(operator(B),1)), 
+						    0.)
+			B = Expression{length(B.x)}(B.x,B.L,0.) #remove displacement
+		end
+		return A+B+(da.+db)
+	end
+	return A+B
+end
+
+function broadcast(::typeof(-),a::T1,b::T2) where  {T1 <: AbstractExpression, T2 <: AbstractExpression}
+	A = convert(Expression,a)
+	B = convert(Expression,b)
+	if size(operator(A),1) != size(operator(B),1)
+		if ndims(operator(A),1) > ndims(operator(B),1) || size(operator(B),1) == (1,)
+			da = A.d
+			db = B.d
+			A = Expression{length(A.x)}(A.x,A.L,0.) #remove displacement
+			B = Expression{length(B.x)}(variables(B),
+						    BroadCast(operator(B),size(operator(A),1)), 
+						    0.)
+		elseif ndims(operator(B),1) > ndims(operator(A),1) || size(operator(A),1) == (1,)
+			da = A.d
+			db = B.d
+			A = Expression{length(A.x)}(variables(A),
+						    BroadCast(operator(A),size(operator(B),1)), 
+						    0.)
+			B = Expression{length(B.x)}(B.x,B.L,0.) #remove displacement
+		end
+		return A-B+(da.-db)
+	end
+	return A-B
 end
 
 # AbstractOperators binding
@@ -241,7 +292,7 @@ end
 #Scale
 function (*)(coeff::T1, a::T) where {T1<:Number, T<:AbstractExpression}
 	A = convert(Expression,a)
-	return Expression{length(A.x)}(A.x,coeff*operator(A),displacement(A)-b)
+	return Expression{length(A.x)}(A.x,coeff*operator(A),coeff*displacement(A))
 end
 
 #Reshape
@@ -249,11 +300,11 @@ function reshape(a::T, dims...) where {T<:AbstractExpression}
 	A = convert(Expression,a)
 	op = Reshape(A.L, dims...)
 	if typeof(displacement(A)) <: Number
-		b = displacement(A)
+		d = displacement(A)
 	else
-		b = reshape(displacement(A), dims...)
+		d = reshape(displacement(A), dims...)
 	end
-	return Expression{length(A.x)}(A.x,op,b)
+	return Expression{length(A.x)}(A.x,op,d)
 end
 
 imported = [:getindex :GetIndex;
@@ -305,4 +356,4 @@ end
 # Properties
 variables(A::Expression)    = A.x
 operator(A::Expression)     = A.L
-displacement(A::Expression) = A.b
+displacement(A::Expression) = A.d
