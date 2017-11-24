@@ -185,6 +185,14 @@ cf = ls(A*x - B*y + b) + norm(y, 1) + 5*norm(y, 2)
 @test cf[3].lambda == 5
 @test cf[3].f(~x) == norm(~x,2)
 
+cf = 10*(ls(A*x - B*y + b) + norm(y, 1) + 5*norm(y, 2))
+@test cf[1].lambda == 10
+@test cf[1].f(~x) == 0.5*norm(~x)^2
+@test cf[2].lambda == 10
+@test cf[2].f(~x) == norm(~x,1)
+@test cf[3].lambda == 50
+@test cf[3].f(~x) == norm(~x,2)
+
 cf = 0.5*norm(A*x - B*y + b, 2)^2 + norm(x, 1) + norm(y, 2)
 @test cf[1].lambda == 0.5
 @test cf[1].f(~x) == norm(~x)^2

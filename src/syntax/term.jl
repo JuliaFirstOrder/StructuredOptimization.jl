@@ -68,6 +68,10 @@ function (*){T1<:Real, T, T2, T3}(a::T1, t::Term{T,T2,T3})
 	Term(coeff, t.f, t.A)
 end
 
+function (*){T1<:Real, N, T2 <: Tuple{Vararg{<:Term,N}} }(a::T1, t::T2)
+	return a.*t 
+end
+
 # Constructors
 
 # Norms
