@@ -35,11 +35,21 @@ CrossEntropy(b::T) where {R <: Real, T <: AbstractVector{R}} = CrossEntropy{R,T}
 
 # TODO? prox!
 
-(f::CrossEntropy{T})(x::AbstractArray{T}) where {T<:Real} = 
--1/length(f.b).*sum( f.b.*log.(x).+ (1.-f.b).*log.(1.-x)  )
+function (f::CrossEntropy{T})(x::AbstractArray{T}) where {T<:Real}  
+	sum = zero(T)
+	for i in eachindex(f.b)
+		sum += f.b[i]*log(x[i])+(1-f.b[i])*log(1-x[i]) 
+	end
+	return -sum/length(f.b)
+end
 
-(f::CrossEntropy{B})(x::AbstractArray{T}) where {B<:Bool, T<:Real} = 
--1/length(f.b).*sum( f.b.*log.(x).+ (1.-f.b).*log.(1.-x)  )
+function (f::CrossEntropy{B})(x::AbstractArray{T}) where {B<:Bool, T<:Real}  
+	sum = zero(T)
+	for i in eachindex(f.b)
+		sum += f.b[i] ? log(x[i]) : (1-f.b[i])*log(1-x[i]) 
+	end
+	return -sum/length(f.b)
+end
 
 function gradient!(y::AbstractArray{T}, f::CrossEntropy{T}, x::AbstractArray{T}) where {T <: Real}
 	sum = zero(T)
