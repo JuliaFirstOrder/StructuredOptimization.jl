@@ -101,11 +101,11 @@ function apply!(slv::ZeroFPR, x0::T,
 
 	tic()
 
-	x = deepcopy(x0)
-	gradf_x = deepsimilar(x0)
-	gradstep = deepsimilar(x0)
-	fpr_x = deepsimilar(x0)
-	xbar = deepsimilar(x0)
+	x = blockcopy(x0)
+	gradf_x = blocksimilar(x0)
+	gradstep = blocksimilar(x0)
+	fpr_x = blocksimilar(x0)
+	xbar = blocksimilar(x0)
 
 	lbfgs = LBFGS(x, slv.mem)
 	beta = 0.05
@@ -115,7 +115,7 @@ function apply!(slv::ZeroFPR, x0::T,
 	if !isnull(N_s)
 		s = get(N_s)
 		Ls = get(N_Ls)
-		grads_x = deepsimilar(x0)
+		grads_x = blocksimilar(x0)
 		Ls_x = Ls*x
 		grads_Ls_x, s_x = gradient(s, Ls_x)
 		Ac_mul_B!(grads_x, Jacobian(Ls,x), grads_Ls_x)
@@ -126,11 +126,11 @@ function apply!(slv::ZeroFPR, x0::T,
 	if !isnull(N_q)
 		q = get(N_q)
 		Lq = get(N_Lq)
-		gradq_x = deepsimilar(x0)
+		gradq_x = blocksimilar(x0)
 		Lq_x = Lq*x
 		gradq_Lq_x, q_x = gradient(q, Lq_x)
 		Ac_mul_B!(gradq_x, Lq, gradq_Lq_x)
-		b, = gradient(q, deepzeros(Lq_x)) # TODO: REALLY NECESSARY?
+		b, = gradient(q, blockzeros(Lq_x)) # TODO: REALLY NECESSARY?
 	else
 		q_x = 0.0
 		gradq_x = 0.0
@@ -158,7 +158,7 @@ function apply!(slv::ZeroFPR, x0::T,
 			gradq_xeps = 0.0
 		end
 		gradf_xeps = grads_xeps .+ gradq_xeps
-		Lf = deepvecnorm(gradf_xeps .- gradf_x)/(sqrt(eps()*deeplength(x)))
+		Lf = blockvecnorm(gradf_xeps .- gradf_x)/(sqrt(eps()*blocklength(x)))
 		slv.gamma = (1-beta)/Lf
 	end
 
@@ -167,37 +167,37 @@ function apply!(slv::ZeroFPR, x0::T,
 
 	# forward-backward step from x
 
-	deepaxpy!(gradstep, x, -slv.gamma, gradf_x)
+	blockaxpy!(gradstep, x, -slv.gamma, gradf_x)
 	g_xbar = prox!(xbar, g, gradstep, slv.gamma)
-	deepaxpy!(fpr_x, x, -1.0, xbar)
+	blockaxpy!(fpr_x, x, -1.0, xbar)
 
-	slv.normfpr = deepvecnorm(fpr_x)
-	uppbnd = f_x - real(deepvecdot(gradf_x, fpr_x)) + 1/(2*slv.gamma)*slv.normfpr^2
+	slv.normfpr = blockvecnorm(fpr_x)
+	uppbnd = f_x - real(blockvecdot(gradf_x, fpr_x)) + 1/(2*slv.gamma)*slv.normfpr^2
 	FBE_x = uppbnd + g_xbar
 
 	# initialize variables
 
 	normfpr0, FBE_prev = NaN, NaN
 	if !isnull(N_s)
-		Ls_xbar = deepsimilar(Ls_x)
-		grads_Ls_xbar = deepsimilar(grads_Ls_x)
-		grads_xbar = deepsimilar(grads_x)
-		Ls_d = deepsimilar(Ls_x)
+		Ls_xbar = blocksimilar(Ls_x)
+		grads_Ls_xbar = blocksimilar(grads_Ls_x)
+		grads_xbar = blocksimilar(grads_x)
+		Ls_d = blocksimilar(Ls_x)
 	end
 	if !isnull(N_q)
-		Lq_xbar = deepsimilar(Lq_x)
-		gradq_Lq_xbar = deepsimilar(gradq_Lq_x)
-		gradq_xbar = deepsimilar(gradq_x)
-		Lq_d = deepsimilar(Lq_x)
-		A_Lq_d = deepsimilar(gradq_Lq_x)
-		Lqc_A_Lq_d = deepsimilar(gradq_x)
+		Lq_xbar = blocksimilar(Lq_x)
+		gradq_Lq_xbar = blocksimilar(gradq_Lq_x)
+		gradq_xbar = blocksimilar(gradq_x)
+		Lq_d = blocksimilar(Lq_x)
+		A_Lq_d = blocksimilar(gradq_Lq_x)
+		Lqc_A_Lq_d = blocksimilar(gradq_x)
 	end
 
-	d = deepsimilar(x)
-	xbarbar = deepsimilar(x)
-	fpr_xbar = deepsimilar(x)
-	xbar_prev = deepsimilar(x)
-	fpr_xbar_prev = deepsimilar(x)
+	d = blocksimilar(x)
+	xbarbar = blocksimilar(x)
+	fpr_xbar = blocksimilar(x)
+	xbar_prev = blocksimilar(x)
+	fpr_xbar_prev = blocksimilar(x)
 	f_xbar, q_xbar = Inf, Inf
 
 	for slv.it = 1:slv.maxit
@@ -225,7 +225,7 @@ function apply!(slv::ZeroFPR, x0::T,
 				q_xbar = 0.0
 			end
 			f_xbar = s_xbar + q_xbar
-			uppbnd = f_x - real(deepvecdot(gradf_x, fpr_x)) + (1-beta)/(2*slv.gamma)*slv.normfpr^2
+			uppbnd = f_x - real(blockvecdot(gradf_x, fpr_x)) + (1-beta)/(2*slv.gamma)*slv.normfpr^2
 
 			if f_xbar <= uppbnd + 1e-6*abs(f_xbar) || slv.adaptive == false
 				break
@@ -235,11 +235,11 @@ function apply!(slv::ZeroFPR, x0::T,
 
 			# forward-backward steps from x
 
-			deepaxpy!(gradstep, x, -slv.gamma, gradf_x)
+			blockaxpy!(gradstep, x, -slv.gamma, gradf_x)
 			g_xbar = prox!(xbar, g, gradstep, slv.gamma)
-			deepaxpy!(fpr_x, x, -1.0, xbar)
+			blockaxpy!(fpr_x, x, -1.0, xbar)
 
-			slv.normfpr = deepvecnorm(fpr_x)
+			slv.normfpr = blockvecnorm(fpr_x)
 
 		end
 
@@ -269,12 +269,12 @@ function apply!(slv::ZeroFPR, x0::T,
 
 		gradf_xbar = grads_xbar .+ gradq_xbar
 
-		deepaxpy!(gradstep, xbar, -slv.gamma, gradf_xbar)
+		blockaxpy!(gradstep, xbar, -slv.gamma, gradf_xbar)
 		prox!(xbarbar, g, gradstep, slv.gamma)
 
 		# compute rbar
 
-		deepaxpy!(fpr_xbar, xbar, -1.0, xbarbar)
+		blockaxpy!(fpr_xbar, xbar, -1.0, xbarbar)
 
 		# compute direction according to L-BFGS
 
@@ -299,16 +299,16 @@ function apply!(slv::ZeroFPR, x0::T,
 		if !isnull(N_q)
 			A_mul_B!(Lq_d, Lq, d)
 			gradient!(A_Lq_d, q, Lq_d)
-			deepaxpy!(A_Lq_d, A_Lq_d, -1.0, b)
+			blockaxpy!(A_Lq_d, A_Lq_d, -1.0, b)
 			Ac_mul_B!(Lqc_A_Lq_d, Lq, A_Lq_d)
-			lin_coeff_q_d = real(deepvecdot(gradq_xbar, d))
-			quad_coeff_q_d = real(deepvecdot(Lqc_A_Lq_d, d)/2)
+			lin_coeff_q_d = real(blockvecdot(gradq_xbar, d))
+			quad_coeff_q_d = real(blockvecdot(Lqc_A_Lq_d, d)/2)
 		end
 
 		for j = 1:32
-			deepaxpy!(x, xbar_prev, tau, d)
+			blockaxpy!(x, xbar_prev, tau, d)
 			if !isnull(N_s)
-				#deepaxpy!(Ls_x, Ls_xbar, tau, Ls_d)
+				#blockaxpy!(Ls_x, Ls_xbar, tau, Ls_d)
 				A_mul_B!(Ls_x,Ls,x) #forward pass
 				s_x = gradient!(grads_Ls_x, s, Ls_x)
 				Ac_mul_B!(grads_x, jacobian(Ls,x), grads_Ls_x)
@@ -317,21 +317,21 @@ function apply!(slv::ZeroFPR, x0::T,
 				grads_x = 0.0
 			end
 			if !isnull(N_q)
-				deepaxpy!(Lq_x, Lq_xbar, tau, Lq_d)
-				deepaxpy!(gradq_Lq_x, gradq_Lq_xbar, tau, A_Lq_d)
+				blockaxpy!(Lq_x, Lq_xbar, tau, Lq_d)
+				blockaxpy!(gradq_Lq_x, gradq_Lq_xbar, tau, A_Lq_d)
 				q_x = q_xbar + lin_coeff_q_d*tau + quad_coeff_q_d*(tau^2)
-				deepaxpy!(gradq_x, gradq_xbar, tau, Lqc_A_Lq_d)
+				blockaxpy!(gradq_x, gradq_xbar, tau, Lqc_A_Lq_d)
 			else
 				q_x = 0.0
 				gradq_x = 0.0
 			end
 			f_x = s_x + q_x
 			gradf_x = grads_x .+ gradq_x
-			deepaxpy!(gradstep, x, -slv.gamma, gradf_x)
+			blockaxpy!(gradstep, x, -slv.gamma, gradf_x)
 			g_xbar = prox!(xbar, g, gradstep, slv.gamma)
-			deepaxpy!(fpr_x, x, -1.0, xbar)
-			slv.normfpr = deepvecnorm(fpr_x)
-			uppbnd = f_x - real(deepvecdot(gradf_x, fpr_x)) + 1/(2*slv.gamma)*slv.normfpr^2
+			blockaxpy!(fpr_x, x, -1.0, xbar)
+			slv.normfpr = blockvecnorm(fpr_x)
+			uppbnd = f_x - real(blockvecdot(gradf_x, fpr_x)) + 1/(2*slv.gamma)*slv.normfpr^2
 			if uppbnd + g_xbar <= level break end
 			tau = 0.5*tau
 		end
@@ -339,7 +339,7 @@ function apply!(slv::ZeroFPR, x0::T,
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
-	deepcopy!(x0, x)
+	blockcopy!(x0, x)
 
 	slv.time = toq()
 

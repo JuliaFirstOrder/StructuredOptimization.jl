@@ -76,9 +76,9 @@ function apply!(slv::PG, x0::T, f::ProximableFunction, L::AbstractOperator, g::P
 
 	tic()
 
-	x = deepcopy(x0)
+	x = blockcopy(x0)
 
-	grad_f_x = deepcopy(x0)
+	grad_f_x = blockcopy(x0)
 	res_x = L*x
 	grad_f_res, f_x = gradient(f, res_x)
 	Ac_mul_B!(grad_f_x, jacobian(L,x), grad_f_res)
@@ -89,41 +89,41 @@ function apply!(slv::PG, x0::T, f::ProximableFunction, L::AbstractOperator, g::P
 
 	if slv.gamma == Inf
 		# compute upper bound for Lipschitz constant
-		grad_f_x_eps = deepcopy(x0)
+		grad_f_x_eps = blockcopy(x0)
 		xeps = (x .+ sqrt(eps()))
 		res_x_eps = L*xeps
 		grad_f_res_eps, = gradient(f, res_x_eps)
 		Ac_mul_B!(grad_f_x_eps, jacobian(L,xeps), grad_f_res_eps)
 		slv.cnt_matvec += 2
-		Lf = deepvecnorm(grad_f_x .- grad_f_x_eps)/(sqrt(eps()*deeplength(x)))
+		Lf = blockvecnorm(grad_f_x .- grad_f_x_eps)/(sqrt(eps()*blocklength(x)))
 		slv.gamma = 1.0/Lf
 	end
 
 	# initialize variables
 
-	fpr = deepcopy(x)
-	y = deepcopy(x)
-	xprev = deepcopy(x)
-	res_y = deepcopy(res_x)
-	res_xprev = deepcopy(res_x)
+	fpr = blockcopy(x)
+	y = blockcopy(x)
+	xprev = blockcopy(x)
+	res_y = blockcopy(res_x)
+	res_xprev = blockcopy(res_x)
 	f_y = f_x
 	grad_f_y = grad_f_x
-	gradstep = deepcopy(x)
+	gradstep = blockcopy(x)
 
 	for slv.it = 1:slv.maxit
 
 		# line search on gamma
 		for j = 1:32
-			deepaxpy!(gradstep, y, -slv.gamma, grad_f_y)
+			blockaxpy!(gradstep, y, -slv.gamma, grad_f_y)
 			g_x = prox!(x, g, gradstep, slv.gamma)
 			slv.cnt_prox += 1
-			deepaxpy!(fpr, y, -1.0, x)
-			slv.normfpr = deepvecnorm(fpr)
+			blockaxpy!(fpr, y, -1.0, x)
+			slv.normfpr = blockvecnorm(fpr)
 			A_mul_B!(res_x, L, x)
 			f_x = f(res_x)
 			slv.cnt_matvec += 1
 			if slv.adaptive == false break end
-			uppbnd = f_y - real(deepvecdot(grad_f_y, fpr)) + (0.5/slv.gamma)*(slv.normfpr^2)
+			uppbnd = f_y - real(blockvecdot(grad_f_y, fpr)) + (0.5/slv.gamma)*(slv.normfpr^2)
 			if f_x <= uppbnd + 1e-6*abs(f_y) break end
 			slv.gamma = 0.5*slv.gamma
 		end
@@ -142,11 +142,11 @@ function apply!(slv::PG, x0::T, f::ProximableFunction, L::AbstractOperator, g::P
 
 		if slv.fast
 			# y = x + (it-1)/(it+2) * (x - xprev)
-			deepaxpy!(y, x, (slv.it-1)/(slv.it+2), x)
-			deepaxpy!(y, y, -(slv.it-1)/(slv.it+2), xprev)
+			blockaxpy!(y, x, (slv.it-1)/(slv.it+2), x)
+			blockaxpy!(y, y, -(slv.it-1)/(slv.it+2), xprev)
 			# res_y = res_x + (it-1)/(it+2) * (res_x - res_xprev)
-			deepaxpy!(res_y, res_x, (slv.it-1)/(slv.it+2), res_x)
-			deepaxpy!(res_y, res_y, -(slv.it-1)/(slv.it+2), res_xprev)
+			blockaxpy!(res_y, res_x, (slv.it-1)/(slv.it+2), res_x)
+			blockaxpy!(res_y, res_y, -(slv.it-1)/(slv.it+2), res_xprev)
 		else
 			# no need to copy, just move references around
 			y = x
@@ -169,7 +169,7 @@ function apply!(slv::PG, x0::T, f::ProximableFunction, L::AbstractOperator, g::P
 	end
 
 	print_status(slv, 2*(slv.verbose>0))
-	deepcopy!(x0, x)
+	blockcopy!(x0, x)
 
 	slv.time = toq()
 

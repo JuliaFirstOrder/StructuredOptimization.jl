@@ -3,6 +3,7 @@ __precompile__()
 module RegLS
 
 using AbstractOperators, ProximalOperators
+using AbstractOperators: BlockArrays
 import ProximalOperators: RealOrComplex,
 			  is_affine,
 			  is_cone,
@@ -20,7 +21,6 @@ include("ProxStuff/functions/sqrHingeLoss.jl") #to MOVE to ProximalOperators
 include("ProxStuff/functions/crossEntropy.jl") #to MOVE to ProximalOperators
 include("ProxStuff/calculus/precomposeNonlinear.jl") #to MOVE to ProximalOperators
 
-include("utilities/deep.jl")
 include("syntax/syntax.jl")
 include("solvers/solvers.jl")
 
