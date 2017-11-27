@@ -281,7 +281,7 @@ function apply!(slv::ZeroFPR, x0::T,
 		if slv.it > 1
 			update!(lbfgs, xbar, xbar_prev, fpr_xbar, fpr_xbar_prev)
 		end
-		A_mul_B!(d, lbfgs, fpr_xbar)
+		A_mul_B!(d, lbfgs, -1.0.*fpr_xbar)
 
 		# store xbar and fpr_xbar for later use
 
