@@ -8,10 +8,6 @@ srand(0)
 
 @testset "RegLS" begin
 
-@testset "Tuple operations" begin
-  include("test_deep.jl")
-end
-
 @testset "TO MOVE ProximalOperators" begin
   include("test_proxstuff.jl")
 end
