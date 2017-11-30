@@ -17,8 +17,8 @@ import ProximalOperators: RealOrComplex,
 			  is_smooth,
 			  is_strongly_convex
 
-include("ProxStuff/functions/sqrHingeLoss.jl") #to MOVE to ProximalOperators
-include("ProxStuff/functions/crossEntropy.jl") #to MOVE to ProximalOperators
+#include("ProxStuff/functions/sqrHingeLoss.jl") #to MOVE to ProximalOperators
+#include("ProxStuff/functions/crossEntropy.jl") #to MOVE to ProximalOperators
 include("ProxStuff/calculus/precomposeNonlinear.jl") #to MOVE to ProximalOperators
 
 include("syntax/syntax.jl")
