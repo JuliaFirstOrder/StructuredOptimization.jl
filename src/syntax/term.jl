@@ -93,6 +93,11 @@ function norm(ex::AbstractExpression, p=2)
 	return Term(f, ex)
 end
 
+# Nuclear norm
+function norm(ex::AbstractExpression, ::typeof(*))
+	return Term(NuclearNorm(), ex)
+end
+
 # Mixed Norm
 function norm(ex::AbstractExpression, p1::Int, p2::Int, dim::Int =1 )
 	if p1 == 2 && p2 == 1

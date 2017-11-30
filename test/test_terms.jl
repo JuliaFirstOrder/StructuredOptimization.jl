@@ -104,6 +104,14 @@ cf = 2*rank(X) <= 6
 cf = rank(X)
 @test_throws MethodError cf.f(~X)
 
+X = Variable(10, 10)
+cf = norm(X,*)
+@test cf.lambda == 1
+@test cf.f(~X) == norm(~X)
+
+cf = rank(X)
+@test_throws MethodError cf.f(~X)
+
 b = randn(size(~x))
 cf = hingeloss(x,b)
 @test cf.lambda == 1
