@@ -202,14 +202,14 @@ function broadcast(::typeof(+),a::T1,b::T2) where  {T1 <: AbstractExpression, T2
 	A = convert(Expression,a)
 	B = convert(Expression,b)
 	if size(operator(A),1) != size(operator(B),1)
-		if ndims(operator(A),1) > ndims(operator(B),1) || size(operator(B),1) == (1,)
+		if prod(size(operator(A),1)) > prod(size(operator(B),1))
 			da = A.d
 			db = B.d
 			A = Expression{length(A.x)}(A.x,A.L,0.) #remove displacement
 			B = Expression{length(B.x)}(variables(B),
 						    BroadCast(operator(B),size(operator(A),1)), 
 						    0.)
-		elseif ndims(operator(B),1) > ndims(operator(A),1) || size(operator(A),1) == (1,)
+		elseif prod(size(operator(B),1)) > prod(size(operator(A),1))
 			da = A.d
 			db = B.d
 			A = Expression{length(A.x)}(variables(A),
@@ -226,14 +226,14 @@ function broadcast(::typeof(-),a::T1,b::T2) where  {T1 <: AbstractExpression, T2
 	A = convert(Expression,a)
 	B = convert(Expression,b)
 	if size(operator(A),1) != size(operator(B),1)
-		if ndims(operator(A),1) > ndims(operator(B),1) || size(operator(B),1) == (1,)
+		if prod(size(operator(A),1)) > prod(size(operator(B),1))
 			da = A.d
 			db = B.d
 			A = Expression{length(A.x)}(A.x,A.L,0.) #remove displacement
 			B = Expression{length(B.x)}(variables(B),
 						    BroadCast(operator(B),size(operator(A),1)), 
 						    0.)
-		elseif ndims(operator(B),1) > ndims(operator(A),1) || size(operator(A),1) == (1,)
+		elseif prod(size(operator(B),1)) > prod(size(operator(A),1))
 			da = A.d
 			db = B.d
 			A = Expression{length(A.x)}(variables(A),

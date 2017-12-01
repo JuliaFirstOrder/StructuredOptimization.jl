@@ -155,7 +155,7 @@ ex2 = opB*xb+b0
 ex3 = ex1+ex2
 @test norm(displacement(ex3) - (b+b0)) == 0.
 
-# #### (.+) sum 
+#### (.+) sum 
 n = 3
 b = randn(n)
 
@@ -192,6 +192,13 @@ x2 = Variable(randn(1))
 ex1 = (x1+b).+(x2+2) 
 @test norm(operator(ex1)*(~x1,~x2)-((~x1).+(~x2))) < 1e-9
 @test displacement(ex1) == (b.+2)
+
+n,m =2,4
+x1 = Variable(randn(n,m))
+x2 = Variable(randn(1,m))
+ex1 = x1.+x2+6
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).+(~x2))) < 1e-9
+@test displacement(ex1) == 6
 
 # #### (.-) sum 
 
@@ -231,6 +238,13 @@ x2 = Variable(randn(1))
 ex1 = (x1+b).-(x2+2) 
 @test norm(operator(ex1)*(~x1,~x2)-((~x1).-(~x2))) < 1e-9
 @test displacement(ex1) == (b.-2)
+
+n,m =2,4
+x1 = Variable(randn(n,m))
+x2 = Variable(randn(1,m))
+ex1 = x1.-x2+6
+@test norm(operator(ex1)*(~x1,~x2)-((~x1).-(~x2))) < 1e-9
+@test displacement(ex1) == 6
 
 # (-) sum different variables no HCAT
 ex1 = opA*xa-opB*xb 
