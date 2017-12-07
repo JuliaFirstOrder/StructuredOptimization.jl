@@ -7,6 +7,10 @@ using Mosek
 using AbstractOperators
 using RIM
 using PyPlot
+using PyCall
+
+@pyimport cvxpy as cvx
+@pyimport numpy as np
 
 function set_up()
 
@@ -52,12 +56,6 @@ function solve_problem_matrix!(slv, x0, y, H, T, lambda)
 	return x0
 end
 
-function solve_problem_Convex!(slv, x0, y, H, T, lambda)
-	problem = minimize(0.5*norm(T*x0-y,2)^2+lambda*norm(x0,1)) 
-	return problem
-end
-
-
 function run_demo()
 
 	setup, t, x = set_up()
@@ -81,6 +79,43 @@ function run_demo()
 	println("unregularized MSE: $( 20*log10(norm(xu-x)/norm(x)) )")
 
 	return t, x, x1, xu
+end
+
+function solve_problem_cvx!(slv, x0, y, H, T, lambda)
+
+	h = H.h
+	problem = cvx.Problem(cvx.Minimize(cvx.sum_squares(cvx.conv(h,x0)-y)*0.5+cvx.norm1(x0)*lambda))
+	problem[:solve](solver = slv, verbose = true)
+	return x0
+
+end
+
+function solve_problem_matrix_cvx!(slv, x0, y, H, T, lambda)
+
+end
+
+function run_demo_cvx()
+
+	setup, t, x = set_up()
+	x0 = cvx.Variable(size(x)...)
+
+	println("Solving Unregularized problem")
+	xu = setup[3]\setup[1]
+
+	#println("Solving Regularized problem with Abstract Operator")
+	slv = cvx.SCS
+	@time x0 = solve_problem_cvx!(slv, x0, setup...)
+	x1 = x0[:value]
+
+	println("  regularized MSE: $( 20*log10(norm(x1-x)/norm(x)) )")
+	println("unregularized MSE: $( 20*log10(norm(xu-x)/norm(x)) )")
+
+	return t, x, x1, xu
+end
+
+function solve_problem_Convex!(slv, x0, y, H, T, lambda)
+	problem = minimize(0.5*norm(T*x0-y,2)^2+lambda*norm(x0,1)) 
+	return problem
 end
 
 function run_demo_Convex()
