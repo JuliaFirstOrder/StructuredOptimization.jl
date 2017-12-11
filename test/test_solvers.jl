@@ -17,14 +17,16 @@ f = PrecomposeDiagonal(SqrNormL2(), 1.0, -b)
 g = NormL1(lam)
 L = MatrixOp(A1)
 
+normL = norm(A1)^2
+
 # Apply PG
 
 x = zeros(n)
-sol = RegLS.apply!(PG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(RegLS.PG(tol=tol), x; fq=f, Aq=L, g=g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
-@test norm(pgstep - x) <= tol
+@test norm(pgstep - x)/normL^2 <= tol
 # project subgr onto the subdifferential of the L1-norm at x
 subgr = -A1'*(A1*x-b)
 subgr_proj = min.(max.(subgr, -lam), lam)
@@ -35,11 +37,11 @@ subgr_proj[x .> 0] = lam
 # Apply FPG
 
 x = zeros(n)
-sol = RegLS.apply!(FPG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(RegLS.FPG(tol=tol), x; fq=f, Aq=L, g=g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
-@test norm(pgstep - x) <= tol
+@test norm(pgstep - x)/normL^2 <= tol
 # project subgr onto the subdifferential of the L1-norm at x
 subgr = -A1'*(A1*x-b)
 subgr_proj = min.(max.(subgr, -lam), lam)
@@ -50,12 +52,12 @@ subgr_proj[x .> 0] = lam
 # Apply ZeroFPR
 
 x = zeros(n)
-zerofpr = ZeroFPR(tol=tol,maxit=1000,verbose=1)
-sol = RegLS.apply!(zerofpr, x, f, L, g)
+zerofpr = RegLS.ZeroFPR(tol=tol,maxit=1000,verbose=1)
+sol = RegLS.apply!(zerofpr, x; fq=f, Aq=L, g=g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
-@test norm(pgstep - x) <= tol
+@test norm(pgstep - x)/normL^2 <= tol
 # project subgr onto the subdifferential of the L1-norm at x
 subgr = -A1'*(A1*x-b)
 subgr_proj = min.(max.(subgr, -lam), lam)
@@ -79,44 +81,46 @@ f = PrecomposeDiagonal(SqrNormL2(), 1.0, -b)
 g = SeparableSum((NormL1(lam), IndBallL2(1.0)))
 L = HCAT(MatrixOp(A1), MatrixOp(A2))
 
+normL = norm([A1 A2])
+
 # Apply PG
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply!(PG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(RegLS.PG(tol=tol), x; fq=f, Aq=L, g=g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
 gstep2 = x[2] - A2'*res
 pgstep1 = sign.(gstep1).*max.(0, abs.(gstep1) .- lam)
 pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
-@test norm(x[1] - pgstep1) <= tol
-@test norm(x[2] - pgstep2) <= tol
+@test norm(x[1] - pgstep1)/normL^2 <= tol
+@test norm(x[2] - pgstep2)/normL^2 <= tol
 
 # Apply FPG
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply!(FPG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(RegLS.FPG(tol=tol), x; fq=f, Aq=L, g=g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
 gstep2 = x[2] - A2'*res
 pgstep1 = sign.(gstep1).*max.(0, abs.(gstep1) .- lam)
 pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
-@test norm(x[1] - pgstep1) <= tol
-@test norm(x[2] - pgstep2) <= tol
+@test norm(x[1] - pgstep1)/normL^2 <= tol
+@test norm(x[2] - pgstep2)/normL^2 <= tol
 
 # Apply ZeroFPR
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply!(ZeroFPR(tol=tol), x, f, L, g)
+sol = RegLS.apply!(RegLS.ZeroFPR(tol=tol), x; fq=f, Aq=L, g=g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
 gstep2 = x[2] - A2'*res
 pgstep1 = sign.(gstep1).*max.(0, abs.(gstep1) .- lam)
 pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
-@test norm(x[1] - pgstep1) <= tol
-@test norm(x[2] - pgstep2) <= tol
+@test norm(x[1] - pgstep1)/normL^2 <= tol
+@test norm(x[2] - pgstep2)/normL^2 <= tol
 
 ###########################################################################
 # L2-regularized least squares with two data blocks (just to play)
@@ -137,14 +141,14 @@ L = VCAT(MatrixOp(A1), MatrixOp(A2))
 # Apply PG
 
 x = zeros(n)
-sol = RegLS.apply!(PG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(RegLS.PG(tol=tol), x; fq=f, Aq=L, g=g)
 
 # Apply FPG
 
 x = zeros(n)
-sol = RegLS.apply!(FPG(tol=tol), x, f, L, g)
+sol = RegLS.apply!(RegLS.FPG(tol=tol), x; fq=f, Aq=L, g=g)
 
 # Apply ZeroFPR
 
 x = zeros(n)
-sol = RegLS.apply!(ZeroFPR(tol=tol), x, f, L, g)
+sol = RegLS.apply!(RegLS.ZeroFPR(tol=tol), x; fq=f, Aq=L, g=g)

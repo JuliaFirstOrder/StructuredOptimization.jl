@@ -220,26 +220,26 @@ B = randn(5, 7)
 b = randn(5)
 
 prob = problem(ls(A*x + b), norm(x, 2) <= 1.0)
-slv = RegLS.solve!(prob, PG())
+slv = RegLS.solve!(prob, RegLS.PG())
 
 ~x .= 0.
 prob = problem(ls(A*x - B*y + b) + norm(y, 1), norm(x, 2) <= 1.0)
-slv = RegLS.solve!(prob, FPG())
+slv = RegLS.solve!(prob, RegLS.FPG())
 
 @printf("\n Testing @minimize \n")
 ~x .= 0.
 ~y .= 0.
-slv = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with PG()
+slv = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with RegLS.PG()
 ~x .= 0.
-slv = @minimize ls(A*x - b) st norm(x, 1) <= 1.0 with PG()
+slv = @minimize ls(A*x - b) st norm(x, 1) <= 1.0 with RegLS.PG()
 ~x .= 0.
 slv = @minimize ls(A*x - b) st norm(x, 1) <= 1.0
 ~x .= 0.
-slv = @minimize ls(A*x - b) + norm(x, 1) with PG()
+slv = @minimize ls(A*x - b) + norm(x, 1) with RegLS.PG()
 ~x .= 0.
 slv = @minimize ls(A*x - b) + norm(x, 1)
 ~x .= 0.
-slv = @minimize ls(A*x - b) 
+slv = @minimize ls(A*x - b)
 
 x = Variable(5)
 A = randn(10, 5)
@@ -247,15 +247,11 @@ b = randn(10)
 
 #TODO many many more tests
 @printf("\n Testing @minimize nonlinear \n")
-slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PG() 
+slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with RegLS.PG()
 xpg = copy(~x)
 ~x .= 0.
-slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ZeroFPR() 
+slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with RegLS.ZeroFPR()
 xz = copy(~x)
 ~x .= 0.
 
 @test norm(xz-xpg) <1e-7
-
-
-
-
