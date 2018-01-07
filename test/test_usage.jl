@@ -42,8 +42,8 @@ println(sol)
 
 @test norm(~x1_fpg - ~x1_zerofpr, Inf)/(1+norm(~x1_zerofpr, Inf)) <= 1e-6
 @test norm(~x2_fpg - ~x2_zerofpr, Inf)/(1+norm(~x2_zerofpr, Inf)) <= 1e-6
-@test norm(~x1 - ~x1_zerofpr, Inf)/(1+norm(~x1_zerofpr, Inf)) <= 1e-6
-@test norm(~x2 - ~x2_zerofpr, Inf)/(1+norm(~x2_zerofpr, Inf)) <= 1e-6
+@test norm(~x1 - ~x1_zerofpr, Inf)/(1+norm(~x1_zerofpr, Inf)) <= 1e-3
+@test norm(~x2 - ~x2_zerofpr, Inf)/(1+norm(~x2_zerofpr, Inf)) <= 1e-3
 
 res = A1*~x1_fpg + A2*~x2_fpg - b
 grad1 = A1'*res
@@ -203,7 +203,7 @@ x = Variable(n)
 println(sol)
 
 @test norm(~x - max.(lb, min.(ub, ~x)), Inf) <= 1e-12
-@test norm(~x - max.(lb, min.(ub, ~x - A'*(A*~x - b))), Inf)/(1+norm(~x, Inf)) <= 1e-8
+@test norm(~x - max.(lb, min.(ub, ~x - A'*(A*~x - b))), Inf)/(1+norm(~x, Inf)) <= 1e-5
 
 ################################################################################
 ### Non-negative least-squares from a known solution
@@ -271,4 +271,4 @@ x = Variable(n)
 println(sol)
 
 @test all(~x .>= 0.0)
-@test norm(~x - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
+@test norm(~x - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-6
