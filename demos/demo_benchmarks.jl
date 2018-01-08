@@ -1,32 +1,20 @@
 using BenchmarkTools
-using RegLS
 
-
-vrb = 0
+#verbose, samples, seconds
+v,        smp,     sec      = 0, 10, 100
 suite = BenchmarkGroup()
 
-solvers = ["ZeroFPR", "FPG", "PG"]
-demos   = ["SparseDeconvolution"]
+suite["SparseDeconvolution"] = BenchmarkGroup()
+include("SparseDeconvolution.jl")
+suite["SparseDeconvolution"]["FullMatrix"] = SparseDeconvolution.benchmark(verb = v, samples = smp, seconds = sec)
+suite["SparseDeconvolution"]["MatrixFree"] = SparseDeconvolution.benchmarkMatrixFree(verb = v, samples = smp, seconds = sec)
 
-for d in demos
-	suite[d] = BenchmarkGroup()
-end
+suite["LineSpectraEstimation"] = BenchmarkGroup()
+include("LineSpectraEstimation.jl")
+suite["LineSpectraEstimation"]["FullMatrix"] = LineSpectraEstimation.benchmark(verb = v, samples = smp, seconds = sec)
+suite["LineSpectraEstimation"]["MatrixFree"] = LineSpectraEstimation.benchmarkMatrixFree(verb = v, samples = smp, seconds = sec)
 
-include(demos[1]*".jl")
-p = SparseDeconvolution.solve_problem!
-setup, = SparseDeconvolution.set_up() 
-slv_opt = "(verbose = vrb)"
-
-for i in eachindex(solvers)
-
-	solver = eval(parse(solvers[i]*slv_opt))
-
-	suite[demos[1]][solvers[i]] = 
-	@benchmarkable p(solver, setup...) setup = (setup = deepcopy($setup); 
-						     solver = deepcopy($solver) ) evals = 1
-end
-
-results = run(suite, verbose = true)
-showall(results)
-
- 
+println("\n")
+showall(median(suite))
+println("\n")
+#showall(memory(suite))

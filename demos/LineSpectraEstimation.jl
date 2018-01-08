@@ -1,13 +1,15 @@
 module LineSpectraEstimation
 
+using BenchmarkTools
 using PyPlot
 using RegLS
 using Convex
+using MathProgBase
 using Mosek
 using AbstractOperators
 using DSP
 
-function set_up()
+function set_up(;opt="")
 
 	srand(17)
 
@@ -30,7 +32,7 @@ function set_up()
 	xzp = rfft([y;zeros((s-1)*length(y))])
 	IDFTm = [exp(im*2*pi*k*n/(s*Nt))  for k =0:s*Nt-1, n=0:s*Nt-1] #Inverse Fourier Matrix
 	S = [speye(Nt) spzeros(Nt,(s-1)*Nt)] # selection matrix
-	Fm = S*IDFTm
+	Fm = full(S*IDFTm)
 	lambda_max_m = norm(Fm'*y, Inf)
 	lambda_m = 0.06*lambda_max_m
 
@@ -38,74 +40,134 @@ function set_up()
 	lambda_max = norm(F'*y, Inf)
 	lambda = 0.06*lambda_max
 
-	setup = K, F, Fm, lambda, lambda_m
-	return t, f, fs, fk, ak, s, Nt, Fs, xzp, y, setup
+	if opt == "MatrixFree"
+		setup = K, F, lambda, lambda_m
+	else
+		setup = K, Fm, lambda, lambda_m
+	end
+	return setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y
 
-end
-
-function solve_problem!(slv, x0, y, K, F, Fm, lambda, lambda_m)
-	@minimize ls(F*x0-y)+lambda*norm(x0,1) with slv
-	return x0
-end
-
-function solve_problem_ncvx!(slv, x0, y, K, F, Fm, lambda, lambda_m)
-	@minimize ls(F*x0-y) st norm(x0,0) <= K with slv
-	return x0
-end
-
-function solve_problem_matrix!(slv, x0, y, K, F, Fm, lambda, lambda_m)
-	@minimize ls(Fm*x0-y)+lambda_m*norm(x0,1) with slv
-	return x0
-end
-
-function solve_problem_ncvx_matrix!(slv, x0, y, K, F, Fm, lambda, lambda_m)
-	@minimize ls(Fm*x0-y) st norm(x0,0) <= 2*K with slv
-	return x0
-end
-
-function solve_problem_Convex!(slv, x0, y, K, F, Fm, lambda, lambda_m)
-	problem = minimize(0.5*norm(Fm*x0-y,2)^2+lambda_m*norm(x0,1)) 
-	return problem
 end
 
 function run_demo()
-
-	t, f, fs, fk, ak, s, Nt, Fs, xzp, y, setup = set_up()
-
-	x = RegLS.Variable(zeros(Complex{Float64},div(s*Nt,2)+1))
 	slv = ZeroFPR()
+	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up(opt = "MatrixFree")
+	x = init_variable(div(s*Nt,2)+1,slv)
 
 	println("Solving LASSO (Abstract Operator)")
 	@time solve_problem!(slv, x, y, setup...)
 	x1 = copy(~x)
 
-	println("Rafine solution by solving non-convex problem (Abstract Operator)")
+	println("Refine solution by solving non-convex problem (Abstract Operator)")
 	@time solve_problem_ncvx!(slv, x, y, setup...)
 	x0 = copy(~x)
 
-	x0m = RegLS.Variable(zeros(Complex{Float64},s*Nt))
 	slv = ZeroFPR()
+	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up()
+	x0m = init_variable(s*Nt,slv)
 
 	println("Solving LASSO (Matrix Operator)")
-	@time solve_problem_matrix!(slv, x0m, y, setup...)
+	@time solve_problem!(slv, x0m, y, setup...)
 
-	println("Rafine solution by solving non-convex problem (Matrix Operator)")
-	@time solve_problem_ncvx_matrix!(slv, x0m, y, setup...)
+	println("Refine solution by solving non-convex problem (Matrix Operator)")
+	@time solve_problem_ncvx!(slv, x0m, y, setup...)
 
 	return t, f, fs, fk, ak, s, Nt, Fs, xzp, y, x1, x0
 end
 
 function run_demo_Convex()
-	t, f, fs, fk, ak, s, Nt, Fs, xzp, y, setup = set_up()
-	x0m = Convex.ComplexVariable(s*Nt)
+	slv = MosekSolver()
+	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up()
+	x0m = init_variable(s*Nt,slv)
 
 	println("Solving LASSO with Convex.jl (Matrix Operator)")
-	slv = MosekSolver()
-	problem = solve_problem_Convex!(slv, x0m, y, setup...)
-	@time Convex.solve!(problem,slv)
+	@time x0m = solve_problem!(slv, x0m, y, setup...)
+	
 	x1 = x0m.value
 	x1 = x1[1:div(s*Nt,2)+1]
 	return t, f, fs, fk, ak, s, Nt, Fs, xzp, y, x1, zeros(x1)
+end
+
+init_variable(N,slv::S) where {S <: RegLS.ForwardBackwardSolver} = RegLS.Variable(Complex{Float64}, N)
+init_variable(N,slv::S) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver} = Convex.ComplexVariable(N)
+
+#RegLS Matrix Free
+function solve_problem!(slv::S, x0, y, K, F::A, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
+	@minimize ls(F*x0-y)+lambda*norm(x0,1) with slv
+	return x0
+end
+
+function solve_problem_ncvx!(slv::S, x0, y, K, F::A, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
+	@minimize ls(F*x0-y) st norm(x0,0) <= K with slv
+	return x0
+end
+
+#RegLS non-Matrix Free
+function solve_problem!(slv::S, x0, y, K, F::A, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
+	@minimize ls(F*x0-y)+lambda_m*norm(x0,1) with slv
+	return x0
+end
+
+function solve_problem_ncvx!(slv::S, x0, y, K, F::A, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
+	@minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
+	return x0
+end
+
+#Convex 
+function solve_problem!(slv::S, x0, y, K, F, lambda, lambda_m) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
+	problem = minimize(0.5*norm(F*x0-y,2)^2+lambda_m*norm(x0,1)) 
+	Convex.solve!(problem,slv)
+	return x0
+end
+
+function benchmark(;verb = 0, samples = 5, seconds = 100)
+
+	suite = BenchmarkGroup()
+
+	solvers = ["ZeroFPR", "FPG", "PG"]#, "MosekSolver"]
+	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)"]#, "(LOG = $verb)"]
+
+	for i in eachindex(solvers)
+
+		setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up()
+		solver = eval(parse(solvers[i]*slv_opt[i]))
+		x0 = init_variable(Nt*s,solver)
+
+		suite[solvers[i]] = 
+		@benchmarkable(solve_problem!(solver, x0, y, setup...), 
+			       setup = (x0 = deepcopy($x0); 
+					setup = deepcopy($setup); 
+					y = $y; 
+					solver = deepcopy($solver) ), 
+			       evals = 1, samples = samples, seconds = seconds)
+	end
+
+	results = run(suite, verbose = (verb != 0))
+end
+
+function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100)
+
+	suite = BenchmarkGroup()
+
+	solvers = ["ZeroFPR", "FPG", "PG"]
+	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)"]
+
+	for i in eachindex(solvers)
+
+		setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up(opt = "MatrixFree")
+		solver = eval(parse(solvers[i]*slv_opt[i]))
+		x0 = init_variable(div(Nt*s,2)+1,solver)
+
+		suite[solvers[i]] = 
+		@benchmarkable(solve_problem!(solver, x0, y, setup...), 
+			       setup = (x0 = deepcopy($x0); 
+					setup = deepcopy($setup); 
+					y = $y; 
+					solver = deepcopy($solver) ), 
+			       evals = 1, samples = samples, seconds = seconds)
+	end
+
+	results = run(suite, verbose = (verb != 0))
 end
 
 function show_results(t, f, fs, fk, ak, s, Nt, Fs, xzp, y, x1, x0)
