@@ -1,7 +1,7 @@
 using BenchmarkTools
 
 #verbose, samples, seconds
-v,        smp,     sec      = 0, 10, 100
+v,        smp,     sec      = 0, 5, 100
 suite = BenchmarkGroup()
 
 suite["SparseDeconvolution"] = BenchmarkGroup()

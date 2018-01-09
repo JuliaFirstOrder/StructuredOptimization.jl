@@ -1,13 +1,16 @@
 module LineSpectraEstimation
 
 using BenchmarkTools
-using PyPlot
 using RegLS
 using Convex
 using MathProgBase
 using Mosek
 using AbstractOperators
-using DSP
+using PyPlot
+using PyCall
+
+@pyimport cvxpy as cvx
+@pyimport numpy as np
 
 function set_up(;opt="")
 
@@ -40,10 +43,13 @@ function set_up(;opt="")
 	lambda_max = norm(F'*y, Inf)
 	lambda = 0.06*lambda_max
 
+	Fc = [real(Fm) -imag(Fm); imag(Fm) real(Fm)] 
+	# needed in cvxpy (currently does not support complex variables)
+
 	if opt == "MatrixFree"
-		setup = K, F, lambda, lambda_m
+		setup = K,  F, Fc, lambda, lambda_m
 	else
-		setup = K, Fm, lambda, lambda_m
+		setup = K, Fm, Fc, lambda, lambda_m
 	end
 	return setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y
 
@@ -75,6 +81,19 @@ function run_demo()
 	return t, f, fs, fk, ak, s, Nt, Fs, xzp, y, x1, x0
 end
 
+function run_demo_cvx()
+
+	slv = cvx.MOSEK
+	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up()
+	x0 = init_variable(s*Nt,slv)
+
+	@time x0 = solve_problem!(slv, x0, y, setup...)
+	x1 = x0[1][:value]+im*x0[2][:value]
+	x1 = x1[1:div(s*Nt,2)+1]
+
+	return t, f, fs, fk, ak, s, Nt, Fs, xzp, y, x1, zeros(x1)
+end
+
 function run_demo_Convex()
 	slv = MosekSolver()
 	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up()
@@ -90,33 +109,50 @@ end
 
 init_variable(N,slv::S) where {S <: RegLS.ForwardBackwardSolver} = RegLS.Variable(Complex{Float64}, N)
 init_variable(N,slv::S) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver} = Convex.ComplexVariable(N)
+init_variable(N,slv::S) where {S <: AbstractString} = cvx.Variable(N), cvx.Variable(N)
 
 #RegLS Matrix Free
-function solve_problem!(slv::S, x0, y, K, F::A, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
+function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
 	@minimize ls(F*x0-y)+lambda*norm(x0,1) with slv
 	return x0
 end
 
-function solve_problem_ncvx!(slv::S, x0, y, K, F::A, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
+function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
 	@minimize ls(F*x0-y) st norm(x0,0) <= K with slv
 	return x0
 end
 
 #RegLS non-Matrix Free
-function solve_problem!(slv::S, x0, y, K, F::A, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
+function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
 	@minimize ls(F*x0-y)+lambda_m*norm(x0,1) with slv
 	return x0
 end
 
-function solve_problem_ncvx!(slv::S, x0, y, K, F::A, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
+function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
 	@minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
 	return x0
 end
 
 #Convex 
-function solve_problem!(slv::S, x0, y, K, F, lambda, lambda_m) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
+function solve_problem!(slv::S, x0, y, K, F, Fc, lambda, lambda_m) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
 	problem = minimize(0.5*norm(F*x0-y,2)^2+lambda_m*norm(x0,1)) 
 	Convex.solve!(problem,slv)
+	return x0
+end
+
+#cvxpy 
+function solve_problem!(slv::S, x0, y, K, F, Fc, lambda, lambda_m) where {S <: AbstractString}
+	xr, xi = x0[1],x0[2]
+	reg = cvx.norm(cvx.vstack(xr[1],xi[1])) 
+	for i = 2:xr[:size][1]
+		reg += cvx.norm(cvx.vstack(xr[i],xi[i]))
+	end
+
+	problem = cvx.Problem(
+		  cvx.Minimize(cvx.sum_squares(PyObject(Fc)*cvx.vstack(xr,xi)-[real(y);imag(y)])*0.5
+			       +reg*lambda_m
+			       ))
+	problem[:solve](solver = slv, verbose = false)
 	return x0
 end
 
@@ -124,8 +160,8 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 
 	suite = BenchmarkGroup()
 
-	solvers = ["ZeroFPR", "FPG", "PG"]#, "MosekSolver"]
-	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)"]#, "(LOG = $verb)"]
+	solvers = ["ZeroFPR", "FPG", "PG", "cvx.MOSEK", "cvx.SCS"]
+	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)", "", ""]
 
 	for i in eachindex(solvers)
 
