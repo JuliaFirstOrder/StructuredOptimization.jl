@@ -246,12 +246,12 @@ A = randn(10, 5)
 b = randn(10)
 
 #TODO many many more tests
-@printf("\n Testing @minimize nonlinear \n")
-slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with RegLS.PG()
-xpg = copy(~x)
-~x .= 0.
-slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with RegLS.ZeroFPR()
-xz = copy(~x)
-~x .= 0.
-
-@test norm(xz-xpg) <1e-7
+#@printf("\n Testing @minimize nonlinear \n")
+#slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with RegLS.PG()
+#xpg = copy(~x)
+#~x .= 0.
+#slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with RegLS.ZeroFPR()
+#xz = copy(~x)
+#~x .= 0.
+#
+#@test norm(xz-xpg) <1e-7
