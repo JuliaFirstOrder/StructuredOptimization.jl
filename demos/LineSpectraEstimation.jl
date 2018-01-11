@@ -83,7 +83,7 @@ end
 
 function run_demo_cvx()
 
-	slv = cvx.MOSEK
+	slv = cvx.SCS
 	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up()
 	x0 = init_variable(s*Nt,slv)
 
@@ -160,7 +160,7 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 
 	suite = BenchmarkGroup()
 
-	solvers = ["ZeroFPR", "FPG", "PG", "cvx.MOSEK", "cvx.SCS"]
+	solvers = ["ZeroFPR", "FPG", "PG", "cvx.CVXOPT", "cvx.SCS"]
 	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)", "", ""]
 
 	for i in eachindex(solvers)

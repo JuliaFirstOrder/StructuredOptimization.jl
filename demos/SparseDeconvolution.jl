@@ -144,7 +144,7 @@ end
 #cvxpy
 function solve_problem!(slv::S, x0, y, T, lambda) where {S <: AbstractString}
 	problem = cvx.Problem(cvx.Minimize(cvx.sum_squares(PyObject(T)*x0-y)*0.5+cvx.norm1(x0)*lambda))
-	problem[:solve](solver = slv, verbose = true)
+	problem[:solve](solver = slv, verbose = false)
 	return x0
 end
 
@@ -152,7 +152,7 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 
 	suite = BenchmarkGroup()
 
-	solvers = ["ZeroFPR", "FPG", "PG", "cvx.MOSEK", "cvx.SCS"]
+	solvers = ["ZeroFPR", "FPG", "PG", "cvx.CVXOPT", "cvx.SCS"]
 	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)", "", ""]
 
 	for i in eachindex(solvers)
