@@ -1,22 +1,15 @@
 
 using RegLS
 using BenchmarkTools
-using PyCall
 using JuMP
 using SCS
 using Mosek
 using ECOS
 
-@pyimport cvxpy as cvx
-@pyimport scipy.sparse as sp
-
-# currently PyCall converts sparse matrices into full ones 
-PyObject(S::SparseMatrixCSC) = sp.csc_matrix((S.nzval, S.rowval .- 1, S.colptr .- 1), shape=size(S))
-
 function set_up(S::Int) #S scales problem
 
-	n = S
-	m = div(S,4)
+	n = div(S,4)
+	m = S 
 	SNR = 10
 
 	srand(123)
@@ -32,19 +25,19 @@ function set_up(S::Int) #S scales problem
 	x = RegLS.Variable(m)
 	@minimize ls(A*x-y)+lambda*norm(x,1) with ZeroFPR(verbose = 0, tol =1e-12) 
 	setup = A, y, lambda, m
-	x1 = ~x
-	return ~x, setup
+	setup_JuMP = create_JuMP_model(A, y, lambda, m)
+	return ~x, setup, setup_JuMP
 end
 
 
-function solve_problem(slv::S, A, y, lambda, m) where {S <: RegLS.ForwardBackwardSolver}
+function solve_problem(slv::S, A, y, lambda, m, M, xJ) where {S <: RegLS.ForwardBackwardSolver}
 	x = RegLS.Variable(m)
 	slv = @minimize ls(A*x-y)+lambda*norm(x,1) with slv
 	return ~x, slv.it
 end
 
-function solve_problem(slv::S, A, y, lambda, m) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
-	M = Model(solver = slv)
+function create_JuMP_model(A, y, lambda, m)
+	M = Model()
 	@variables M begin
 		x[1:m]
 		t[1:m]
@@ -54,23 +47,19 @@ function solve_problem(slv::S, A, y, lambda, m) where {S <: MathProgBase.SolverI
 	@constraint(M, soc, norm( [1-w;2*(A*x-y)] ) <= 1+w)
 	@constraint(M,  x .<= t)
 	@constraint(M, -t .<= x)
-
-	solve(M)
-	return getvalue(x), 0
+	return M, x
 end
 
-#cvxpy
-function solve_problem(slv::S, A, y, lambda, m) where {S <: AbstractString}
-	x = cvx.Variable(m)
-	problem = cvx.Problem(cvx.Minimize(cvx.sum_squares(PyObject(A)*x-y)*0.5+cvx.norm1(x)*lambda))
-	problem[:solve](solver = slv, verbose = false)
-	return x[:value], 0
+function solve_problem(slv::S, A, y, lambda, m, M, xJ) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
+	setsolver(M, slv)
+	solve(M)
+	return getvalue(xJ), 0
 end
 
 function benchmark_LASSO()
 	suite = BenchmarkGroup()
 
-	verbose, samples, seconds = 0, 7, 1e4
+	verbose, samples, seconds = 0, 5, 1e5
 
 	solvers = [
 		   "ECOSSolver",
@@ -81,24 +70,26 @@ function benchmark_LASSO()
 		   ]
 	slv_opt = ["(verbose = $verbose, maxit     = 100000000)", 
 		   "(verbose = $verbose, max_iters = 100000000)", 
-		   "(verbose = $verbose, maxit     = 100000000)", 
-		   "(verbose = $verbose, maxit     = 100000000)", 
-		   "(verbose = $verbose, maxit     = 100000000)"]
+		   "(verbose = $verbose, maxit     = 100000000, tol = 1e-6)", 
+		   "(verbose = $verbose, maxit     = 100000000, tol = 1e-6)", 
+		   "(verbose = $verbose, maxit     = 100000000, tol = 1e-6)"]
 	iterations = Dict([(sol,0) for sol in solvers]) 
-	nvar =  [100;1000;10000;100000;1000000]
-#	nvar =  [100;1000;10000]
+#	nvar =  [100;1000;10000;100000;1000000]
+	nvar =  [100;]
 	err = Dict((n,Dict([(sol,0.) for sol in solvers])) for n in nvar) 
 	its = Dict((n,Dict([(sol,0.) for sol in solvers])) for n in nvar) 
 
 	for ii in nvar 
 		suite[ii] = BenchmarkGroup()
-		xopt, setup = set_up(ii)
+		xopt, setup, setup_JuMP = set_up(ii)
 		for i in eachindex(solvers)
 			solver = eval(parse(solvers[i]*slv_opt[i]))
 
 			suite[ii][solvers[i]] = 
-			@benchmarkable((x,it) = solve_problem(solver, setup...), 
-				       setup = (setup  = deepcopy($setup); 
+			@benchmarkable((x,it) = solve_problem(solver, setup..., setup_JuMP...), 
+				       setup = (
+						setup  = deepcopy($setup); 
+						setup_JuMP  = deepcopy($setup_JuMP); 
 						solver = deepcopy($solver);
 						x = nothing;
 						it = 0;
@@ -132,8 +123,6 @@ println("\n")
 #legend()
 
 import BenchmarkTools:prettytime
-
-
 tab = "\\midrule \n"
 for i in nvar
 	tab *= "\\multirow{2}{*}{ \$ n = 10^$(Int(log10(i))) \$ } & "
@@ -150,6 +139,7 @@ end
 
 tab = replace(tab, "μ", "\$\\mu\$")
 println(tab)
+write("table.tex", tab)
 
 
 
