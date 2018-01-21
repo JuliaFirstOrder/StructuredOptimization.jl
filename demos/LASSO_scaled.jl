@@ -70,20 +70,23 @@ end
 function benchmark_LASSO()
 	suite = BenchmarkGroup()
 
-	verbose, samples, seconds = 0, 5, 10000
+	verbose, samples, seconds = 0, 7, 1e4
 
-	solvers = ["ZeroFPR", 
-		   "FPG", 
-		   "PG", 
+	solvers = [
+		   "ECOSSolver",
 		   "SCSSolver", 
-		   "ECOSSolver"]
-	slv_opt = ["(verbose = $verbose)", 
-		   "(verbose = $verbose)", 
-		   "(verbose = $verbose)", 
-		   "(verbose = $verbose)", 
-		   "(verbose = $verbose)"]
+		   "PG", 
+		   "FPG", 
+		   "ZeroFPR", 
+		   ]
+	slv_opt = ["(verbose = $verbose, maxit     = 100000000)", 
+		   "(verbose = $verbose, max_iters = 100000000)", 
+		   "(verbose = $verbose, maxit     = 100000000)", 
+		   "(verbose = $verbose, maxit     = 100000000)", 
+		   "(verbose = $verbose, maxit     = 100000000)"]
 	iterations = Dict([(sol,0) for sol in solvers]) 
-	nvar =  [100;1000;10000;100000;500000]
+	nvar =  [100;1000;10000;100000;1000000]
+#	nvar =  [100;1000;10000]
 	err = Dict((n,Dict([(sol,0.) for sol in solvers])) for n in nvar) 
 	its = Dict((n,Dict([(sol,0.) for sol in solvers])) for n in nvar) 
 
@@ -113,6 +116,7 @@ function benchmark_LASSO()
 
 	return benchmarks, solvers, err, its, nvar
 end
+BLAS.set_num_threads(3)
 
 benchmarks, solvers, err, its, nvar = benchmark_LASSO()
 
@@ -126,6 +130,39 @@ println("\n")
 #	semilogx(nvar,[10*log10(time(median(benchmarks[i][slv]))) for i in nvar], label = slv)
 #end
 #legend()
+
+import BenchmarkTools:prettytime
+
+
+tab = "\\midrule \n"
+for i in nvar
+	tab *= "\\multirow{2}{*}{ \$ n = 10^$(Int(log10(i))) \$ } & "
+	tab *= "\$ t \$ "
+	for slv in solvers 
+		tab *= "&  $(prettytime(time(median(benchmarks[i][slv]))))  "
+	end
+	tab *= "\\\\ \n\\cmidrule(lr){2-7}\n                                & \$ k \$ " 
+	for slv in solvers 
+		tab *= "& $(Int(its[i][slv])) "
+	end
+	tab *= "\\\\ \n \\midrule \n" 
+end
+
+tab = replace(tab, "μ", "\$\\mu\$")
+println(tab)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
