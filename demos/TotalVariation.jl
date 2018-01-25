@@ -1,37 +1,73 @@
+module TotalVariation
+
+using BenchmarkTools
 using RegLS
 using AbstractOperators
 using Images
 using ImageView
-srand(123)
-
 using TestImages
-img = testimage("lena_gray")
 
-R = convert(Array{Float64},img)
-R_w = R+sqrt(0.006*norm(R[:],Inf))*randn(size(R))
+function set_up()
+	srand(123)
+	img = testimage("cameraman")
 
-slv = ZeroFPR
-#slv = FPG
-tol = 1e-4
-Lf  = 8
-verb = 1
-slv = slv(tol = tol, verbose = verb, gamma = 1/Lf, adaptive = false)
-lambda = 0.07
+	X = convert(Array{Float64},img) # convert image to array
+	Xt = X.+sqrt(0.006*vecnorm(X,Inf))*randn(size(X)) # add noise
+	Xt[Xt .< 0] .= 0. #make sure pixels are in range
+	Xt[Xt .> 1] .= 1.
 
-L = Variation(Float64,size(R))
+	V = Variation(size(X)) # linear mapping operator
+	lambda = 0.07          # level of regularization
 
-Y1 = Variable(size(L,1)...)
-slv = @minimize ls(L'*Y1-R_w)+conj(lambda*norm(Y1,1)) with slv
-println(slv)
-R1 = -(L'*(~Y1)-R_w)
+	Y = Variable(size(V,1)...) # dual variables
+	return V, Y, Xt, X, lambda
+end
 
-Y1 = Variable(size(L,1)...)
-slv = @minimize ls(L'*Y1-R_w)+conj(lambda*norm(Y1,2,1,2)) with slv
-println(slv)
-R21 = -(L'*(~Y1)-R_w)
+function run_demo()
+	Lf  = 8                # Lipschitz constant
+	slv = ZeroFPR(tol = 1e-3, gamma = 1/Lf, adaptive = false)
+	setup = set_up()
+	@time solve_problem!(slv,setup...)
+	return setup
+end
 
-imshow(R)
-imshow(R_w)
-imshow(R1)
-imshow(R21)
+function solve_problem!(slv,V, Y, Xt, X, lambda)
+	@minimize ls(V'*Y-Xt)+conj(lambda*norm(Y,2,1,2)) with slv
+end
 
+function benchmark(;verb = 0, samples = 5, seconds = 100)
+
+	suite = BenchmarkGroup()
+
+	tol = 1e-3
+	solvers = ["ZeroFPR",
+		   "FPG",
+		   "PG"]
+	slv_opt = ["(verbose = $verb, tol = $tol, gamma = 1/8, maxit = 50000)", 
+		   "(verbose = $verb, tol = $tol, gamma = 1/8, maxit = 50000)",
+		   "(verbose = $verb, tol = $tol, gamma = 1/8, maxit = 50000)"]
+
+	for i in eachindex(solvers)
+
+		setup = set_up()
+		solver = eval(parse(solvers[i]*slv_opt[i]))
+
+		suite[solvers[i]] = 
+		@benchmarkable(solve_problem!(solver, setup...), 
+			       setup = ( 
+					setup = deepcopy($setup); 
+					solver = deepcopy($solver) ), 
+			       evals = 1, samples = samples, seconds = seconds)
+	end
+
+	results = run(suite, verbose = (verb != 0))
+end
+
+function show_results(V, Y, Xt, X, lambda)
+	Xd = -(V'*(~Y)-Xt)
+	imshow(X)
+	imshow(Xt)
+	imshow(Xd)
+end
+
+end

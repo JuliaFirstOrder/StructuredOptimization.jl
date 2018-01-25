@@ -1,53 +1,101 @@
+module MatrixDecomposition
+
+using BenchmarkTools
 using RegLS
 using Images, ImageView
 
-srand(123)
-N = 20
-Nframes = 2621 #number of frames
-frames =  randperm(Nframes)[1:N]
-n,m = 120,160 #frame size
+function set_up()
+	Frames = 900
+	dir = "street"
+	img = load("$dir/in000000.jpg")
+	n,m = size(img,1),size(img,2)
+	#frames = sort(randperm(Frames)[1:N])
+	frames = collect(1:45:Frames)
+	N = length(frames)
 
-# TODO this link is not working anymore!!
-# data from http://research.microsoft.com/en-us/um/people/jckrumm/wallflower/testimages.htm
-# Bootstrapt.zip
-R,G,B = zeros(Float64,n,m,N),zeros(Float64,n,m,N),zeros(Float64,n,m,N)
-
-for f in eachindex(frames)
-	a = @sprintf("%5.5i",frames[f])
-	img = load("bootstrap/b$a.bmp")
-	for i =1:n,ii =1:m
-		R[i,ii,f] = convert(Float64,img[i,ii].r)
-		G[i,ii,f] = convert(Float64,img[i,ii].g)
-		B[i,ii,f] = convert(Float64,img[i,ii].b)
+	Y = zeros(Float64,n,m,N)
+	for f in eachindex(frames)
+		a = @sprintf("%6.6i",frames[f])
+		img = load("$dir/in$(a).jpg")
+		Y[:,:,f] .= convert(Array{Float64},Gray.(img))
+		img = []
 	end
+
+	Y = reshape(Y,n*m,N)
+
+	F = Variable(n*m,N)
+	B = Variable(n*m,N)
+	slv = ZeroFPR
+	slv = slv(verbose = 1, tol = 1e-5, adaptive = false, gamma = 0.5)
+
+	R, lambda = 1, 4e-2
+	return B, F, Y, R, lambda, n, m, N 
 end
 
-F = [reshape(R,n*m,N); reshape(G,n*m,N); reshape(B,n*m,N)]'
+function run_demo()
+	slv = ZeroFPR(tol = 1e-4)
+	setup = set_up()
+	solve_problem!(slv,setup...)
+	return setup
+end
 
-X = Variable(N*n*m,3)
-Y = Variable(N,3*n*m)
-slv = ZeroFPR
-slv = slv(verbose = 1, tol = 1e-3, adaptive = false, gamma = 0.5)
+function solve_problem!(slv, B, F, Y, R, lambda, n, m, N)
+	@minimize ls(B+F-Y)+lambda*norm(F,1) st rank(B) <= R with slv 
+end
 
-@minimize ls(reshape(X,N,3*n*m)+Y-F)+0.1*norm(X,2,1,2) st rank(Y) <= 1 with slv 
-println(slv)
+function benchmark(;verb = 0, samples = 5, seconds = 100)
 
-Frg = copy(~X)
-Frg[Frg.!=0] = Frg[Frg.!=0]+reshape(~Y,N*m*n,3)[Frg.!=0]
-Frg[repmat(sum(Frg,2).==0,1,3)] = 1 #put white in null pixels
-Frg = reshape(Frg,N,3*n*m)
+	suite = BenchmarkGroup()
 
-f = 1	
-a = @sprintf("%5.5i",frames[f])
-img = load("bootstrap/b$a.bmp")
-Bkg = reshape((~Y)[1,:],n,m,3)
-Frgf = reshape(Frg[f,:],n,m,3)
-Bkgim = [ RGB(Bkg[i,ii,1],Bkg[i,ii,2],Bkg[i,ii,3]) for i = 1:n,ii =1:m]
-Frgim = [ RGB(Frgf[i,ii,1],Frgf[i,ii,2],Frgf[i,ii,3]) for i = 1:n,ii =1:m]
+	tol = 1e-4
+	solvers = ["ZeroFPR",
+		   "FPG",
+		   "PG"]
+	slv_opt = ["(verbose = $verb, tol = $tol)", 
+		   "(verbose = $verb, tol = $tol)",
+		   "(verbose = $verb, tol = $tol)"]
 
-imshow(img)
-imshow(Frgim)
-imshow(Bkgim)
+	for i in eachindex(solvers)
 
-return
+		setup = set_up()
+		solver = eval(parse(solvers[i]*slv_opt[i]))
 
+		suite[solvers[i]] = 
+		@benchmarkable(solve_problem!(solver, setup...), 
+			       setup = ( 
+					setup = deepcopy($setup); 
+					solver = deepcopy($solver) ), 
+			       evals = 1, samples = samples, seconds = seconds)
+	end
+
+	results = run(suite, verbose = (verb != 0))
+end
+
+function show_results(B, F, Y, R, lambda, n, m, N)
+	F = F.x
+	B = B.x
+
+	F[F .!=0] = F[F.!=0]+reshape(B,size(F))[F.!=0]
+	F[ F.== 0] = 1. #put white in null pixels
+	F[F.>1] .= 1; F[F.<0.] .= 0.
+	B[B.>1] .= 1; B[B.<0.] .= 0.
+
+	#convert back to images
+	Y = reshape(Y,n,m,N)
+	B = reshape(B,n,m,N)
+	F = reshape(F,n,m,N)
+	#
+	####videos
+	#imshow(Y)
+	#imshow(F)
+	#imshow(B)
+	#
+	##images
+	idx = round.(Int,linspace(1,N,4)) 
+	imshow(hcat([Y[:,:,i] for i in idx]...))
+	imshow(hcat([F[:,:,i] for i in idx]...))
+	imshow(hcat([B[:,:,i] for i in idx]...))
+end
+
+
+end

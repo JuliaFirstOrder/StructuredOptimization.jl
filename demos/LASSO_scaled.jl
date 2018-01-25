@@ -8,49 +8,50 @@ using ECOS
 
 function set_up(S::Int) #S scales problem
 
-	n = div(S,4)
-	m = S 
-	SNR = 10
+	n = S 
+	m = div(S,4)
+	SNR = 5
 
 	srand(123)
 
-	A = sprandn(n,m,2/n)
-	x0 = zeros(m)
-	x0[randperm(m)[1:div(m,4)+1]] = randn(div(m,4)+1)
+	A = sprandn(m,n,5/n)
+	println("n = $n, nnz(A) = $(countnz(A))")
+	x0 = zeros(n)
+	x0[randperm(n)[1:div(n,4)+1]] = randn(div(n,4)+1)
 	x0 /= norm(x0)^2
 
 	y = A*x0
 	y += 10^(-SNR/10)*sqrt(var(y))*randn(length(y))
 	lambda = 0.01*norm(A'*y,Inf) 
-	x = RegLS.Variable(m)
+	x = RegLS.Variable(n)
 	@minimize ls(A*x-y)+lambda*norm(x,1) with ZeroFPR(verbose = 0, tol =1e-12) 
-	setup = A, y, lambda, m
-	setup_JuMP = create_JuMP_model(A, y, lambda, m)
+	setup = A, y, lambda, n
+	setup_JuMP = create_JuMP_model(A, y, lambda, n)
 	return ~x, setup, setup_JuMP
 end
 
 
-function solve_problem(slv::S, A, y, lambda, m, M, xJ) where {S <: RegLS.ForwardBackwardSolver}
-	x = RegLS.Variable(m)
+function solve_problem(slv::S, A, y, lambda, n, M, xJ) where {S <: RegLS.ForwardBackwardSolver}
+	x = RegLS.Variable(n)
 	slv = @minimize ls(A*x-y)+lambda*norm(x,1) with slv
 	return ~x, slv.it
 end
 
-function create_JuMP_model(A, y, lambda, m)
+function create_JuMP_model(A, y, lambda, n)
 	M = Model()
 	@variables M begin
-		x[1:m]
-		t[1:m]
+		x[1:n]
+		t[1:n]
 		w
 	end
-	@objective(M,Min,[0.5;lambda*ones(m)]'*[w;t])
+	@objective(M,Min,[0.5;lambda*ones(n)]'*[w;t])
 	@constraint(M, soc, norm( [1-w;2*(A*x-y)] ) <= 1+w)
 	@constraint(M,  x .<= t)
 	@constraint(M, -t .<= x)
 	return M, x
 end
 
-function solve_problem(slv::S, A, y, lambda, m, M, xJ) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
+function solve_problem(slv::S, A, y, lambda, n, M, xJ) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
 	setsolver(M, slv)
 	solve(M)
 	return getvalue(xJ), 0
@@ -59,7 +60,7 @@ end
 function benchmark_LASSO()
 	suite = BenchmarkGroup()
 
-	verbose, samples, seconds = 0, 5, 1e5
+	verbose, samples, seconds = 0, 5, 30*60
 
 	solvers = [
 		   "ECOSSolver",
@@ -68,14 +69,16 @@ function benchmark_LASSO()
 		   "FPG", 
 		   "ZeroFPR", 
 		   ]
-	slv_opt = ["(verbose = $verbose, maxit     = 100000000)", 
-		   "(verbose = $verbose, max_iters = 100000000)", 
-		   "(verbose = $verbose, maxit     = 100000000, tol = 1e-6)", 
-		   "(verbose = $verbose, maxit     = 100000000, tol = 1e-6)", 
-		   "(verbose = $verbose, maxit     = 100000000, tol = 1e-6)"]
+	slv_opt = [
+		   "(verbose = $verbose, maxit     = 10000)", 
+		   "(verbose = $verbose, max_iters = 100000)", 
+		   "(verbose = $verbose, maxit     = 100000, tol = 1e-6)", 
+		   "(verbose = $verbose, maxit     = 100000, tol = 1e-6)", 
+		   "(verbose = $verbose, maxit     = 100000, tol = 1e-6)"
+		   ]
 	iterations = Dict([(sol,0) for sol in solvers]) 
-#	nvar =  [100;1000;10000;100000;1000000]
-	nvar =  [100;]
+	nvar =  [1000;10000;100000]
+	#nvar =  [100]
 	err = Dict((n,Dict([(sol,0.) for sol in solvers])) for n in nvar) 
 	its = Dict((n,Dict([(sol,0.) for sol in solvers])) for n in nvar) 
 
@@ -107,7 +110,7 @@ function benchmark_LASSO()
 
 	return benchmarks, solvers, err, its, nvar
 end
-BLAS.set_num_threads(3)
+BLAS.set_num_threads(4)
 
 benchmarks, solvers, err, its, nvar = benchmark_LASSO()
 
@@ -130,9 +133,9 @@ for i in nvar
 	for slv in solvers 
 		tab *= "&  $(prettytime(time(median(benchmarks[i][slv]))))  "
 	end
-	tab *= "\\\\ \n\\cmidrule(lr){2-7}\n                                & \$ k \$ " 
+	tab *= "\\\\ \n\\cmidrule(lr){2-7}\n                                & \$ \\epsilon \$ " 
 	for slv in solvers 
-		tab *= "& $(Int(its[i][slv])) "
+		tab *= "& $(round(20*log10(err[i][slv]),1)) "
 	end
 	tab *= "\\\\ \n \\midrule \n" 
 end

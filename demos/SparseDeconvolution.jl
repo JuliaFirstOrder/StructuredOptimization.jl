@@ -3,16 +3,11 @@ module SparseDeconvolution
 
 using BenchmarkTools
 using RegLS
-using Convex
-using MathProgBase
-using Mosek
+using JuMP, MathProgBase, SCS, ECOS
 using AbstractOperators
 using RIM
 using PyPlot
-using PyCall
 
-@pyimport cvxpy as cvx
-@pyimport numpy as np
 
 function set_up(;opt="")
 
@@ -44,9 +39,21 @@ function set_up(;opt="")
 	lambda = 1e-2*vecnorm(H'*y,Inf)
 
 	if opt == "MatrixFree"
-		setup = y, H, lambda 
+		setup = y, H, lambda, Nx 
+	elseif opt == "JuMP"
+		M = Model()
+		@variables M begin
+			x0[1:Nx]
+			tt[1:Nx]
+			w
+		end
+		@objective(M,Min,[0.5;lambda*ones(Nx)]'*[w;tt])
+		@constraint(M, soc, norm( [1-w;2*(T*x0-y)] ) <= 1+w)
+		@constraint(M,  x0 .<= tt)
+		@constraint(M, -tt .<= x0)
+		setup = y, T, M, x0
 	else
-		setup = y, T, lambda 
+		setup = y, T, lambda, Nx 
 	end
 	return setup, t, x
 
@@ -62,16 +69,14 @@ function run_demo()
 
 	println("Solving Regularized problem with Full Matrix")
 	slv = ZeroFPR()
-	x0 = init_variable(x,slv)
-	@time x0 = solve_problem!(slv, x0, setup...)
+	@time x0 = solve_problem(slv, setup...)
 	xm = copy(~x0)
 
 	setup, t, x = set_up(opt = "MatrixFree")
 
 	println("Solving Regularized problem with Abstract Operator")
-	~x0 .= 0
 	slv = ZeroFPR()
-	@time x0 = solve_problem!(slv, x0, setup...)
+	@time x0 = solve_problem(slv, setup...)
 	x1 = copy(~x0)
 
 	println("  regularized MSE: $( 20*log10(norm(x1-x)/norm(x)) )")
@@ -80,90 +85,74 @@ function run_demo()
 	return t, x, x1, xu
 end
 
-function run_demo_cvx()
+function run_demo_JuMP()
 
-	setup, t, x = set_up()
+	setup, t, x = set_up(opt = "JuMP")
 
 	println("Solving Unregularized problem")
 	xu = setup[2]\setup[1]
 
-	#println("Solving Regularized problem with Abstract Operator")
-	slv = cvx.SCS
-	x0 = init_variable(x,slv)
-	@time x0 = solve_problem!(slv, x0, setup...)
-	x1 = x0[:value]
+	println("Solving Regularized problem with conic solver")
+	slv = SCSSolver()
+	@time x1 = solve_problem(slv, setup...)
 
 	println("  regularized MSE: $( 20*log10(norm(x1-x)/norm(x)) )")
 	println("unregularized MSE: $( 20*log10(norm(xu-x)/norm(x)) )")
 
 	return t, x, x1, xu
 end
-
-function run_demo_Convex()
-
-	setup, t, x = set_up()
-
-	println("Solving Unregularized problem")
-	xu = setup[2]\setup[1]
-
-	println("Solving Regularized problem with Convex")
-	slv = MosekSolver()
-	x0 = init_variable(x,slv)
-	@time x0 = solve_problem!(slv, x0, setup...)
-	x1 = x0.value
-
-	println("  regularized MSE: $( 20*log10(norm(x1-x)/norm(x)) )")
-	println("unregularized MSE: $( 20*log10(norm(xu-x)/norm(x)) )")
-
-	return t, x, x1, xu
-end
-
-init_variable(x,slv::S) where {S <: RegLS.ForwardBackwardSolver} = RegLS.Variable(size(x)...)
-init_variable(x,slv::S) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver} = Convex.Variable(size(x)...)
-init_variable(x,slv::S) where {S <: AbstractString} = cvx.Variable(size(x)...)
 
 #RegLS Matrix Free
-function solve_problem!(slv::S, x0, y, H::A, lambda) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
+function solve_problem(slv::S, y, H::A, lambda, Nx) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
+	x0 = RegLS.Variable(Nx) 
 	@minimize ls(H*x0-y)+lambda*norm(x0,1) with slv
 	return x0
 end
 
 #RegLS non-Matrix Free
-function solve_problem!(slv::S, x0, y, T::A, lambda) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix }
+function solve_problem(slv::S, y, T::A, lambda, Nx) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix }
+	x0 = RegLS.Variable(Nx) 
 	@minimize ls(T*x0-y)+lambda*norm(x0,1) with slv
 	return x0
 end
 
-#Convex
-function solve_problem!(slv::S, x0, y, T, lambda) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
-	problem = minimize(0.5*norm(T*x0-y,2)^2+lambda*norm(x0,1)) 
-	Convex.solve!(problem,slv)
-	return x0
-end
-
-#cvxpy
-function solve_problem!(slv::S, x0, y, T, lambda) where {S <: AbstractString}
-	problem = cvx.Problem(cvx.Minimize(cvx.sum_squares(PyObject(T)*x0-y)*0.5+cvx.norm1(x0)*lambda))
-	problem[:solve](solver = slv, verbose = false)
-	return x0
+#JuMP non-Matrix Free
+function solve_problem(slv::S, y, T, M, x0) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
+	setsolver(M, slv)
+	solve(M)
+	return getvalue(x0)
 end
 
 function benchmark(;verb = 0, samples = 5, seconds = 100)
 
 	suite = BenchmarkGroup()
 
-	solvers = ["ZeroFPR", "FPG", "PG", "cvx.CVXOPT", "cvx.SCS"]
-	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)", "", ""]
+	opt     = [#"JuMP",
+		   #"JuMP",
+		   "",
+		   "",
+		   ""]
+	solvers = [
+		   #"ECOSSolver",
+		   #"SCSSolver",
+		   "ZeroFPR", 
+		   "FPG", 
+		   "PG"]
+	slv_opt = [
+		   #"(verbose = $verb)", 
+		   #"(verbose = $verb)", 
+		   "(verbose = $verb)", 
+		   "(verbose = $verb)", 
+		   "(verbose = $verb)"]
 
 	for i in eachindex(solvers)
 
-		setup, t, x = set_up()
+		setup, t, x = set_up(opt = opt[i])
 		solver = eval(parse(solvers[i]*slv_opt[i]))
-		x0 = init_variable(x,solver)
 
 		suite[solvers[i]] = 
-		@benchmarkable(solve_problem!(solver, x0, setup...), 
-			       setup = (x0 = deepcopy($x0); 
+		@benchmarkable(solve_problem(solver, setup...), 
+			       setup = ( 
 					setup = deepcopy($setup); 
 					solver = deepcopy($solver) ), 
 			       evals = 1, samples = samples, seconds = seconds)
@@ -183,11 +172,10 @@ function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100)
 
 		setup, t, x = set_up(opt = "MatrixFree")
 		solver = eval(parse(solvers[i]*slv_opt[i]))
-		x0 = init_variable(x,solver)
 
 		suite[solvers[i]] = 
-		@benchmarkable(solve_problem!(solver, x0, setup...), 
-			       setup = (x0 = deepcopy($x0); 
+		@benchmarkable(solve_problem(solver, setup...), 
+			       setup = ( 
 					setup = deepcopy($setup); 
 					solver = deepcopy($solver) ), 
 			       evals = 1, samples = samples, seconds = seconds)

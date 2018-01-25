@@ -1,5 +1,7 @@
 module LineSpectraEstimation
 
+#TODO change benchmark to JuMP?
+
 using BenchmarkTools
 using RegLS
 using Convex
@@ -160,8 +162,8 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 
 	suite = BenchmarkGroup()
 
-	solvers = ["ZeroFPR", "FPG", "PG", "cvx.CVXOPT", "cvx.SCS"]
-	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)", "", ""]
+	solvers = ["ZeroFPR", "FPG", "PG"]#, "cvx.CVXOPT", "cvx.SCS"]
+	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)"]#, "", ""]
 
 	for i in eachindex(solvers)
 
