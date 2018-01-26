@@ -33,6 +33,7 @@ end
 
 function solve_problem!(slv,V, Y, Xt, X, lambda)
 	@minimize ls(V'*Y-Xt)+conj(lambda*norm(Y,2,1,2)) with slv
+	return slv.it
 end
 
 function benchmark(;verb = 0, samples = 5, seconds = 100)
@@ -47,20 +48,28 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 		   "(verbose = $verb, tol = $tol, gamma = 1/8, maxit = 50000)",
 		   "(verbose = $verb, tol = $tol, gamma = 1/8, maxit = 50000)"]
 
+	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
 
 		setup = set_up()
 		solver = eval(parse(solvers[i]*slv_opt[i]))
 
 		suite[solvers[i]] = 
-		@benchmarkable(solve_problem!(solver, setup...), 
+		@benchmarkable(it = solve_problem!(solver, setup...), 
 			       setup = ( 
+					it = 0;
 					setup = deepcopy($setup); 
 					solver = deepcopy($solver) ), 
+			       teardown = (
+					  $its[$solvers[$i]] = it;
+					  ), 
 			       evals = 1, samples = samples, seconds = seconds)
 	end
 
 	results = run(suite, verbose = (verb != 0))
+	println("TotalVariation its")
+	println(its)
+	return results
 end
 
 function show_results(V, Y, Xt, X, lambda)

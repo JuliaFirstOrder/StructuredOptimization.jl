@@ -7,6 +7,7 @@ using PyPlot
 
 function set_up()
 
+	Nl = 2^10                           # frames length
 	Fs = 16e3                           # sampling frequency
 	x0, Fs0 = wavread("demo.wav")       # load input signal
 	x0 = x0[:,1]
@@ -19,7 +20,6 @@ function set_up()
 	xc = copy(x0)
 	xc[abs.(xc).>=C] = C.*sign.(xc[abs.(xc).>=C])  # clip original signal
 
-	Nl = 2^10                     # frames length
 	#time win options
 	K = 2 # K = 2 hanning
 	win = sqrt.(tukey(Nl+1,2/K)[1:Nl])
@@ -34,9 +34,9 @@ function set_up()
 end
 
 function run_demo()
-	slv = FPG(tol = 1e-6, verbose = 0)
+	slv = ZeroFPR(tol = 1e-5, verbose = 0)
 	setup = set_up()
-	@time solve_problem!(slv,setup...)
+	@time solve_problem!(slv,setup..., true)
 
 	Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, overlap, cf = setup
 	Irp = find(xc.>=C)  #positive clipping indices
@@ -49,11 +49,15 @@ function run_demo()
 	return setup
 end
 
-function solve_problem!(slv, Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, cf)
+function solve_problem!(slv, Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, cf, verb)
+	its = Int64[]
 	fit_tol = 1e-5
 	z = 0                             # frame initial intex
+	counter = 0
 	#weighted Overlap-Add
 	while z+Nl < Nt
+		counter += 1
+		push!(its,0)
 
 		fill!(x.x,0.) # initialize variables
 		fill!(y.x,0.)
@@ -69,7 +73,7 @@ function solve_problem!(slv, Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, 
 
 		if isempty(Irp) && isempty(Irn)
 			xd[z+1:z+Nl] .+= yw.*win 
-			@printf("%7d / %7d |           no_clip          | \n", z, Nt)
+			if verb @printf("%7d / %7d |           no_clip          | \n", z, Nt) end
 		else
 			N = 0 # number of active components in DCT
 			for N = 30:30:30*div(Nl,30)
@@ -78,21 +82,23 @@ function solve_problem!(slv, Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, 
 					Mp*y in [   C, 0.8], 
 					Mn*y in [-0.8,  -C])
 				slv = @minimize cf st cstr with slv
+				its[counter] += slv.it
 				if slv.cost <= fit_tol break end
 			end
 			@views xd[z+1:z+Nl] .+= (~y).*win 
-			@printf("%7d / %7d | N: %7d /  %7d | \n", z, Nt, N, Nl)
+			if verb @printf("%7d / %7d | N: %7d /  %7d | \n", z, Nt, N, Nl) end
 		end
 
 		z += Nl-overlap                      # update index
 	end
+	return mean(its)
 end
 
 function benchmark(;verb = 0, samples = 1, seconds = 100)
 
 	suite = BenchmarkGroup()
 
-	tol = 1e-6
+	tol = 1e-5
 	solvers = ["ZeroFPR",
 		   "FPG",
 		   "PG"]
@@ -100,20 +106,28 @@ function benchmark(;verb = 0, samples = 1, seconds = 100)
 		   "(verbose = $verb, tol = $tol)",
 		   "(verbose = $verb, tol = $tol)"]
 
+	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
 
 		setup = set_up()
 		solver = eval(parse(solvers[i]*slv_opt[i]))
 
 		suite[solvers[i]] = 
-		@benchmarkable(solve_problem!(solver, setup...), 
+		@benchmarkable(it = solve_problem!(solver, setup..., false), 
 			       setup = ( 
+					it = 0;
 					setup = deepcopy($setup); 
 					solver = deepcopy($solver) ), 
+			       teardown = (
+					  $its[$solvers[$i]] = it;
+					  ), 
 			       evals = 1, samples = samples, seconds = seconds)
 	end
 
 	results = run(suite, verbose = (verb != 0))
+	println("AudioDecliping (mean of per-frame) its")
+	println(its)
+	return results
 end
 
 function show_results(Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, cf)

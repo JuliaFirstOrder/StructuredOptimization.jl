@@ -89,7 +89,7 @@ function run_demo_cvx()
 	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up()
 	x0 = init_variable(s*Nt,slv)
 
-	@time x0 = solve_problem!(slv, x0, y, setup...)
+	@time x0, = solve_problem!(slv, x0, y, setup...)
 	x1 = x0[1][:value]+im*x0[2][:value]
 	x1 = x1[1:div(s*Nt,2)+1]
 
@@ -102,7 +102,7 @@ function run_demo_Convex()
 	x0m = init_variable(s*Nt,slv)
 
 	println("Solving LASSO with Convex.jl (Matrix Operator)")
-	@time x0m = solve_problem!(slv, x0m, y, setup...)
+	@time x0m, = solve_problem!(slv, x0m, y, setup...)
 	
 	x1 = x0m.value
 	x1 = x1[1:div(s*Nt,2)+1]
@@ -116,30 +116,30 @@ init_variable(N,slv::S) where {S <: AbstractString} = cvx.Variable(N), cvx.Varia
 #RegLS Matrix Free
 function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
 	@minimize ls(F*x0-y)+lambda*norm(x0,1) with slv
-	return x0
+	return x0, slv.it
 end
 
 function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
 	@minimize ls(F*x0-y) st norm(x0,0) <= K with slv
-	return x0
+	return x0, slv.it
 end
 
 #RegLS non-Matrix Free
 function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
 	@minimize ls(F*x0-y)+lambda_m*norm(x0,1) with slv
-	return x0
+	return x0, slv.it
 end
 
 function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
 	@minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
-	return x0
+	return x0, slv.it
 end
 
 #Convex 
 function solve_problem!(slv::S, x0, y, K, F, Fc, lambda, lambda_m) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
 	problem = minimize(0.5*norm(F*x0-y,2)^2+lambda_m*norm(x0,1)) 
 	Convex.solve!(problem,slv)
-	return x0
+	return x0, 0
 end
 
 #cvxpy 
@@ -155,16 +155,17 @@ function solve_problem!(slv::S, x0, y, K, F, Fc, lambda, lambda_m) where {S <: A
 			       +reg*lambda_m
 			       ))
 	problem[:solve](solver = slv, verbose = false)
-	return x0
+	return x0, 0
 end
 
 function benchmark(;verb = 0, samples = 5, seconds = 100)
 
 	suite = BenchmarkGroup()
 
-	solvers = ["ZeroFPR", "FPG", "PG"]#, "cvx.CVXOPT", "cvx.SCS"]
-	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)"]#, "", ""]
+	solvers = ["ZeroFPR", "FPG", "PG",]# "cvx.CVXOPT", "cvx.SCS"]
+	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)",]# "", ""]
 
+	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
 
 		setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up()
@@ -172,15 +173,23 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 		x0 = init_variable(Nt*s,solver)
 
 		suite[solvers[i]] = 
-		@benchmarkable(solve_problem!(solver, x0, y, setup...), 
-			       setup = (x0 = deepcopy($x0); 
+		@benchmarkable((x0,it) = solve_problem!(solver, x0, y, setup...), 
+			       setup = (
+					it = 0;
+					x0 = deepcopy($x0); 
 					setup = deepcopy($setup); 
 					y = $y; 
 					solver = deepcopy($solver) ), 
+			       teardown = (
+					  $its[$solvers[$i]] = it;
+					  ), 
 			       evals = 1, samples = samples, seconds = seconds)
 	end
 
 	results = run(suite, verbose = (verb != 0))
+	println("LineSpectraEstimation its")
+	println(its)
+	return results
 end
 
 function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100)
@@ -190,6 +199,7 @@ function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100)
 	solvers = ["ZeroFPR", "FPG", "PG"]
 	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)"]
 
+	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
 
 		setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up(opt = "MatrixFree")
@@ -197,15 +207,23 @@ function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100)
 		x0 = init_variable(div(Nt*s,2)+1,solver)
 
 		suite[solvers[i]] = 
-		@benchmarkable(solve_problem!(solver, x0, y, setup...), 
-			       setup = (x0 = deepcopy($x0); 
+		@benchmarkable((x0,it) = solve_problem!(solver, x0, y, setup...), 
+			       setup = (
+					it = 0;
+					x0 = deepcopy($x0); 
 					setup = deepcopy($setup); 
 					y = $y; 
 					solver = deepcopy($solver) ), 
+			       teardown = (
+					  $its[$solvers[$i]] = it;
+					  ), 
 			       evals = 1, samples = samples, seconds = seconds)
 	end
 
 	results = run(suite, verbose = (verb != 0))
+	println("LineSpectraEstimation (MatrixFree) its")
+	println(its)
+	return results
 end
 
 function show_results(t, f, fs, fk, ak, s, Nt, Fs, xzp, y, x1, x0)

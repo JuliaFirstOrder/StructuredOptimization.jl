@@ -69,14 +69,14 @@ function run_demo()
 
 	println("Solving Regularized problem with Full Matrix")
 	slv = ZeroFPR()
-	@time x0 = solve_problem(slv, setup...)
+	@time x0, = solve_problem(slv, setup...)
 	xm = copy(~x0)
 
 	setup, t, x = set_up(opt = "MatrixFree")
 
 	println("Solving Regularized problem with Abstract Operator")
 	slv = ZeroFPR()
-	@time x0 = solve_problem(slv, setup...)
+	@time x0, = solve_problem(slv, setup...)
 	x1 = copy(~x0)
 
 	println("  regularized MSE: $( 20*log10(norm(x1-x)/norm(x)) )")
@@ -94,7 +94,7 @@ function run_demo_JuMP()
 
 	println("Solving Regularized problem with conic solver")
 	slv = SCSSolver()
-	@time x1 = solve_problem(slv, setup...)
+	@time x1, = solve_problem(slv, setup...)
 
 	println("  regularized MSE: $( 20*log10(norm(x1-x)/norm(x)) )")
 	println("unregularized MSE: $( 20*log10(norm(xu-x)/norm(x)) )")
@@ -106,59 +106,67 @@ end
 function solve_problem(slv::S, y, H::A, lambda, Nx) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
 	x0 = RegLS.Variable(Nx) 
 	@minimize ls(H*x0-y)+lambda*norm(x0,1) with slv
-	return x0
+	return x0, slv.it
 end
 
 #RegLS non-Matrix Free
 function solve_problem(slv::S, y, T::A, lambda, Nx) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix }
 	x0 = RegLS.Variable(Nx) 
 	@minimize ls(T*x0-y)+lambda*norm(x0,1) with slv
-	return x0
+	return x0, slv.it
 end
 
 #JuMP non-Matrix Free
 function solve_problem(slv::S, y, T, M, x0) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
 	setsolver(M, slv)
 	solve(M)
-	return getvalue(x0)
+	return getvalue(x0), 0
 end
 
 function benchmark(;verb = 0, samples = 5, seconds = 100)
 
 	suite = BenchmarkGroup()
 
-	opt     = [#"JuMP",
-		   #"JuMP",
+	opt     = ["JuMP",
+		   "JuMP",
 		   "",
 		   "",
 		   ""]
 	solvers = [
-		   #"ECOSSolver",
-		   #"SCSSolver",
+		   "ECOSSolver",
+		   "SCSSolver",
 		   "ZeroFPR", 
 		   "FPG", 
 		   "PG"]
 	slv_opt = [
-		   #"(verbose = $verb)", 
-		   #"(verbose = $verb)", 
+		   "(verbose = $verb)", 
+		   "(verbose = $verb)", 
 		   "(verbose = $verb)", 
 		   "(verbose = $verb)", 
 		   "(verbose = $verb)"]
 
+	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
 
 		setup, t, x = set_up(opt = opt[i])
 		solver = eval(parse(solvers[i]*slv_opt[i]))
 
 		suite[solvers[i]] = 
-		@benchmarkable(solve_problem(solver, setup...), 
+		@benchmarkable((x0,it) = solve_problem(solver, setup...), 
 			       setup = ( 
+					it = 0;
 					setup = deepcopy($setup); 
 					solver = deepcopy($solver) ), 
+			       teardown = (
+					  $its[$solvers[$i]] = it;
+					  ), 
 			       evals = 1, samples = samples, seconds = seconds)
 	end
 
 	results = run(suite, verbose = (verb != 0))
+	println("SparseDeconvolution its")
+	println(its)
+	return results
 end
 
 function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100)
@@ -168,20 +176,28 @@ function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100)
 	solvers = ["ZeroFPR", "FPG", "PG"]
 	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)"]
 
+	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
 
 		setup, t, x = set_up(opt = "MatrixFree")
 		solver = eval(parse(solvers[i]*slv_opt[i]))
 
 		suite[solvers[i]] = 
-		@benchmarkable(solve_problem(solver, setup...), 
+		@benchmarkable((x0,it) = solve_problem(solver, setup...), 
 			       setup = ( 
+					it = 0;
 					setup = deepcopy($setup); 
 					solver = deepcopy($solver) ), 
+			       teardown = (
+					  $its[$solvers[$i]] = it;
+					  ), 
 			       evals = 1, samples = samples, seconds = seconds)
 	end
 
 	results = run(suite, verbose = (verb != 0))
+	println("SparseDeconvolution Matrix Free its")
+	println(its)
+	return results
 end
 
 function show_results(t, x, x1, xu)

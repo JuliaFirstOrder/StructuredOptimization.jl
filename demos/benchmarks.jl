@@ -2,7 +2,7 @@ using BenchmarkTools
 BLAS.set_num_threads(4)
 
 #verbose, samples, seconds
-v,        smp,     sec      = 0, 5, 100
+v,        smp,     sec      = 0, 5, 60^2
 suite = BenchmarkGroup()
 
 suite["SparseDeconvolution"] = BenchmarkGroup()
@@ -18,10 +18,6 @@ suite["LineSpectraEstimation"]["MatrixFree"] = LineSpectraEstimation.benchmarkMa
 suite["MatrixDecomposition"] = BenchmarkGroup()
 include("MatrixDecomposition.jl")
 suite["MatrixDecomposition"] = MatrixDecomposition.benchmark(verb = v, samples = smp, seconds = sec)
-
-suite["TotalVariation"] = BenchmarkGroup()
-include("TotalVariation.jl")
-suite["TotalVariation"] = TotalVariation.benchmark(verb = v, samples = smp, seconds = sec)
 
 suite["DNN"] = BenchmarkGroup()
 include("DNN.jl")

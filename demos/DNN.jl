@@ -130,6 +130,7 @@ end
 		
 function solve_problem!(slv, Na, n, y, yt, A, reg)
 	@minimize crossentropy(y,yt)+reg with slv 
+	return slv.it
 end
 
 function benchmark(;verb = 0, samples = 5, seconds = 100)
@@ -142,20 +143,28 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 	slv_opt = ["(verbose = $verb, tol = $tol, maxit = 50000)", 
 		   "(verbose = $verb, tol = $tol, maxit = 50000)"]
 
+	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
 
 		setup = set_up()
 		solver = eval(parse(solvers[i]*slv_opt[i]))
 
 		suite[solvers[i]] = 
-		@benchmarkable(solve_problem!(solver, setup...), 
+		@benchmarkable(it = solve_problem!(solver, setup...), 
 			       setup = ( 
+					it = 0;
 					setup = deepcopy($setup); 
 					solver = deepcopy($solver) ), 
+			       teardown = (
+					  $its[$solvers[$i]] = it;
+					  ), 
 			       evals = 1, samples = samples, seconds = seconds)
 	end
 
 	results = run(suite, verbose = (verb != 0))
+	println("DNN its")
+	println(its)
+	return results
 end
 
 

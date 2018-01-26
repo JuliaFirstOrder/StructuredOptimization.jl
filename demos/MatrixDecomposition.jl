@@ -41,6 +41,7 @@ end
 
 function solve_problem!(slv, B, F, Y, R, lambda, n, m, N)
 	@minimize ls(B+F-Y)+lambda*norm(F,1) st rank(B) <= R with slv 
+	return slv.it
 end
 
 function benchmark(;verb = 0, samples = 5, seconds = 100)
@@ -55,20 +56,28 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 		   "(verbose = $verb, tol = $tol)",
 		   "(verbose = $verb, tol = $tol)"]
 
+	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
 
 		setup = set_up()
 		solver = eval(parse(solvers[i]*slv_opt[i]))
 
 		suite[solvers[i]] = 
-		@benchmarkable(solve_problem!(solver, setup...), 
+		@benchmarkable(it = solve_problem!(solver, setup...), 
 			       setup = ( 
+					it = 0;
 					setup = deepcopy($setup); 
 					solver = deepcopy($solver) ), 
+			       teardown = (
+					  $its[$solvers[$i]] = it;
+					  ), 
 			       evals = 1, samples = samples, seconds = seconds)
 	end
 
 	results = run(suite, verbose = (verb != 0))
+	println("MatrixDecomposition its")
+	println(its)
+	return results
 end
 
 function show_results(B, F, Y, R, lambda, n, m, N)
