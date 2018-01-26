@@ -78,7 +78,7 @@ function solve_problem!(slv, Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, 
 			N = 0 # number of active components in DCT
 			for N = 30:30:30*div(Nl,30)
 				cstr = (norm(x,0) <= N, 
-					norm(M*y-M*yw) <= fit_tol, 
+					norm(M*y-M*yw) <= sqrt(fit_tol), 
 					Mp*y in [   C, 0.8], 
 					Mn*y in [-0.8,  -C])
 				slv = @minimize cf st cstr with slv
@@ -140,8 +140,9 @@ function show_results(Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, cf)
 end
 
 function save_wav(Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, cf)
-	wavwrite(xc,"demo_clipped.wav";  Fs = Fs)
-	wavwrite(xd,"demo_declipped.wav";Fs = Fs)
+	wavwrite(x0,"unclipped.wav"; Fs = Fs)
+	wavwrite(xc,"clipped.wav";   Fs = Fs)
+	wavwrite(xd,"declipped.wav"; Fs = Fs)
 end
 
 end
