@@ -1,5 +1,7 @@
 *.mat
 *.tvs
+*.csv
+*.cvs
 *.m~
 *.swp
 *.bmp
