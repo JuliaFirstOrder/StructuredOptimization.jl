@@ -103,15 +103,15 @@ x = Variable(5)
 y = Variable(5)
 cf = ls(x)+10*norm(x,2)+ls(x+y)
 
-smooth, nonsmooth = RegLS.split_smooth(cf)
-@test smooth[1] == cf[1]
-@test smooth[2] == cf[3]
-@test nonsmooth[1] == cf[2]
+f, g = RegLS.split_smooth(cf)
+@test f[1] == cf[1]
+@test f[2] == cf[3]
+@test g[1] == cf[2]
 
 cf = ls(x)
-smooth, nonsmooth = RegLS.split_smooth((cf,))
-@test smooth == (cf,)
-@test nonsmooth == ()
+f, g = RegLS.split_smooth((cf,))
+@test f == (cf,)
+@test g == ()
 
 cf = norm(x,1)+norm(y,2)+norm(randn(5,5)*x+y,Inf)
 xAll = RegLS.extract_variables(cf)
@@ -121,9 +121,9 @@ AAc, nonAAc = RegLS.split_AAc_diagonal(cf)
 @test nonAAc[1] == cf[3]
 
 cf = ls(sigmoid(x)) + ls(x)
-quad, smooth = RegLS.split_quadratic(cf)
-@test smooth[1] == cf[1]
-@test quad[1] == cf[2]
+fq, fs = RegLS.split_quadratic(cf)
+@test fs[1] == cf[1]
+@test fq[1] == cf[2]
 
 @printf("\nTesting extracting Proximable functions\n")
 # testing is_proximable
@@ -241,17 +241,21 @@ slv = @minimize ls(A*x - b) + norm(x, 1)
 ~x .= 0.
 slv = @minimize ls(A*x - b)
 
+#TODO many many more tests
 x = Variable(5)
 A = randn(10, 5)
 b = randn(10)
 
-#TODO many many more tests
-#@printf("\n Testing @minimize nonlinear \n")
-#slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with RegLS.PG()
-#xpg = copy(~x)
-#~x .= 0.
-#slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with RegLS.ZeroFPR()
-#xz = copy(~x)
-#~x .= 0.
-#
-#@test norm(xz-xpg) <1e-7
+@printf("\n Testing @minimize nonlinear \n")
+slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PG()
+xpg = copy(~x)
+~x .= 0.
+slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ZeroFPR()
+xz = copy(~x)
+~x .= 0.
+slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PANOC()
+xp = copy(~x)
+~x .= 0.
+
+@test norm(xz-xpg) <1e-4
+@test norm(xp-xpg) <1e-4

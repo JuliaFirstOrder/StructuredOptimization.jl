@@ -145,6 +145,11 @@ ccf = conj(cf)
 @test ccf.f == Conjugate(Postcompose(NormL1(),2))
 @test_throws ErrorException conj(norm(randn(2,10)*x,1))
 
+cf = 2*norm(x,1)
+ccf = smooth(cf,2.0)
+@test ccf.A == cf.A
+@test ccf.f(~x) == MoreauEnvelope(Postcompose(NormL1(),2),2.0)(~x)
+
 # Summing terms
 
 x = Variable(10)

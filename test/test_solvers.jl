@@ -65,6 +65,22 @@ subgr_proj[x .< 0] = -lam
 subgr_proj[x .> 0] = lam
 @test norm(subgr - subgr_proj, Inf) <= 1e-5
 
+# Apply PANOC
+
+x = zeros(n)
+panoc = RegLS.PANOC(tol=tol,maxit=1000,verbose=1)
+sol = RegLS.apply!(panoc, x; fq=f, Aq=L, g=g)
+
+gstep = x - (A1'*(A1*x-b))
+pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
+@test norm(pgstep - x)/normL^2 <= tol
+# project subgr onto the subdifferential of the L1-norm at x
+subgr = -A1'*(A1*x-b)
+subgr_proj = min.(max.(subgr, -lam), lam)
+subgr_proj[x .< 0] = -lam
+subgr_proj[x .> 0] = lam
+@test norm(subgr - subgr_proj, Inf) <= 1e-5
+
 ###########################################################################
 # Regularized/constrained least squares with two variable blocks
 ###########################################################################
@@ -122,6 +138,19 @@ pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
 @test norm(x[1] - pgstep1)/normL^2 <= tol
 @test norm(x[2] - pgstep2)/normL^2 <= tol
 
+# Apply PANOC
+
+x = (zeros(n), zeros(l))
+sol = RegLS.apply!(RegLS.PANOC(tol=tol), x; fq=f, Aq=L, g=g)
+
+res = A1*x[1]+A2*x[2]-b
+gstep1 = x[1] - A1'*res
+gstep2 = x[2] - A2'*res
+pgstep1 = sign.(gstep1).*max.(0, abs.(gstep1) .- lam)
+pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
+@test norm(x[1] - pgstep1)/normL^2 <= tol
+@test norm(x[2] - pgstep2)/normL^2 <= tol
+
 ###########################################################################
 # L2-regularized least squares with two data blocks (just to play)
 ###########################################################################
@@ -152,3 +181,8 @@ sol = RegLS.apply!(RegLS.FPG(tol=tol), x; fq=f, Aq=L, g=g)
 
 x = zeros(n)
 sol = RegLS.apply!(RegLS.ZeroFPR(tol=tol), x; fq=f, Aq=L, g=g)
+
+# Apply PANOC
+
+x = zeros(n)
+sol = RegLS.apply!(RegLS.PANOC(tol=tol), x; fq=f, Aq=L, g=g)

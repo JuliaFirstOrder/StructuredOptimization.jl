@@ -216,6 +216,14 @@ function conj(t::Term)
 
 end
 
+# Moreau Envelope
+
+export smooth
+
+function smooth(t::Term, gamma = 1.0) 
+	return Term(1.0,MoreauEnvelope(Postcompose(t.f,t.lambda),gamma),t.A) 
+end
+
 # other stuff, to make Term work with iterators
 import Base: start, next, done, isempty
 start(t::Term) = false

@@ -8,3 +8,7 @@ sol_pg = solve!(prob_pg, RegLS.PG())
 x_zfpr = Variable(5)
 prob_zfpr = problem(ls(A*x_zfpr - b) + norm(x_zfpr, 1))
 sol_zfpr = solve!(prob_zfpr, RegLS.ZeroFPR())
+
+x_pnc = Variable(5)
+prob_pnc = problem(ls(A*x_pnc - b) + norm(x_pnc, 1))
+sol_pnc = solve!(prob_pnc, RegLS.PANOC())

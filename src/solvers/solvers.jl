@@ -1,4 +1,3 @@
-export solve!
 
 include("terms_extract.jl")
 include("terms_properties.jl")
@@ -9,6 +8,7 @@ abstract type Solver end
 abstract type FBSolver <: Solver end
 
 ################################################################################
+export PG, FPG
 
 struct PG <: FBSolver
     kwargs::Array
@@ -28,6 +28,7 @@ function apply!(solver::PG, x; kwargs...)
 end
 
 ################################################################################
+export ZeroFPR
 
 struct ZeroFPR <: FBSolver
     kwargs::Array
@@ -43,6 +44,23 @@ function apply!(solver::ZeroFPR, x; kwargs...)
 end
 
 ################################################################################
+export PANOC
+
+struct PANOC <: FBSolver
+    kwargs::Array
+    function PANOC(; kwargs...)
+        new(kwargs)
+    end
+end
+
+function apply!(solver::PANOC, x; kwargs...)
+    (it, xsol, solver) = ProximalAlgorithms.PANOC(x; solver.kwargs..., kwargs...)
+    blockcopy!(x, xsol)
+    return solver
+end
+
+################################################################################
+export solve!
 
 function solve!(terms::Tuple, solver::FBSolver)
 	x = extract_variables(terms)
@@ -50,21 +68,25 @@ function solve!(terms::Tuple, solver::FBSolver)
 	smooth, nonsmooth = split_smooth(terms)
 	# Separate quadratic and nonquadratic
 	quadratic, smooth = split_quadratic(smooth)
-    kwargs = Array{Any, 1}()
+	kwargs = Array{Any, 1}()
 	if is_proximable(nonsmooth)
-        g = extract_proximable(x, nonsmooth)
-        append!(kwargs, [(:g, g)])
+		g = extract_proximable(x, nonsmooth)
+		append!(kwargs, [(:g, g)])
 		if !isempty(quadratic)
 			fq = extract_functions(quadratic)
 			Aq = extract_operators(x, quadratic)
-            append!(kwargs, [(:fq, fq)])
-            append!(kwargs, [(:Aq, Aq)])
-        end
+			append!(kwargs, [(:fq, fq)])
+			append!(kwargs, [(:Aq, Aq)])
+		end
 		if !isempty(smooth)
 			fs = extract_functions(smooth)
 			As = extract_operators(x, smooth)
-            append!(kwargs, [(:fs, fs)])
-            append!(kwargs, [(:As, As)])
+			if is_linear(smooth)
+				append!(kwargs, [(:As, As)])
+			else
+				fs = RegLS.PrecomposeNonlinear(fs, As)
+			end
+			append!(kwargs, [(:fs, fs)])
 		end
 		return apply!(solver, ~x; kwargs...)
 	end
@@ -73,4 +95,4 @@ end
 
 ################################################################################
 
-default_solver = ZeroFPR
+default_solver = PANOC

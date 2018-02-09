@@ -33,6 +33,15 @@ prob = problem(expr)
 @time sol = solve!(prob, RegLS.ZeroFPR(tol=1e-10,verbose=0))
 println(sol)
 
+# Solve with PANOC
+
+x1_panoc = Variable(n1)
+x2_panoc = Variable(n2)
+expr = ls(A1*x1_panoc + A2*x2_panoc - b) + lam1*norm(x1_panoc, 1) + lam2*norm(x2_panoc, 2)
+prob = problem(expr)
+@time sol = solve!(prob, RegLS.PANOC(tol=1e-10,verbose=0))
+println(sol)
+
 # Solve with minimize, use default solver/options
 
 x1 = Variable(n1)
@@ -42,6 +51,8 @@ println(sol)
 
 @test norm(~x1_fpg - ~x1_zerofpr, Inf)/(1+norm(~x1_zerofpr, Inf)) <= 1e-6
 @test norm(~x2_fpg - ~x2_zerofpr, Inf)/(1+norm(~x2_zerofpr, Inf)) <= 1e-6
+@test norm(~x1_fpg - ~x1_panoc, Inf)/(1+norm(~x1_panoc, Inf)) <= 1e-6
+@test norm(~x2_fpg - ~x2_panoc, Inf)/(1+norm(~x2_panoc, Inf)) <= 1e-6
 @test norm(~x1 - ~x1_zerofpr, Inf)/(1+norm(~x1_zerofpr, Inf)) <= 1e-3
 @test norm(~x2 - ~x2_zerofpr, Inf)/(1+norm(~x2_zerofpr, Inf)) <= 1e-3
 
@@ -107,48 +118,71 @@ println(sol)
 @test norm(~x_zerofpr - x_star, Inf) <= 1e-8
 @test norm(A'*(A*~x_zerofpr - b) + lam*sign.(~x_zerofpr)) <= 1e-5
 
+# Solve with PANOC
+
+x_panoc = Variable(n)
+expr = ls(A*x_panoc - b) + lam*norm(x_panoc, 1)
+prob = problem(expr)
+@time sol = solve!(prob, RegLS.PANOC(tol=1e-10,verbose=0))
+println(sol)
+
+@test norm(~x_panoc - x_star, Inf) <= 1e-8
+@test norm(A'*(A*~x_panoc - b) + lam*sign.(~x_panoc)) <= 1e-5
+
 ################################################################################
 ### Problem with smooth, non-quadratic term
 ################################################################################
 
-# println("Testing: problem with smooth, non-quadratic term")
-#
-# m, n, nnz_x_orig = 200, 500, 10
-# A = randn(m, n)
-# lam = 1.0
-# x_orig = randn(n)
-# x_orig[nnz_x_orig+1:end] = 0.0
-# b = A*x_orig + randn(m)
-#
-# # Solve with PG
-#
-# x_pg = Variable(n)
-# expr = smooth(norm(A*x_pg - b, 2)) + lam*norm(x_pg, 1)
-# prob = problem(expr)
-# @time sol = solve(prob, PG(tol=1e-8,verbose=0))
-# println(sol)
-#
-# # Solve with FPG
-#
-# x_fpg = Variable(n)
-# expr = smooth(norm(A*x_fpg - b, 2)) + lam*norm(x_fpg, 1)
-# prob = problem(expr)
-# @time sol = solve(prob, FPG(tol=1e-8,verbose=0))
-# println(sol)
-#
-# # Solve with ZeroFPR
-#
-# x_zerofpr = Variable(n)
-# expr = smooth(norm(A*x_zerofpr - b, 2)) + lam*norm(x_zerofpr, 1)
-# prob = problem(expr)
-# @time sol = solve(prob, RegLS.ZeroFPR(tol=1e-8,verbose=0))
-# println(sol)
-#
-# # Solve with minimize, default solver/options
-#
-# x = Variable(n)
-# @time sol = minimize(smooth(norm(A*x - b, 2)) + lam*norm(x, 1))
-# println(sol)
+println("Testing: problem with smooth, non-quadratic term")
+
+m, n, nnz_x_orig = 200, 500, 10
+A = randn(m, n)
+lam = 1.0
+x_orig = randn(n)
+x_orig[nnz_x_orig+1:end] = 0.0
+b = A*x_orig + randn(m)
+
+# Solve with PG
+
+x_pg = Variable(n)
+expr = smooth(norm(A*x_pg - b, 2)) + lam*norm(x_pg, 1)
+prob = problem(expr)
+@time sol = solve!(prob, PG(tol=1e-8,verbose=0))
+println(sol)
+
+# Solve with FPG
+
+x_fpg = Variable(n)
+expr = smooth(norm(A*x_fpg - b, 2)) + lam*norm(x_fpg, 1)
+prob = problem(expr)
+@time sol = solve!(prob, FPG(tol=1e-8,verbose=0))
+println(sol)
+
+# Solve with ZeroFPR
+
+x_zerofpr = Variable(n)
+expr = smooth(norm(A*x_zerofpr - b, 2)) + lam*norm(x_zerofpr, 1)
+prob = problem(expr)
+@time sol = solve!(prob, RegLS.ZeroFPR(tol=1e-8,verbose=0))
+println(sol)
+
+# Solve with PANOC
+
+x_panoc = Variable(n)
+expr = smooth(norm(A*x_panoc - b, 2)) + lam*norm(x_panoc, 1)
+prob = problem(expr)
+@time sol = solve!(prob, RegLS.PANOC(tol=1e-8,verbose=0))
+println(sol)
+
+# Solve with minimize, default solver/options
+
+x = Variable(n)
+@time sol = @minimize smooth(norm(A*x - b, 2)) + lam*norm(x, 1)
+println(sol)
+
+@test norm(~x_fpg - ~x_zerofpr, Inf)/(1+norm(~x_zerofpr, Inf)) <= 1e-6
+@test norm(~x_fpg - ~x_panoc, Inf)/(1+norm(~x_panoc, Inf)) <= 1e-6
+@test norm(~x - ~x_zerofpr, Inf)/(1+norm(~x_zerofpr, Inf)) <= 1e-3
 
 ################################################################################
 ### Box-constrained least-squares
@@ -196,6 +230,17 @@ println(sol)
 @test norm(~x_zerofpr - max.(lb, min.(ub, ~x_zerofpr)), Inf) <= 1e-12
 @test norm(~x_zerofpr - max.(lb, min.(ub, ~x_zerofpr - A'*(A*~x_zerofpr - b))), Inf)/(1+norm(~x_zerofpr, Inf)) <= 1e-8
 
+# Solve with PANOC
+
+x_panoc = Variable(n)
+expr = ls(A*x_panoc - b)
+prob = problem(expr, x_panoc in [lb, ub])
+@time sol = solve!(prob, RegLS.PANOC(tol=1e-8,verbose=0))
+println(sol)
+
+@test norm(~x_panoc - max.(lb, min.(ub, ~x_panoc)), Inf) <= 1e-12
+@test norm(~x_panoc - max.(lb, min.(ub, ~x_panoc - A'*(A*~x_panoc - b))), Inf)/(1+norm(~x_panoc, Inf)) <= 1e-8
+
 # Solve with minimize, default solver/options
 
 x = Variable(n)
@@ -203,7 +248,7 @@ x = Variable(n)
 println(sol)
 
 @test norm(~x - max.(lb, min.(ub, ~x)), Inf) <= 1e-12
-@test norm(~x - max.(lb, min.(ub, ~x - A'*(A*~x - b))), Inf)/(1+norm(~x, Inf)) <= 1e-5
+@test norm(~x - max.(lb, min.(ub, ~x - A'*(A*~x - b))), Inf)/(1+norm(~x, Inf)) <= 1e-4
 
 ################################################################################
 ### Non-negative least-squares from a known solution
@@ -259,6 +304,17 @@ x_zerofpr = Variable(n)
 expr = ls(A*x_zerofpr - b)
 prob = problem(expr, x_zerofpr >= 0.0)
 @time sol = solve!(prob, RegLS.ZeroFPR(tol=1e-8,verbose=0))
+println(sol)
+
+@test all(~x_zerofpr .>= 0.0)
+@test norm(~x_zerofpr - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
+
+# Solve with PANOC
+
+x_panoc = Variable(n)
+expr = ls(A*x_panoc - b)
+prob = problem(expr, x_panoc >= 0.0)
+@time sol = solve!(prob, RegLS.PANOC(tol=1e-8,verbose=0))
 println(sol)
 
 @test all(~x_zerofpr .>= 0.0)
