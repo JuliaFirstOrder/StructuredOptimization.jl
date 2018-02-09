@@ -32,7 +32,7 @@ function run_demo()
 end
 
 function solve_problem!(slv,V, Y, Xt, X, lambda)
-	@minimize ls(V'*Y-Xt)+conj(lambda*norm(Y,2,1,2)) with slv
+	@minimize ls(-V'*Y+Xt)+conj(lambda*norm(Y,2,1,2)) with slv
 	return slv.it
 end
 
@@ -73,7 +73,7 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 end
 
 function show_results(V, Y, Xt, X, lambda)
-	Xd = -(V'*(~Y)-Xt)
+	Xd = Xt-V'*(~Y)
 	imshow(X)
 	imshow(Xt)
 	imshow(Xd)

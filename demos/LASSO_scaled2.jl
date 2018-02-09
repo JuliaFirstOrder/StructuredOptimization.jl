@@ -60,7 +60,7 @@ function benchmark_LASSO(slv, eps_max, nvar)
 
 	slv = eval(parse(slv))
 
-	verbose, samples, seconds = 1, 1, 60
+	verbose, samples, seconds = 0, 5, 2*60
 	xopt, setup, setup_JuMP = set_up(nvar)
 
 	if slv == PG
@@ -154,10 +154,10 @@ function benchmark_LASSO(slv, eps_max, nvar)
 end
 BLAS.set_num_threads(4)
 
-nvars = 100000
+nvars = 1000
 solvers = [
 	   "SCSSolver",
-  	 #  "ECOSSolver",
+  	   "ECOSSolver",
 	   "PG",
 	   "FPG",
 	   "ZeroFPR"
