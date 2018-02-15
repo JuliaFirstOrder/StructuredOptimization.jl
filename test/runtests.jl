@@ -8,27 +8,24 @@ srand(0)
 
 @testset "RegLS" begin
 
-@testset "TO MOVE ProximalOperators" begin
+@testset "Calculus" begin
   include("test_proxstuff.jl")
 end
 
-@testset "syntax/AffineExpression" begin
+@testset "Syntax" begin
   include("test_affine.jl")
-end
-
-@testset "syntax/Terms" begin
   include("test_terms.jl")
-end
-
-@testset "Problems construction" begin
-  include("test_problem.jl")
 end
 
 @testset "Solvers" begin
   include("test_solvers.jl")
 end
 
-@testset "Usage" begin
+@testset "Problem construction" begin
+  include("test_problem.jl")
+end
+
+@testset "Integration tests" begin
   include("test_usage_small.jl")
   include("test_usage.jl")
 end
