@@ -5,12 +5,13 @@ include("terms_splitting.jl")
 
 abstract type Solver end
 
-abstract type FBSolver <: Solver end
+abstract type ForwardBackwardSolver <: Solver end
+
 
 ################################################################################
 export PG, FPG
 
-struct PG <: FBSolver
+struct PG <: ForwardBackwardSolver
     kwargs::Array
     function PG(; kwargs...)
         new(kwargs)
@@ -21,48 +22,44 @@ function FPG(; kwargs...)
     return PG(; kwargs..., fast=true)
 end
 
-function apply!(solver::PG, x; kwargs...)
-    (it, xsol, solver) = ProximalAlgorithms.FBS(x; solver.kwargs..., kwargs...)
-    blockcopy!(x, xsol)
-    return solver
+function build_iterator(x, solver::PG; kwargs...)
+    x, ProximalAlgorithms.FBSIterator(~x; solver.kwargs..., kwargs...)
 end
 
 ################################################################################
 export ZeroFPR
 
-struct ZeroFPR <: FBSolver
+struct ZeroFPR <: ForwardBackwardSolver
     kwargs::Array
     function ZeroFPR(; kwargs...)
         new(kwargs)
     end
 end
 
-function apply!(solver::ZeroFPR, x; kwargs...)
-    (it, xsol, solver) = ProximalAlgorithms.ZeroFPR(x; solver.kwargs..., kwargs...)
-    blockcopy!(x, xsol)
-    return solver
+function build_iterator(x, solver::ZeroFPR; kwargs...)
+    x, ProximalAlgorithms.ZeroFPRIterator(~x; solver.kwargs..., kwargs...)
 end
 
 ################################################################################
 export PANOC
 
-struct PANOC <: FBSolver
+struct PANOC <: ForwardBackwardSolver
     kwargs::Array
     function PANOC(; kwargs...)
         new(kwargs)
     end
 end
 
-function apply!(solver::PANOC, x; kwargs...)
-    (it, xsol, solver) = ProximalAlgorithms.PANOC(x; solver.kwargs..., kwargs...)
-    blockcopy!(x, xsol)
-    return solver
+function build_iterator(x, solver::PANOC; kwargs...)
+    x, ProximalAlgorithms.PANOCIterator(~x; solver.kwargs..., kwargs...)
 end
 
-################################################################################
-export solve!
+default_solver = PANOC
 
-function solve!(terms::Tuple, solver::FBSolver)
+################################################################################
+export build
+
+function build(terms::Tuple, solver::ForwardBackwardSolver)
 	x = extract_variables(terms)
 	# Separate smooth and nonsmooth
 	smooth, nonsmooth = split_smooth(terms)
@@ -88,11 +85,23 @@ function solve!(terms::Tuple, solver::FBSolver)
 			end
 			append!(kwargs, [(:fs, fs)])
 		end
-		return apply!(solver, ~x; kwargs...)
+		return build_iterator(x, solver; kwargs...)
 	end
 	error("Sorry, I cannot solve this problem")
 end
 
 ################################################################################
+export solve!
 
-default_solver = PANOC
+function solve!(x, iterator::ProximalAlgorithms.ProximalAlgorithm)
+    it, x_star = ProximalAlgorithms.run!(iterator)
+    blockset!(~x, x_star)
+    return iterator, it
+end
+
+
+export solve
+function solve(terms::Tuple, solver::ForwardBackwardSolver)
+    built_slv = build(terms, solver)
+    solve!(built_slv...)
+end

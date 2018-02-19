@@ -17,9 +17,11 @@ end
   include("test_terms.jl")
 end
 
-@testset "Solvers" begin
-  include("test_solvers.jl")
-end
+# this test are essentially ProximalAlgorithms tests
+# TODO move to ProximalAlgorithms?
+#@testset "Solvers" begin  
+#  include("test_solvers.jl")
+#end
 
 @testset "Problem construction" begin
   include("test_problem.jl")

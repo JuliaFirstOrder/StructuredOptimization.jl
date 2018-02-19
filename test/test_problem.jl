@@ -211,7 +211,7 @@ f = RegLS.extract_proximable(xAll,cf)
 @test norm(f.fs[1](~x1)-norm((~x1)[1:2]+b1[1:2],2)-norm((~x1)[3:5]+b1[3:5],1) ) < 1e-12
 @test norm(f.fs[2](~x2)-10*norm(~x2-b2,1) ) < 1e-12
 
-@printf("\nTesting problem construction primal\n")
+@printf("\n Testing solver build \n")
 
 x = Variable(10)
 A = randn(5, 10)
@@ -220,26 +220,28 @@ B = randn(5, 7)
 b = randn(5)
 
 prob = problem(ls(A*x + b), norm(x, 2) <= 1.0)
-slv = RegLS.solve!(prob, RegLS.PG())
+built_slv = build(prob, RegLS.PG())
+solve!(built_slv...)
 
 ~x .= 0.
 prob = problem(ls(A*x - B*y + b) + norm(y, 1), norm(x, 2) <= 1.0)
-slv = RegLS.solve!(prob, RegLS.FPG())
+built_slv = build(prob, FPG())
+solve!(built_slv...)
 
 @printf("\n Testing @minimize \n")
 ~x .= 0.
 ~y .= 0.
-slv = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with RegLS.PG()
+slv, = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with PG()
 ~x .= 0.
-slv = @minimize ls(A*x - b) st norm(x, 1) <= 1.0 with RegLS.PG()
+slv, = @minimize ls(A*x - b) st norm(x, 1) <= 1.0 with PG()
 ~x .= 0.
-slv = @minimize ls(A*x - b) st norm(x, 1) <= 1.0
+slv, = @minimize ls(A*x - b) st norm(x, 1) <= 1.0
 ~x .= 0.
-slv = @minimize ls(A*x - b) + norm(x, 1) with RegLS.PG()
+slv, = @minimize ls(A*x - b) + norm(x, 1) with PG()
 ~x .= 0.
-slv = @minimize ls(A*x - b) + norm(x, 1)
+slv, = @minimize ls(A*x - b) + norm(x, 1)
 ~x .= 0.
-slv = @minimize ls(A*x - b)
+slv, = @minimize ls(A*x - b)
 
 #TODO many many more tests
 x = Variable(5)
@@ -247,13 +249,13 @@ A = randn(10, 5)
 b = randn(10)
 
 @printf("\n Testing @minimize nonlinear \n")
-slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PG()
+slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PG()
 xpg = copy(~x)
 ~x .= 0.
-slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ZeroFPR()
+slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ZeroFPR()
 xz = copy(~x)
 ~x .= 0.
-slv = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PANOC()
+slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PANOC()
 xp = copy(~x)
 ~x .= 0.
 
