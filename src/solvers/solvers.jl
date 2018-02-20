@@ -93,7 +93,8 @@ end
 ################################################################################
 export solve!
 
-function solve!(x, iterator::ProximalAlgorithms.ProximalAlgorithm)
+function solve!(x_and_iter::Tuple{Tuple{Vararg{Variable}}, ProximalAlgorithms.ProximalAlgorithm})
+    x, iterator = x_and_iter
     it, x_star = ProximalAlgorithms.run!(iterator)
     blockset!(~x, x_star)
     return iterator, it
@@ -103,5 +104,5 @@ end
 export solve
 function solve(terms::Tuple, solver::ForwardBackwardSolver)
     built_slv = build(terms, solver)
-    solve!(built_slv...)
+    solve!(built_slv)
 end

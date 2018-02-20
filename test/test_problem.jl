@@ -221,12 +221,12 @@ b = randn(5)
 
 prob = problem(ls(A*x + b), norm(x, 2) <= 1.0)
 built_slv = build(prob, RegLS.PG())
-solve!(built_slv...)
+solve!(built_slv)
 
 ~x .= 0.
 prob = problem(ls(A*x - B*y + b) + norm(y, 1), norm(x, 2) <= 1.0)
 built_slv = build(prob, FPG())
-solve!(built_slv...)
+solve!(built_slv)
 
 @printf("\n Testing @minimize \n")
 ~x .= 0.
