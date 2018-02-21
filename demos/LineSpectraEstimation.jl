@@ -38,12 +38,13 @@ function set_up(;opt="")
 	IDFTm = [exp(im*2*pi*k*n/(s*Nt))  for k =0:s*Nt-1, n=0:s*Nt-1] #Inverse Fourier Matrix
 	S = [speye(Nt) spzeros(Nt,(s-1)*Nt)] # selection matrix
 	Fm = full(S*IDFTm)
+    alpha = 0.06
 	lambda_max_m = norm(Fm'*y, Inf)
-	lambda_m = 0.06*lambda_max_m
+	lambda_m = alpha*lambda_max_m
 
 	F = (s*Nt*IRDFT((div(s*Nt,2)+1,),s*Nt))[1:Nt] # Abstract Operator 
 	lambda_max = norm(F'*y, Inf)
-	lambda = 0.06*lambda_max
+	lambda = alpha*lambda_max
 
 	Fc = [real(Fm) -imag(Fm); imag(Fm) real(Fm)] 
 	# needed in cvxpy (currently does not support complex variables)
@@ -115,24 +116,24 @@ init_variable(N,slv::S) where {S <: AbstractString} = cvx.Variable(N), cvx.Varia
 
 #RegLS Matrix Free
 function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
-	@minimize ls(F*x0-y)+lambda*norm(x0,1) with slv
-	return x0, slv.it
+    slv_it, it = @minimize ls(F*x0-y)+lambda*norm(x0,1) with slv
+	return x0, it
 end
 
 function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
-	@minimize ls(F*x0-y) st norm(x0,0) <= K with slv
-	return x0, slv.it
+	slv_it, it = @minimize ls(F*x0-y) st norm(x0,0) <= K with slv
+	return x0, it
 end
 
 #RegLS non-Matrix Free
 function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
-	@minimize ls(F*x0-y)+lambda_m*norm(x0,1) with slv
-	return x0, slv.it
+	slv_it, it = @minimize ls(F*x0-y)+lambda_m*norm(x0,1) with slv
+	return x0, it
 end
 
 function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
-	@minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
-	return x0, slv.it
+	slv_it, it = @minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
+	return x0, it
 end
 
 #Convex 
@@ -162,8 +163,8 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 
 	suite = BenchmarkGroup()
 
-	solvers = ["ZeroFPR", "FPG", "PG",]# "cvx.CVXOPT", "cvx.SCS"]
-	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)",]# "", ""]
+	solvers = ["PANOC", "ZeroFPR", "FPG", "PG",]# "cvx.CVXOPT", "cvx.SCS"]
+	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)",]# "", ""]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
@@ -196,8 +197,8 @@ function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100)
 
 	suite = BenchmarkGroup()
 
-	solvers = ["ZeroFPR", "FPG", "PG"]
-	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)"]
+	solvers = ["PANOC", "ZeroFPR", "FPG", "PG"]
+	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)"]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)

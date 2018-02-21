@@ -35,17 +35,17 @@ export @minimize #, st, with
 
 macro minimize(cf::Union{Expr, Symbol})
 	cost = esc(cf)
-	return :(solve!(problem($(cost)), default_solver()))
+	return :(solve(problem($(cost)), default_solver()))
 end
 
 macro minimize(cf::Union{Expr, Symbol}, s::Symbol, cstr::Union{Expr, Symbol})
 	cost = esc(cf)
 	if s == :(st)
 		constraints = esc(cstr)
-		return :(solve!(problem($(cost), $(constraints)), default_solver()))
+		return :(solve(problem($(cost), $(constraints)), default_solver()))
 	elseif s == :(with)
 		solver = esc(cstr)
-		return :(solve!(problem($(cost)), $(solver)))
+		return :(solve(problem($(cost)), $(solver)))
 	else
 		error("wrong symbol after cost function! use `st` or `with`")
 	end
@@ -57,7 +57,7 @@ macro minimize(cf::Union{Expr, Symbol}, s::Symbol, cstr::Union{Expr, Symbol}, w:
 	constraints = esc(cstr)
 	w != :(with) && error("wrong symbol after constraints! use `with`")
 	solver = esc(slv)
-	return :(solve!(problem($(cost), $(constraints)), $(solver)))
+	return :(solve(problem($(cost), $(constraints)), $(solver)))
 end
 
 end
