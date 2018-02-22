@@ -1,5 +1,4 @@
-
-using RegLS
+using StructuredOptimization
 using BenchmarkTools
 using JuMP
 using SCS
@@ -9,21 +8,21 @@ using ECOS
 function set_up(S::Int) #S scales problem
 
 	n = S 
-	m = div(S,4)
+	m = div(S,5)
 	SNR = 5
 
 	srand(123)
 
 	A = sprandn(m,n,5/n)
-	println("n = $n, nnz(A) = $(countnz(A))")
+	println("n = $n, m = $m, nnz(A) = $(countnz(A))")
 	x0 = zeros(n)
 	x0[randperm(n)[1:div(n,4)+1]] = randn(div(n,4)+1)
-	x0 /= norm(x0)^2
+	#x0 /= norm(x0)^2
 
 	y = A*x0
 	y += 10^(-SNR/10)*sqrt(var(y))*randn(length(y))
 	lambda = 0.01*norm(A'*y,Inf) 
-	x = RegLS.Variable(n)
+	x = StructuredOptimization.Variable(n)
 	@minimize ls(A*x-y)+lambda*norm(x,1) with ZeroFPR(verbose = 0, tol =1e-12) 
 	setup = A, y, lambda, n
 	setup_JuMP = create_JuMP_model(A, y, lambda, n)
@@ -31,10 +30,10 @@ function set_up(S::Int) #S scales problem
 end
 
 
-function solve_problem(slv::S, A, y, lambda, n, M, xJ) where {S <: RegLS.ForwardBackwardSolver}
-	x = RegLS.Variable(n)
-	slv = @minimize ls(A*x-y)+lambda*norm(x,1) with slv
-	return ~x, slv.it
+function solve_problem(slv::S, A, y, lambda, n, M, xJ) where {S <: StructuredOptimization.ForwardBackwardSolver}
+	x = StructuredOptimization.Variable(n)
+	_, it = @minimize ls(A*x-y)+lambda*norm(x,1) with slv
+	return ~x, it, :UserLimit
 end
 
 function create_JuMP_model(A, y, lambda, n)
@@ -53,96 +52,149 @@ end
 
 function solve_problem(slv::S, A, y, lambda, n, M, xJ) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
 	setsolver(M, slv)
-	solve(M)
-	return getvalue(xJ), 0
+	status = JuMP.solve(M)
+	return getvalue(xJ), 0, status
 end
 
-function benchmark_LASSO()
-	suite = BenchmarkGroup()
+function benchmark_LASSO(slv, eps_max, nvar)
 
-	verbose, samples, seconds = 0, 5, 30*60
+	slv = eval(parse(slv))
 
-	solvers = [
-		   "ECOSSolver",
-		   "SCSSolver", 
-		   "PG", 
-		   "FPG", 
-		   "ZeroFPR", 
-		   ]
-	slv_opt = [
-		   "(verbose = $verbose, maxit     = 10000)", 
-		   "(verbose = $verbose, max_iters = 100000)", 
-		   "(verbose = $verbose, maxit     = 100000, tol = 1e-6)", 
-		   "(verbose = $verbose, maxit     = 100000, tol = 1e-6)", 
-		   "(verbose = $verbose, maxit     = 100000, tol = 1e-6)"
-		   ]
-	iterations = Dict([(sol,0) for sol in solvers]) 
-	nvar =  [1000;10000;100000]
-	#nvar =  [100]
-	err = Dict((n,Dict([(sol,0.) for sol in solvers])) for n in nvar) 
-	its = Dict((n,Dict([(sol,0.) for sol in solvers])) for n in nvar) 
+	verbose, samples, seconds = 0, 5, 2*60
+	xopt, setup, setup_JuMP = set_up(nvar)
 
-	for ii in nvar 
-		suite[ii] = BenchmarkGroup()
-		xopt, setup, setup_JuMP = set_up(ii)
-		for i in eachindex(solvers)
-			solver = eval(parse(solvers[i]*slv_opt[i]))
+	if slv == PG
+		if nvars == 100000 #100000
+			iterations = 1:div(100000,6):100000
+		elseif nvars == 10000 #10000
+			iterations = 1:div(50000,6):50000
+		elseif nvars == 1000 #7875
+			iterations = 1:div(7857,6):7857
+		end
+	elseif slv == FPG
+		if nvars == 100000 #28941
+			iterations = 1:div(28941,6):28941
+		elseif nvars == 10000 #12534
+			iterations = 1:div(13000,6):13000
+		elseif nvars == 1000 #4027
+			iterations = 1:div(4027,6):4027
+		end
+	elseif slv == ZeroFPR
+		if nvars == 100000 #1019
+			iterations = 1:div(1019,6):1019
+		elseif nvars == 10000 #640
+			iterations = 1:div(640,6):640
+		elseif nvars == 1000 #163
+			iterations = 1:div(163,6):163
+		end
+	elseif slv == PANOC
+		if nvars == 100000 #1019
+			iterations = 1:div(2*1019,6):2*1019
+		elseif nvars == 10000 #640
+			iterations = 1:div(2*640,6):2*640
+		elseif nvars == 1000 #163
+			iterations = 1:div(2*163,6):2*163
+		end
+	elseif slv == ECOSSolver
+		if nvars == 100000 #104
+			iterations = 1:div(104,6):104
+		elseif nvars == 10000 #30
+			iterations = 1:div(35,6):35
+		elseif nvars == 1000 #23
+			iterations = 1:div(25,6):25
+		end
+	elseif slv == SCSSolver
+		if nvars == 100000 
+			itSCS = 2680 #with default (low) tolerance
+			iterations = 1:div(itSCS,3):6*div(itSCS,3)
+		elseif nvars == 10000 
+			itSCS = 420  #with default (low) tolerance
+			iterations = 1:div(itSCS,3):8*div(itSCS,3)
+		elseif nvars == 1000 
+			itSCS = 180  #with default (low) tolerance
+			iterations = 1:div(itSCS,3):6*div(itSCS,3)
+		end
+	end
+		
+	#iterations = [100000]
+	err = zeros(length(iterations))
+	t   = zeros(length(iterations))
+	its = zeros(length(iterations))
+	status = [:NotSolved]
 
-			suite[ii][solvers[i]] = 
-			@benchmarkable((x,it) = solve_problem(solver, setup..., setup_JuMP...), 
-				       setup = (
-						setup  = deepcopy($setup); 
-						setup_JuMP  = deepcopy($setup_JuMP); 
-						solver = deepcopy($solver);
-						x = nothing;
-						it = 0;
-						), 
-				       teardown = (
-						   $err[$ii][$solvers[$i]] = norm(x-$xopt);
-						   $its[$ii][$solvers[$i]] = it;
-						   ), 
-				       evals = 1, samples = samples, seconds = seconds)
+	for i in eachindex(iterations) 
+
+		if slv == SCSSolver
+			solver = slv(verbose = verbose, max_iters = iterations[i], eps = 1e-20)
+		elseif slv == ECOSSolver
+			solver = slv(verbose = verbose, maxit = iterations[i])
+		else
+			solver = slv(verbose = verbose, maxit = iterations[i], tol = 1e-20)
 		end
 
+		b = @benchmarkable((x,it,status) = solve_problem(solver, setup..., setup_JuMP...), 
+				   setup = (
+					setup  = deepcopy($setup); 
+					setup_JuMP  = deepcopy($setup_JuMP); 
+					solver = deepcopy($solver);
+					x = nothing;
+					status = nothing;
+					it = 0;
+					), 
+				   teardown = (
+					   $err[$i] = norm(x-$xopt)/norm($xopt);
+					   $status[1] = status;
+					   ), 
+				   evals = 1, samples = samples, seconds = seconds)
+
+		results = run(b)
+		t[i] = time(median(results))
+		its[i] = iterations[i]
+		if err[i] <= eps_max || status[1] == :Optimal
+			t = t[1:i]
+			err = err[1:i]
+			its = its[1:i]
+			break
+		end
 	end
 
-	benchmarks = run(suite)
-
-	return benchmarks, solvers, err, its, nvar
+	return t, err, its
 end
-BLAS.set_num_threads(4)
+BLAS.set_num_threads(5)
 
-benchmarks, solvers, err, its, nvar = benchmark_LASSO()
-
-println("\n")
-showall(median(benchmarks))
-println("\n")
-
-#using PyPlot
-#figure()
-#for slv in solvers
-#	semilogx(nvar,[10*log10(time(median(benchmarks[i][slv]))) for i in nvar], label = slv)
-#end
-#legend()
-
-import BenchmarkTools:prettytime
-tab = "\\midrule \n"
-for i in nvar
-	tab *= "\\multirow{2}{*}{ \$ n = 10^$(Int(log10(i))) \$ } & "
-	tab *= "\$ t \$ "
-	for slv in solvers 
-		tab *= "&  $(prettytime(time(median(benchmarks[i][slv]))))  "
-	end
-	tab *= "\\\\ \n\\cmidrule(lr){2-7}\n                                & \$ \\epsilon \$ " 
-	for slv in solvers 
-		tab *= "& $(round(20*log10(err[i][slv]),1)) "
-	end
-	tab *= "\\\\ \n \\midrule \n" 
+nvars = 1000
+solvers = [
+	   "SCSSolver",
+  	   "ECOSSolver",
+	   "PG",
+	   "FPG",
+	   "ZeroFPR",
+	   "PANOC"
+	   ]
+T, ERR = [],[]
+for slv in solvers
+	t, err = benchmark_LASSO(slv, 1e-8, nvars)
+	push!(T,t)
+	push!(ERR,err)
 end
 
-tab = replace(tab, "μ", "\$\\mu\$")
-println(tab)
-write("table.tex", tab)
+using PyPlot
+using DataFrames, CSV
+save_stuff = false
+dirpath = "/home/nantonel/Proximal_Gradient_Algorithms/fig"
+#mkpath("data/")
+figure()
+for i in eachindex(solvers)
+	plot(-log10.(ERR[i]), 1e-9.*T[i], label = solvers[i],":*")
+    if save_stuff
+        CSV.write("$dirpath/lasso_$(nvars)_$(solvers[i]).cvs", 
+                  DataFrame(q = -log10.(ERR[i]), t = 1e-9.*T[i]) )
+    end
+end
+legend()
+ylabel("time")
+xlabel("solution quality")
+
 
 
 

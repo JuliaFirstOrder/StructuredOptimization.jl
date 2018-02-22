@@ -1,7 +1,7 @@
 module MatrixDecomposition
 
 using BenchmarkTools
-using RegLS
+using StructuredOptimization
 using Images, ImageView
 
 function set_up()
@@ -26,35 +26,35 @@ function set_up()
 	F = Variable(n*m,N)
 	B = Variable(n*m,N)
 	slv = ZeroFPR
-	slv = slv(verbose = 1, tol = 1e-5, adaptive = false, gamma = 0.5)
+	slv = slv(verbose = 1, tol = 2e-1, adaptive = false, gamma = 0.5)
 
 	R, lambda = 1, 4e-2
 	return B, F, Y, R, lambda, n, m, N 
 end
 
 function run_demo()
-	slv = ZeroFPR(tol = 1e-4)
+	slv = PANOC(tol = 1e-4, verbose = 2)
 	setup = set_up()
 	solve_problem!(slv,setup...)
 	return setup
 end
 
 function solve_problem!(slv, B, F, Y, R, lambda, n, m, N)
-	@minimize ls(B+F-Y)+lambda*norm(F,1) st rank(B) <= R with slv 
-	return slv.it
+	_, it = @minimize ls(B+F-Y)+lambda*norm(F,1) st rank(B) <= R with slv 
+	return it
 end
 
-function benchmark(;verb = 0, samples = 5, seconds = 100)
+function benchmark(;verb = 0, samples = 5, seconds = 100, tol = 2e-4)
 
 	suite = BenchmarkGroup()
-
-	tol = 1e-4
-	solvers = ["ZeroFPR",
-		   "FPG",
-		   "PG"]
-	slv_opt = ["(verbose = $verb, tol = $tol)", 
-		   "(verbose = $verb, tol = $tol)",
-		   "(verbose = $verb, tol = $tol)"]
+	
+	solvers = [
+               "ZeroFPR",
+               "PANOC",
+               "PG"]
+	slv_opt = ["(verbose = $verb, tol = $tol, gamma = 0.5)", 
+               "(verbose = $verb, tol = $tol, gamma = 0.5)",
+               "(verbose = $verb, tol = $tol, gamma = 0.5)"]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
@@ -64,14 +64,14 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 
 		suite[solvers[i]] = 
 		@benchmarkable(it = solve_problem!(solver, setup...), 
-			       setup = ( 
-					it = 0;
-					setup = deepcopy($setup); 
-					solver = deepcopy($solver) ), 
-			       teardown = (
-					  $its[$solvers[$i]] = it;
-					  ), 
-			       evals = 1, samples = samples, seconds = seconds)
+                       setup = ( 
+                                it = 0;
+                                setup = deepcopy($setup); 
+                                solver = deepcopy($solver) ), 
+                       teardown = (
+                                   $its[$solvers[$i]] = it;
+                                  ), 
+                       evals = 1, samples = samples, seconds = seconds)
 	end
 
 	results = run(suite, verbose = (verb != 0))

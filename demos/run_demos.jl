@@ -8,7 +8,7 @@
 
 #include("LineSpectraEstimation.jl")
 #results = LineSpectraEstimation.run_demo()
-#results = LineSpectraEstimation.run_demo_cvx()
+##results = LineSpectraEstimation.run_demo_Convex()
 #LineSpectraEstimation.show_results(results...)
 
 #include("MatrixDecomposition.jl")

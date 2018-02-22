@@ -1,7 +1,7 @@
 module DNN
 
 using BenchmarkTools
-using RegLS, AbstractOperators, ProximalOperators
+using StructuredOptimization, AbstractOperators, ProximalOperators
 using PyPlot
 
 function dnn(D::Matrix, n::Int, lambda)
@@ -31,7 +31,7 @@ end
 
 function create_dataset()
 
-	srand(123)
+	srand(11)
 	#construct dataset
 	Na, Nb = 800,800
 	N = Na+Nb  
@@ -50,7 +50,6 @@ function create_dataset()
 	A ./= sqrt.(var(A,2))
 
 	return Na, Nb, A, yt
-
 
 end
 
@@ -73,7 +72,7 @@ function set_up()
 end
 
 function run_demo()
-	slv = ZeroFPR(tol = 1e-4, maxit = 500000)
+	slv = PANOC(tol = 1e-4, maxit = 50000)
 	setup = set_up()
 	solve_problem!(slv,setup...)
 	return setup
@@ -112,8 +111,8 @@ function cross_validation(Na,Nb,A,yt, n,K,L)
 		idx_tr = find(1:K .!= k)
 		@views Dtr .= [a[:,fa[:,idx_tr][:]] b[:,fb[:,idx_tr][:]]] # training set
 
-		slv = ZeroFPR(verbose = 0, tol = 1e-4, maxit = 5000) 
-		slv = @minimize crossentropy(ytr,yttr)+lambdas[l]*reg with slv 
+		slv = PANOC(verbose = 0, tol = 1e-4, maxit = 5000) 
+		@minimize crossentropy(ytr,yttr)+lambdas[l]*reg with slv 
 
 		ft_err[k,l] = CrossEntropy(yttr)(operator(ytr)*(~).(variables(ytr)))
 		cv_err[k,l] = CrossEntropy(ytcv)(operator(ycv)*(~).(variables(ytr)))
@@ -129,19 +128,21 @@ end
 
 		
 function solve_problem!(slv, Na, n, y, yt, A, reg)
-	@minimize crossentropy(y,yt)+reg with slv 
-	return slv.it
+	_, it = @minimize crossentropy(y,yt)+reg with slv 
+	return it
 end
 
-function benchmark(;verb = 0, samples = 5, seconds = 100)
+function benchmark(;verb = 0, samples = 5, seconds = 100, tol = 1e-4, maxit = 50000 )
 
 	suite = BenchmarkGroup()
 
-	tol = 1e-4
 	solvers = ["ZeroFPR", 
-		   "PG"]
-	slv_opt = ["(verbose = $verb, tol = $tol, maxit = 50000)", 
-		   "(verbose = $verb, tol = $tol, maxit = 50000)"]
+               "PANOC",
+               "PG"]
+	slv_opt = [
+               "(verbose = $verb, tol = $tol, maxit = $maxit)", 
+               "(verbose = $verb, tol = $tol, maxit = $maxit)", 
+               "(verbose = $verb, tol = $tol, maxit = $maxit)"]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)

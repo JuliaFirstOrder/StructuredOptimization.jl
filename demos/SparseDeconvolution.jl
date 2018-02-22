@@ -2,7 +2,7 @@
 module SparseDeconvolution
 
 using BenchmarkTools
-using RegLS
+using StructuredOptimization
 using JuMP, MathProgBase, SCS, ECOS
 using AbstractOperators
 using RIM
@@ -38,6 +38,9 @@ function set_up(;opt="")
 	T = hcat([[zeros(i);h;zeros(Nx-1-i)] for i = 0:Nx-1]...) # Full Matrix
 	lambda = 1e-2*vecnorm(H'*y,Inf)
 
+    x_test = randn(Nx)
+    @assert norm(T*x_test-H*x_test) < 1e-8
+
 	if opt == "MatrixFree"
 		setup = y, H, lambda, Nx 
 	elseif opt == "JuMP"
@@ -63,19 +66,22 @@ end
 function run_demo()
 
 	setup, t, x = set_up()
+    tol = 1e-6
+    verb = 1
+    solver = PANOC
 
 	println("Solving Unregularized problem")
 	xu = setup[2]\setup[1]
 
 	println("Solving Regularized problem with Full Matrix")
-	slv = ZeroFPR()
+	slv = solver(tol = tol, verbose = verb)
 	@time x0, = solve_problem(slv, setup...)
 	xm = copy(~x0)
 
 	setup, t, x = set_up(opt = "MatrixFree")
 
 	println("Solving Regularized problem with Abstract Operator")
-	slv = ZeroFPR()
+	slv = solver(tol = tol, verbose = verb)
 	@time x0, = solve_problem(slv, setup...)
 	x1 = copy(~x0)
 
@@ -102,48 +108,53 @@ function run_demo_JuMP()
 	return t, x, x1, xu
 end
 
-#RegLS Matrix Free
-function solve_problem(slv::S, y, H::A, lambda, Nx) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
-	x0 = RegLS.Variable(Nx) 
-	@minimize ls(H*x0-y)+lambda*norm(x0,1) with slv
-	return x0, slv.it
+#StructuredOptimization Matrix Free
+function solve_problem(slv::S, y, H::A, lambda, Nx) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractOperator}
+	x0 = StructuredOptimization.Variable(Nx) 
+	_, it = @minimize ls(H*x0-y)+lambda*norm(x0,1) with slv
+	return x0, it
 end
 
-#RegLS non-Matrix Free
-function solve_problem(slv::S, y, T::A, lambda, Nx) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix }
-	x0 = RegLS.Variable(Nx) 
-	@minimize ls(T*x0-y)+lambda*norm(x0,1) with slv
-	return x0, slv.it
+#StructuredOptimization non-Matrix Free
+function solve_problem(slv::S, y, T::A, lambda, Nx) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractMatrix }
+	x0 = StructuredOptimization.Variable(Nx) 
+	_, it = @minimize ls(T*x0-y)+lambda*norm(x0,1) with slv
+	return x0, it
 end
 
 #JuMP non-Matrix Free
 function solve_problem(slv::S, y, T, M, x0) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver}
-	setsolver(M, slv)
-	solve(M)
+	JuMP.setsolver(M, slv)
+	JuMP.solve(M)
 	return getvalue(x0), 0
 end
 
-function benchmark(;verb = 0, samples = 5, seconds = 100)
+function benchmark(;verb = 0, samples = 5, seconds = 100, tol = 1e-6)
 
 	suite = BenchmarkGroup()
 
-	opt     = ["JuMP",
-		   "JuMP",
+	opt     = [
+           #"JuMP",
+		   #"JuMP",
 		   "",
 		   "",
-		   ""]
+		   "",
+		   "",
+          ]
 	solvers = [
-		   "ECOSSolver",
-		   "SCSSolver",
+		   #"ECOSSolver",
+		   #"SCSSolver",
+		   "PANOC",
 		   "ZeroFPR", 
 		   "FPG", 
 		   "PG"]
 	slv_opt = [
-		   "(verbose = $verb)", 
-		   "(verbose = $verb)", 
-		   "(verbose = $verb)", 
-		   "(verbose = $verb)", 
-		   "(verbose = $verb)"]
+		   "(verbose = $verb, tol = $tol)", 
+		   "(verbose = $verb, tol = $tol)", 
+		   "(verbose = $verb, tol = $tol)", 
+		   "(verbose = $verb, tol = $tol)", 
+		   "(verbose = $verb, tol = $tol)", 
+		   "(verbose = $verb, tol = $tol)"]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
@@ -169,12 +180,15 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 	return results
 end
 
-function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100)
+function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100, tol = 1e-6)
 
 	suite = BenchmarkGroup()
 
-	solvers = ["ZeroFPR", "FPG", "PG"]
-	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)"]
+	solvers = ["PANOC", "ZeroFPR", "FPG", "PG"]
+	slv_opt = ["(verbose = $verb, tol = $tol)", 
+               "(verbose = $verb, tol = $tol)", 
+               "(verbose = $verb, tol = $tol)", 
+               "(verbose = $verb, tol = $tol)"]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)

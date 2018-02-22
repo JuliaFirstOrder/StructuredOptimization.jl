@@ -1,7 +1,7 @@
 module TotalVariation
 
 using BenchmarkTools
-using RegLS
+using StructuredOptimization
 using AbstractOperators
 using Images
 using ImageView
@@ -25,28 +25,29 @@ end
 
 function run_demo()
 	Lf  = 8                # Lipschitz constant
-	slv = ZeroFPR(tol = 1e-3, gamma = 1/Lf, adaptive = false)
+	slv = PANOC(tol = 1e-3, gamma = 1/Lf, adaptive = false)
 	setup = set_up()
 	@time solve_problem!(slv,setup...)
 	return setup
 end
 
 function solve_problem!(slv,V, Y, Xt, X, lambda)
-	@minimize ls(-V'*Y+Xt)+conj(lambda*norm(Y,2,1,2)) with slv
-	return slv.it
+	_, it = @minimize ls(-V'*Y+Xt)+conj(lambda*norm(Y,2,1,2)) with slv
+	return it
 end
 
-function benchmark(;verb = 0, samples = 5, seconds = 100)
+function benchmark(;verb = 0, samples = 5, seconds = 100, tol = 1e-3, maxit = 50000 )
 
 	suite = BenchmarkGroup()
 
-	tol = 1e-3
 	solvers = ["ZeroFPR",
-		   "FPG",
-		   "PG"]
-	slv_opt = ["(verbose = $verb, tol = $tol, gamma = 1/8, maxit = 50000)", 
-		   "(verbose = $verb, tol = $tol, gamma = 1/8, maxit = 50000)",
-		   "(verbose = $verb, tol = $tol, gamma = 1/8, maxit = 50000)"]
+               "PANOC",
+               "FPG",
+               "PG"]
+	slv_opt = ["(verbose = $verb, tol = $tol, gamma = 1/8, maxit = $maxit)", 
+               "(verbose = $verb, tol = $tol, gamma = 1/8, maxit = $maxit)",
+               "(verbose = $verb, tol = $tol, gamma = 1/8, maxit = $maxit)",
+               "(verbose = $verb, tol = $tol, gamma = 1/8, maxit = $maxit)"]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)

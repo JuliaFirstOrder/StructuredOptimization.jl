@@ -1,5 +1,6 @@
 using StructuredOptimization
 using AbstractOperators
+using AbstractOperators.BlockArrays
 using ProximalOperators
 using Base.Test
 using Base.Profile
@@ -16,12 +17,6 @@ end
   include("test_affine.jl")
   include("test_terms.jl")
 end
-
-# this test are essentially ProximalAlgorithms tests
-# TODO move to ProximalAlgorithms?
-#@testset "Solvers" begin  
-#  include("test_solvers.jl")
-#end
 
 @testset "Problem construction" begin
   include("test_problem.jl")

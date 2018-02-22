@@ -3,46 +3,46 @@ module LineSpectraEstimation
 #TODO change benchmark to JuMP?
 
 using BenchmarkTools
-using RegLS
+using StructuredOptimization
 using Convex
 using MathProgBase
-using Mosek
+using ECOS
+using SCS
 using AbstractOperators
 using PyPlot
-using PyCall
-
-@pyimport cvxpy as cvx
-@pyimport numpy as np
 
 function set_up(;opt="")
 
-	srand(17)
+    srand(39)
 
-	Fs = 16e3
-	Nt = 2^8 #time samples
-	y0 = zeros(Nt)
-	SNR = 10
+    fs = 16e3
+    Nt = 2^7 #time samples
+    y0 = zeros(Nt)
+    SNR = 20
 
-	s = 6 #super-resolution factor
-	fs = linspace(0,Fs/2,div(s*Nt,2)+1)            # super resolution frequency axis (up to Nyquist)
-	t  = 0:1/Fs:(Nt-1)/Fs                          # time axis
-	f  = linspace(0,Fs,Nt+1)[1:end-1]              # frequency axis
-	K = 14                                         # number of sinusoids
-	fk = fs[randperm(div(s*Nt,2)+1)[1:K]]          #sinusoids frequencies
-	ak = 0.1*randn(K)+0.7                          # amplitude
+    s = 4 #super-resolution factor
+    f_s  = linspace(0,  fs,       s*Nt+1)[1:end-1]     # super resolution frequency axis
+    f_s2 = linspace(0,fs/2,div(s*Nt,2)+1)              # super resolution frequency axis (up to Nyquist)
+    t  = 0:1/fs:(Nt-1)/fs                              # time axis
+    f  = linspace(0,fs,Nt+1)[1:end-1]                  # frequency axis
+    f2 = linspace(0,fs/2,div(Nt,2)+1)                  # frequency axis
+    K = 14                                             # number of sinusoids
+    Nf = div(s*Nt,4)+1
+    fk = f_s2[randperm(Nf)[1:K]]                   # sinusoids frequencies
+    ak = 0.1*randn(K)+0.7                              # amplitude
 
-	for i in eachindex(fk) y0 .+= ak[i].*sin.(2*π*fk[i].*t) end
-	y = y0.+10^(-SNR/10)*sqrt(var(y0))*randn(length(y0))
+    for i in eachindex(fk) y0 .+= ak[i].*sin.(2*π*fk[i].*t) end
+    y = y0.+10^(-SNR/10)*sqrt(var(y0))*randn(length(y0))
 
 	xzp = rfft([y;zeros((s-1)*length(y))])
 	IDFTm = [exp(im*2*pi*k*n/(s*Nt))  for k =0:s*Nt-1, n=0:s*Nt-1] #Inverse Fourier Matrix
 	S = [speye(Nt) spzeros(Nt,(s-1)*Nt)] # selection matrix
 	Fm = full(S*IDFTm)
-    alpha = 0.06
+    alpha = 0.001
 	lambda_max_m = norm(Fm'*y, Inf)
 	lambda_m = alpha*lambda_max_m
 
-	F = (s*Nt*IRDFT((div(s*Nt,2)+1,),s*Nt))[1:Nt] # Abstract Operator 
+    F = DFT(s*Nt)'[1:Nt] # Abstract Operator 
 	lambda_max = norm(F'*y, Inf)
 	lambda = alpha*lambda_max
 
@@ -54,14 +54,19 @@ function set_up(;opt="")
 	else
 		setup = K, Fm, Fc, lambda, lambda_m
 	end
-	return setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y
+	return setup, t, f, f_s2, fk, ak, s, Nt, fs, xzp, y
 
 end
 
 function run_demo()
-	slv = ZeroFPR()
+
+    tol = 1e-5
+    verb = 1
+    solver = ZeroFPR
+
 	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up(opt = "MatrixFree")
-	x = init_variable(div(s*Nt,2)+1,slv)
+	slv = solver(tol = tol, verbose = verb)
+	x = init_variable(s*Nt,slv)
 
 	println("Solving LASSO (Abstract Operator)")
 	@time solve_problem!(slv, x, y, setup...)
@@ -71,7 +76,7 @@ function run_demo()
 	@time solve_problem_ncvx!(slv, x, y, setup...)
 	x0 = copy(~x)
 
-	slv = ZeroFPR()
+	slv = solver(tol = tol, verbose = verb)
 	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up()
 	x0m = init_variable(s*Nt,slv)
 
@@ -81,24 +86,13 @@ function run_demo()
 	println("Refine solution by solving non-convex problem (Matrix Operator)")
 	@time solve_problem_ncvx!(slv, x0m, y, setup...)
 
+	x1 = x1[1:div(s*Nt,2)+1]
+	x0 = x0[1:div(s*Nt,2)+1]
 	return t, f, fs, fk, ak, s, Nt, Fs, xzp, y, x1, x0
 end
 
-function run_demo_cvx()
-
-	slv = cvx.SCS
-	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up()
-	x0 = init_variable(s*Nt,slv)
-
-	@time x0, = solve_problem!(slv, x0, y, setup...)
-	x1 = x0[1][:value]+im*x0[2][:value]
-	x1 = x1[1:div(s*Nt,2)+1]
-
-	return t, f, fs, fk, ak, s, Nt, Fs, xzp, y, x1, zeros(x1)
-end
-
 function run_demo_Convex()
-	slv = MosekSolver()
+	slv = ECOSSolver()
 	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up()
 	x0m = init_variable(s*Nt,slv)
 
@@ -110,29 +104,29 @@ function run_demo_Convex()
 	return t, f, fs, fk, ak, s, Nt, Fs, xzp, y, x1, zeros(x1)
 end
 
-init_variable(N,slv::S) where {S <: RegLS.ForwardBackwardSolver} = RegLS.Variable(Complex{Float64}, N)
+init_variable(N,slv::S) where {S <: StructuredOptimization.ForwardBackwardSolver} = StructuredOptimization.Variable(Complex{Float64}, N)
 init_variable(N,slv::S) where {S <: MathProgBase.SolverInterface.AbstractMathProgSolver} = Convex.ComplexVariable(N)
 init_variable(N,slv::S) where {S <: AbstractString} = cvx.Variable(N), cvx.Variable(N)
 
-#RegLS Matrix Free
-function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
-    slv_it, it = @minimize ls(F*x0-y)+lambda*norm(x0,1) with slv
+#StructuredOptimization Matrix Free
+function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractOperator}
+    _, it = @minimize ls(F*x0-y)+lambda*norm(x0,1) with slv
 	return x0, it
 end
 
-function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractOperator}
-	slv_it, it = @minimize ls(F*x0-y) st norm(x0,0) <= K with slv
+function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractOperator}
+	_, it = @minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
 	return x0, it
 end
 
-#RegLS non-Matrix Free
-function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
-	slv_it, it = @minimize ls(F*x0-y)+lambda_m*norm(x0,1) with slv
+#StructuredOptimization non-Matrix Free
+function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractMatrix}
+	_, it = @minimize ls(F*x0-y)+lambda_m*norm(x0,1) with slv
 	return x0, it
 end
 
-function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: RegLS.ForwardBackwardSolver, A <: AbstractMatrix}
-	slv_it, it = @minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
+function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractMatrix}
+	_, it = @minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
 	return x0, it
 end
 
@@ -143,28 +137,15 @@ function solve_problem!(slv::S, x0, y, K, F, Fc, lambda, lambda_m) where {S <: M
 	return x0, 0
 end
 
-#cvxpy 
-function solve_problem!(slv::S, x0, y, K, F, Fc, lambda, lambda_m) where {S <: AbstractString}
-	xr, xi = x0[1],x0[2]
-	reg = cvx.norm(cvx.vstack(xr[1],xi[1])) 
-	for i = 2:xr[:size][1]
-		reg += cvx.norm(cvx.vstack(xr[i],xi[i]))
-	end
-
-	problem = cvx.Problem(
-		  cvx.Minimize(cvx.sum_squares(PyObject(Fc)*cvx.vstack(xr,xi)-[real(y);imag(y)])*0.5
-			       +reg*lambda_m
-			       ))
-	problem[:solve](solver = slv, verbose = false)
-	return x0, 0
-end
-
-function benchmark(;verb = 0, samples = 5, seconds = 100)
+function benchmark(;verb = 0, samples = 5, seconds = 100, tol = 1e-5)
 
 	suite = BenchmarkGroup()
 
-	solvers = ["PANOC", "ZeroFPR", "FPG", "PG",]# "cvx.CVXOPT", "cvx.SCS"]
-	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)",]# "", ""]
+	solvers = ["PANOC", "ZeroFPR", "FPG", "PG",]
+	slv_opt = ["(verbose = $verb, tol = $tol)", 
+               "(verbose = $verb, tol = $tol)", 
+               "(verbose = $verb, tol = $tol)", 
+               "(verbose = $verb, tol = $tol)",]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
@@ -193,19 +174,22 @@ function benchmark(;verb = 0, samples = 5, seconds = 100)
 	return results
 end
 
-function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100)
+function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100, tol = 1e-5)
 
 	suite = BenchmarkGroup()
 
 	solvers = ["PANOC", "ZeroFPR", "FPG", "PG"]
-	slv_opt = ["(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)", "(verbose = $verb)"]
+	slv_opt = ["(verbose = $verb, tol = $tol)", 
+               "(verbose = $verb, tol = $tol)", 
+               "(verbose = $verb, tol = $tol)", 
+               "(verbose = $verb, tol = $tol)"]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
 
 		setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up(opt = "MatrixFree")
 		solver = eval(parse(solvers[i]*slv_opt[i]))
-		x0 = init_variable(div(Nt*s,2)+1,solver)
+		x0 = init_variable(Nt*s,solver)
 
 		suite[solvers[i]] = 
 		@benchmarkable((x0,it) = solve_problem!(solver, x0, y, setup...), 
@@ -235,7 +219,7 @@ function show_results(t, f, fs, fk, ak, s, Nt, Fs, xzp, y, x1, x0)
 	plot(fk,       abs.(ak)/2     , "r*", label = "true amp.")
 	plot(fs,abs.(x1), "k*", label = "LASSO")
 	plot(fs,abs.(x0), "go", label = "IndBallL0")
-	xlim([0;Fs/2])
+	xlim([0;Fs/4])
 	legend()
 
 end

@@ -1,7 +1,7 @@
 module AudioDeclipping
 
 using BenchmarkTools
-using RegLS, AbstractOperators
+using StructuredOptimization, AbstractOperators
 using DSP, WAV
 using PyPlot
 
@@ -36,7 +36,7 @@ end
 function run_demo()
 	slv = ZeroFPR(tol = 1e-5, verbose = 0)
 	setup = set_up()
-	@time solve_problem!(slv,setup..., true)
+	@time solve_problem!(slv, setup..., true)
 
 	Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, overlap, cf = setup
 	Irp = find(xc.>=C)  #positive clipping indices
@@ -81,9 +81,9 @@ function solve_problem!(slv, Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, 
 					norm(M*y-M*yw) <= sqrt(fit_tol), 
 					Mp*y in [   C, 0.8], 
 					Mn*y in [-0.8,  -C])
-				@minimize cf st cstr with slv
-				its[counter] += slv.it
-				if slv.cost <= fit_tol break end
+                _, it = @minimize cf st cstr with slv
+				its[counter] += it
+                if norm(idct(~x)- ~y) <= sqrt(fit_tol) break end
 			end
 			@views xd[z+1:z+Nl] .+= (~y).*win 
 			if verb @printf("%7d / %7d | N: %7d /  %7d | \n", z, Nt, N, Nl) end
@@ -99,9 +99,11 @@ function benchmark(;verb = 0, samples = 1, seconds = 100)
 	suite = BenchmarkGroup()
 
 	tol = 1e-5
-	solvers = ["ZeroFPR",
-		   "FPG",
-		   "PG"]
+	solvers = [
+               "PANOC",
+               "ZeroFPR",
+               "PG"
+          ]
 	slv_opt = ["(verbose = $verb, tol = $tol)", 
 		   "(verbose = $verb, tol = $tol)",
 		   "(verbose = $verb, tol = $tol)"]

@@ -15,3 +15,28 @@ expx = exp.(x)
 expmx = 1.0./expx
 grad_f_x_ref = 3.0 * ( expx ./ (1 + expx).^2 ) .* (1.0 ./ (1.0 .+ expmx) - b)
 @test vecnorm(grad_f_x - grad_f_x_ref) <= 1e-10
+
+## with compose
+#with vectors
+l,m1,m2,n1,n2 = 2,3,4,5,6
+x = (randn(m1,m2),randn(n1,n2))
+A = randn(l,m1)
+B = randn(m2,n1)
+r = randn(l,n2)
+
+G = NonLinearCompose( MatrixOp(A,m2), MatrixOp(B,n2) )
+
+b = randn(l,n2)
+g = ProximalOperators.Translate(ProximalOperators.SqrNormL2(3.0), -b)
+f = StructuredOptimization.PrecomposeNonlinear(g, G)
+
+x = (randn(m1,m2),randn(n1,n2))
+
+grad_f_x, f_x = gradient(f, x)
+
+r = G*x 
+grad_f_x2, f_x2 = gradient(g, r)
+grad_f_x2 = jacobian(G,x)'*grad_f_x2
+
+@test norm(f_x-f_x2) < 1e-8
+@test blockvecnorm(grad_f_x2.-grad_f_x2) < 1e-8
