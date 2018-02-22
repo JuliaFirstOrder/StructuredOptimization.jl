@@ -3,7 +3,7 @@
 b = randn(10)
 g = ProximalOperators.Translate(ProximalOperators.SqrNormL2(3.0), -b)
 G = AbstractOperators.Sigmoid((10,), 1.0)
-f = RegLS.PrecomposeNonlinear(g, G)
+f = StructuredOptimization.PrecomposeNonlinear(g, G)
 
 x = randn(10)
 

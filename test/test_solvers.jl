@@ -22,7 +22,7 @@ normL = norm(A1)^2
 # Apply PG
 
 x = zeros(n)
-sol = RegLS.apply!(RegLS.PG(tol=tol), x; fq=f, Aq=L, g=g)
+sol = StructuredOptimization.apply!(StructuredOptimization.PG(tol=tol), x; fq=f, Aq=L, g=g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
@@ -37,7 +37,7 @@ subgr_proj[x .> 0] = lam
 # Apply FPG
 
 x = zeros(n)
-sol = RegLS.apply!(RegLS.FPG(tol=tol), x; fq=f, Aq=L, g=g)
+sol = StructuredOptimization.apply!(StructuredOptimization.FPG(tol=tol), x; fq=f, Aq=L, g=g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
@@ -52,8 +52,8 @@ subgr_proj[x .> 0] = lam
 # Apply ZeroFPR
 
 x = zeros(n)
-zerofpr = RegLS.ZeroFPR(tol=tol,maxit=1000,verbose=1)
-sol = RegLS.apply!(zerofpr, x; fq=f, Aq=L, g=g)
+zerofpr = StructuredOptimization.ZeroFPR(tol=tol,maxit=1000,verbose=1)
+sol = StructuredOptimization.apply!(zerofpr, x; fq=f, Aq=L, g=g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
@@ -68,8 +68,8 @@ subgr_proj[x .> 0] = lam
 # Apply PANOC
 
 x = zeros(n)
-panoc = RegLS.PANOC(tol=tol,maxit=1000,verbose=1)
-sol = RegLS.apply!(panoc, x; fq=f, Aq=L, g=g)
+panoc = StructuredOptimization.PANOC(tol=tol,maxit=1000,verbose=1)
+sol = StructuredOptimization.apply!(panoc, x; fq=f, Aq=L, g=g)
 
 gstep = x - (A1'*(A1*x-b))
 pgstep = sign.(gstep).*max.(0, abs.(gstep) .- lam)
@@ -102,7 +102,7 @@ normL = norm([A1 A2])
 # Apply PG
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply!(RegLS.PG(tol=tol), x; fq=f, Aq=L, g=g)
+sol = StructuredOptimization.apply!(StructuredOptimization.PG(tol=tol), x; fq=f, Aq=L, g=g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
@@ -115,7 +115,7 @@ pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
 # Apply FPG
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply!(RegLS.FPG(tol=tol), x; fq=f, Aq=L, g=g)
+sol = StructuredOptimization.apply!(StructuredOptimization.FPG(tol=tol), x; fq=f, Aq=L, g=g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
@@ -128,7 +128,7 @@ pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
 # Apply ZeroFPR
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply!(RegLS.ZeroFPR(tol=tol), x; fq=f, Aq=L, g=g)
+sol = StructuredOptimization.apply!(StructuredOptimization.ZeroFPR(tol=tol), x; fq=f, Aq=L, g=g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
@@ -141,7 +141,7 @@ pgstep2 = norm(gstep2) > 1 ? gstep2/norm(gstep2) : gstep2
 # Apply PANOC
 
 x = (zeros(n), zeros(l))
-sol = RegLS.apply!(RegLS.PANOC(tol=tol), x; fq=f, Aq=L, g=g)
+sol = StructuredOptimization.apply!(StructuredOptimization.PANOC(tol=tol), x; fq=f, Aq=L, g=g)
 
 res = A1*x[1]+A2*x[2]-b
 gstep1 = x[1] - A1'*res
@@ -170,19 +170,19 @@ L = VCAT(MatrixOp(A1), MatrixOp(A2))
 # Apply PG
 
 x = zeros(n)
-sol = RegLS.apply!(RegLS.PG(tol=tol), x; fq=f, Aq=L, g=g)
+sol = StructuredOptimization.apply!(StructuredOptimization.PG(tol=tol), x; fq=f, Aq=L, g=g)
 
 # Apply FPG
 
 x = zeros(n)
-sol = RegLS.apply!(RegLS.FPG(tol=tol), x; fq=f, Aq=L, g=g)
+sol = StructuredOptimization.apply!(StructuredOptimization.FPG(tol=tol), x; fq=f, Aq=L, g=g)
 
 # Apply ZeroFPR
 
 x = zeros(n)
-sol = RegLS.apply!(RegLS.ZeroFPR(tol=tol), x; fq=f, Aq=L, g=g)
+sol = StructuredOptimization.apply!(StructuredOptimization.ZeroFPR(tol=tol), x; fq=f, Aq=L, g=g)
 
 # Apply PANOC
 
 x = zeros(n)
-sol = RegLS.apply!(RegLS.PANOC(tol=tol), x; fq=f, Aq=L, g=g)
+sol = StructuredOptimization.apply!(StructuredOptimization.PANOC(tol=tol), x; fq=f, Aq=L, g=g)

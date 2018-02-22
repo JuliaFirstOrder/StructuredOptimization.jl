@@ -1,16 +1,16 @@
-# RegLS.jl
+# StructuredOptimization.jl
 
 Convex and nonconvex regularized least squares in Julia.
 
 ## Installation
 
-From the Julia command line hit `Pkg.clone("https://github.com/nantonel/RegLS.jl.git")`.
+From the Julia command line hit `Pkg.clone("https://github.com/nantonel/StructuredOptimization.jl.git")`.
 Once the package is installed you can update it along with the others issuing
 `Pkg.update()` in the command line.
 
 ## Usage
 
-With RegLS.jl you can solve problems of the form
+With StructuredOptimization.jl you can solve problems of the form
 
 ```
 minimize (1/2)*||L(x) - b||^2 + g(x)
@@ -55,7 +55,7 @@ least squares problem using the `NormL0` function, as in the following snippet
 (parameters here are taken from [this paper](http://ieeexplore.ieee.org/xpls/abs_all.jsp?arnumber=4407767)):
 
 ```julia
-using RegLS
+using StructuredOptimization
 using ProximalOperators
 lambda_max = norm(A'*y, Inf)
 lambda = 0.01*lambda_max # regularization parameter
@@ -71,7 +71,7 @@ x_L0c, info = solve(A, y, indBallL0(200), zeros(n))
 
 ## References
 
-The algorithms implemented in RegLS.jl are described in the following papers.
+The algorithms implemented in StructuredOptimization.jl are described in the following papers.
 
 1. L. Stella, A. Themelis, P. Patrinos, “Forward-backward quasi-Newton methods for nonsmooth optimization problems,” [arXiv:1604.08096](http://arxiv.org/abs/1604.08096) (2016).
 
@@ -79,4 +79,4 @@ The algorithms implemented in RegLS.jl are described in the following papers.
 
 ## Credits
 
-RegLS.jl is developed by [Lorenzo Stella](https://lostella.github.io) and [Niccolò Antonello](http://homes.esat.kuleuven.be/~nantonel/) at [KU Leuven, ESAT/Stadius](https://www.esat.kuleuven.be/stadius/).
+StructuredOptimization.jl is developed by [Lorenzo Stella](https://lostella.github.io) and [Niccolò Antonello](http://homes.esat.kuleuven.be/~nantonel/) at [KU Leuven, ESAT/Stadius](https://www.esat.kuleuven.be/stadius/).

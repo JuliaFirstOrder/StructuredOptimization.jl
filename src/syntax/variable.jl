@@ -27,7 +27,7 @@ eltype(x::Variable) = eltype(x.x)
 ndims(x::Variable) = ndims(x.x)
 
 """
-  `~(x::RegLS.Variable)`
+  `~(x::Variable)`
 
 returns the `Array` object containing the value of `x`.
 """

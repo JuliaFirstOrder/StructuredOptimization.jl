@@ -1,4 +1,4 @@
-using RegLS
+using StructuredOptimization
 using AbstractOperators
 using ProximalOperators
 using Base.Test
@@ -6,7 +6,7 @@ using Base.Profile
 
 srand(0)
 
-@testset "RegLS" begin
+@testset "StructuredOptimization" begin
 
 @testset "Calculus" begin
   include("test_proxstuff.jl")

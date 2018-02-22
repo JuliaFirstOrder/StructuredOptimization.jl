@@ -221,13 +221,13 @@ w = Variable(5)
 z = Variable(5)
 
 cf = norm(A*x + z)
-@test RegLS.is_smooth(cf) == false
-@test RegLS.is_smooth(cf^2) == true
+@test StructuredOptimization.is_smooth(cf) == false
+@test StructuredOptimization.is_smooth(cf^2) == true
 
 cf = norm(w + z)^2
-@test RegLS.is_smooth(cf) == true
-@test RegLS.is_AcA_diagonal(cf) == false
+@test StructuredOptimization.is_smooth(cf) == true
+@test StructuredOptimization.is_AcA_diagonal(cf) == false
 
 cf = norm(x, 1) + norm(y, 2)
-@test RegLS.is_smooth.(cf) == (false,false)
-@test RegLS.is_AcA_diagonal.(cf) == (true,true)
+@test StructuredOptimization.is_smooth.(cf) == (false,false)
+@test StructuredOptimization.is_AcA_diagonal.(cf) == (true,true)

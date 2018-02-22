@@ -1,6 +1,6 @@
 __precompile__()
 
-module RegLS
+module StructuredOptimization
 
 using AbstractOperators
 using AbstractOperators.BlockArrays

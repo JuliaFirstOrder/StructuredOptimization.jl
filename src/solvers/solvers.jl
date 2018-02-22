@@ -81,7 +81,7 @@ function build(terms::Tuple, solver::ForwardBackwardSolver)
 			if is_linear(smooth)
 				append!(kwargs, [(:As, As)])
 			else
-				fs = RegLS.PrecomposeNonlinear(fs, As)
+				fs = PrecomposeNonlinear(fs, As)
 			end
 			append!(kwargs, [(:fs, fs)])
 		end
