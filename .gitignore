@@ -8,3 +8,6 @@
 *.jpg
 *.wav
 *.tex
+
+docs/build/
+docs/site/

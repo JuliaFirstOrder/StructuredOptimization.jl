@@ -20,18 +20,11 @@ import ProximalOperators:
 			  is_smooth,
 			  is_strongly_convex
 
-# include("ProxStuff/functions/sqrHingeLoss.jl") #to MOVE to ProximalOperators
-# include("ProxStuff/functions/crossEntropy.jl") #to MOVE to ProximalOperators
-# include("utilities/deep.jl")
-
 include("calculus/precomposeNonlinear.jl")
 include("syntax/syntax.jl")
 include("solvers/solvers.jl")
 
-export @minimize #, st, with
-
-# immutable st end
-# immutable with end
+export @minimize 
 
 macro minimize(cf::Union{Expr, Symbol})
 	cost = esc(cf)

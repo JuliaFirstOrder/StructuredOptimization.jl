@@ -1,1 +1,4 @@
 julia 0.6
+AbstractOperators 0.0.4
+ProximalOperators 0.4.1
+ProximalAlgorithms 0.0.1+

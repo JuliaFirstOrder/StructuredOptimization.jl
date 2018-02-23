@@ -2,7 +2,6 @@ using StructuredOptimization
 using BenchmarkTools
 using JuMP
 using SCS
-using Mosek
 using ECOS
 
 function set_up(S::Int) #S scales problem
@@ -17,7 +16,6 @@ function set_up(S::Int) #S scales problem
 	println("n = $n, m = $m, nnz(A) = $(countnz(A))")
 	x0 = zeros(n)
 	x0[randperm(n)[1:div(n,4)+1]] = randn(div(n,4)+1)
-	#x0 /= norm(x0)^2
 
 	y = A*x0
 	y += 10^(-SNR/10)*sqrt(var(y))*randn(length(y))
@@ -162,10 +160,10 @@ function benchmark_LASSO(slv, eps_max, nvar)
 end
 BLAS.set_num_threads(5)
 
-nvars = 1000
+nvars = 100000
 solvers = [
-	   "SCSSolver",
-  	   "ECOSSolver",
+#	   "SCSSolver",
+#  	   "ECOSSolver",
 	   "PG",
 	   "FPG",
 	   "ZeroFPR",
@@ -180,15 +178,15 @@ end
 
 using PyPlot
 using DataFrames, CSV
-save_stuff = false
+save_stuff = true
 dirpath = "/home/nantonel/Proximal_Gradient_Algorithms/fig"
 #mkpath("data/")
 figure()
 for i in eachindex(solvers)
-	plot(-log10.(ERR[i]), 1e-9.*T[i], label = solvers[i],":*")
+	plot(1e-9.*T[i], log10.(ERR[i]),  label = solvers[i],":*")
     if save_stuff
         CSV.write("$dirpath/lasso_$(nvars)_$(solvers[i]).cvs", 
-                  DataFrame(q = -log10.(ERR[i]), t = 1e-9.*T[i]) )
+                  DataFrame(q = log10.(ERR[i]), t = 1e-9.*T[i]) )
     end
 end
 legend()

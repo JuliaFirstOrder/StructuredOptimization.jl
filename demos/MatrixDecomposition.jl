@@ -44,7 +44,7 @@ function solve_problem!(slv, B, F, Y, R, lambda, n, m, N)
 	return it
 end
 
-function benchmark(;verb = 0, samples = 5, seconds = 100, tol = 2e-4)
+function benchmark(;verb = 0, samples = 5, seconds = 100, tol = 1e-4)
 
 	suite = BenchmarkGroup()
 	
