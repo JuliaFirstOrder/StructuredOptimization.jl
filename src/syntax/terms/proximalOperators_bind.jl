@@ -2,6 +2,30 @@
 
 import Base: norm
 
+"""
+`norm(x::AbstractExpression, p=2, [q,] [dim=1])`
+
+Returns the norm of `x`. 
+
+Supported norms:
+
+* `p = 0` ``L_0`` pseudo-norm
+
+* `p = 1` ``L_1`` norm
+
+* `p = 2` ``L_2`` norm
+
+* `p = Inf` ``L_{\\infty}`` norm
+
+* `p = *` nuclear norm
+
+* `p = 2`, `q = 1` ``L_{2,1}`` mixed norm (aka Sum-of-``L_2``norms) 
+```math
+f(\\mathbf{X}) = \\sum_i \\| \\mathbf{x}_i \\|
+```
+where ``\\mathbf{x}_i`` is the ``i``-th column if `dim == 1` (or row if  `dim == 2`) of ``\\mathbf{X}``.
+
+"""
 function norm(ex::AbstractExpression, p=2)
 	if p == 0
 		f = NormL0()
@@ -32,22 +56,21 @@ function norm(ex::AbstractExpression, p1::Int, p2::Int, dim::Int = 1 )
 	return Term(f, ex)
 end
 
-# Norm constraints
-
-import Base: <=, ==
-
-(<=)(t::Term{T1,T2,T3}, r::Integer) where {T1,T2 <: NormL0,T3} =
-Term(IndBallL0(round(Int,r/t.lambda)), t.A)
-(<=)(t::Term{T1,T2,T3}, r::Real) where {T1, T2 <: NormL1, T3} = Term(IndBallL1(r/t.lambda), t.A)
-(<=)(t::Term{T1,T2,T3}, r::Real) where {T1, T2 <: NormL2, T3} = Term(IndBallL2(r/t.lambda), t.A)
-(<=)(t::Term{T1,T2,T3}, r::Real) where {T1, T4 <: IndBallL1, T2 <: Conjugate{T4}, T3} = Term(IndBallLinf(r/t.lambda), t.A)
-
-(==)(t::Term{T1,T2,T3}, r::Real)  where {T1,T2 <: NormL2,T3} =    Term(IndSphereL2(r/t.lambda), t.A)
-
 # Least square terms
 
 export ls
 
+"""
+`ls(x::AbstractExpression)`
+
+Returns the squared norm (least squares) of `x`:
+
+```math
+f (\\mathbf{x}) = \\frac{1}{2} \\| \\mathbf{x} \\|^2
+```
+
+(shorthand of `1/2*norm(x)^2`).
+"""
 ls(ex) = Term(SqrNormL2(), ex)
 
 import Base: ^
@@ -60,6 +83,180 @@ function (^){T1, T2  <: NormL2, T3}(t::Term{T1,T2,T3}, exp::Integer)
 		error("function not implemented")
 	end
 end
+
+# HingeLoss
+
+export hingeloss
+
+"""
+`hingeloss(x::AbstractExpression, y::Array)`
+
+Applies the Hinge loss function 
+```math
+f( \\mathbf{x} ) = \\sum_{i} \\max\\{0, 1 - y_i x_i \\},
+```
+where `y` is an array containing ``y_i``.
+"""
+hingeloss(ex::AbstractExpression, b::Array{R,1}) where {R <: Real} =
+Term(HingeLoss(b), ex)
+
+# HingeLoss
+
+export sqrhingeloss
+
+"""
+`sqrhingeloss(x::AbstractExpression, y::Array)`
+
+Applies the squared Hinge loss function 
+```math
+f( \\mathbf{x} ) = \\sum_{i} \\max\\{0, 1 - y_i x_i \\}^2,
+```
+where `y` is an array containing ``y_i``.
+"""
+sqrhingeloss(ex::AbstractExpression, b::Array{R,1}) where {R <: Real} =
+Term(SqrHingeLoss(b), ex)
+
+# CrossEntropy
+
+export crossentropy
+
+"""
+`crossentropy(x::AbstractExpression, y::Array)`
+
+Applies the cross entropy loss function: 
+```math
+f(\\mathbf{x}) = -1/N \\sum_{i}^{N} y_i \\log (x_i)+(1-y_i) \\log (1-x_i),
+```
+where `y` is an array of length ``N`` containing ``y_i`` having ``0 \\leq y_i \\leq 1``.
+"""
+crossentropy(ex::AbstractExpression, b::Array{R,1}) where {R <: Real} =
+Term(CrossEntropy(b), ex)
+
+# LogisticLoss
+
+export logisticloss
+
+"""
+`logbarrier(x::AbstractExpression, y::AbstractArray)`
+
+Applies the logistic loss function: 
+```math
+f(\\mathbf{x}) = \\sum_{i} \\log(1+ \\exp(-y_i x_i)), 
+```
+where `y` is an array containing ``y_i``.
+"""
+logisticloss(ex::AbstractExpression, y::AbstractArray) =
+Term(LogisticLoss(y, 1.0), ex)
+
+# LogBarrier
+
+export logbarrier
+
+"""
+`logbarrier(x::AbstractExpression)`
+
+Applies the log barrier function: 
+```math
+f(\\mathbf{x}) = -\\sum_i \\log( x_i ).
+```
+"""
+logbarrier(ex::AbstractExpression) =
+Term(LogBarrier(1.0), ex)
+
+# HuberLoss
+
+export huberloss
+
+"""
+`huberloss(x::AbstractExpression, ρ=1.0)`
+
+Applies the Huber loss function: 
+```math
+f(\\mathbf{x}) = \\begin\{cases\}
+  \\tfrac{1}{2}\\| \\mathbf{x} \\|^2 & \\text{if}\\ \\| \\mathbf{x} \\| \\leq \\rho \\\\
+  \\rho (\\| \\mathbf{x} \\| - \\tfrac{\\rho}{2}) & \\text{otherwise},
+\\end\{cases\}
+```
+"""
+huberloss(ex::AbstractExpression, rho::R = 1.0) where {R <: Real} =
+Term(HuberLoss(rho), ex)
+
+import Base: maximum
+
+"""
+`maximum(x::AbstractExpression)`
+
+Applies the function: 
+```math
+f(\\mathbf{x}) = \\max \\{x_i : i = 1,\\ldots, n \\}.
+```
+"""
+maximum(ex::AbstractExpression) =
+Term(Maximum(), ex)
+
+export sumpositive
+
+"""
+`sumpositive(x::AbstractExpression, ρ=1.0)`
+
+Applies the function: 
+```math
+f(\\mathbf{x}) = \\sum_i \\max \\{x_i, 0\\}.
+```
+"""
+sumpositive(ex::AbstractExpression) =
+Term(SumPositive(), ex)
+
+# Inequalities
+
+import Base: <=
+"""
+Inequalities constrains 
+
+## Norm Inequalities constraints
+
+* `norm(x::AbstractExpression, 0) <= n::Integer` 
+
+  ``\\mathrm{nnz}(\\mathbf{x}) \\leq n``
+
+* `norm(x::AbstractExpression, 1) <= r::Number` 
+
+  ``\\sum_i \| x_i \| \\leq r``
+
+* `norm(x::AbstractExpression, 2) <= r::Number` 
+
+  ``\\| \\mathbf{x} \\| \\leq r``
+
+* `norm(x::AbstractExpression, Inf) <= r::Number` 
+
+  `` \\max{x_1, x_2, \\dots}  \\leq r``
+
+## Box inequality constraints
+
+* `x::AbstractExpression <= u::Union{AbstractArray, Real}`
+
+  `` x_i \\leq u_i ``
+
+* `x::AbstractExpression >= l::Union{AbstractArray, Real}`
+
+  `` x_i \\geq l_i ``
+
+  Notice that the notation `x in [l,u]` is also possible.
+
+## Rank inequality constraints
+
+* `rank(X::AbstractExpression) <= n::Integer`
+
+  ``\\mathrm{rank}(\\mathbf{X}) \\leq r`` 
+
+  Notice that the expression `X` must have a codomain with dimension equal to 2. 
+
+"""
+(<=)(t::Term{T1,T2,T3}, r::Integer) where {T1,T2 <: NormL0,T3} =
+Term(IndBallL0(round(Int,r/t.lambda)), t.A)
+(<=)(t::Term{T1,T2,T3}, r::Real) where {T1, T2 <: NormL1, T3} = Term(IndBallL1(r/t.lambda), t.A)
+(<=)(t::Term{T1,T2,T3}, r::Real) where {T1, T2 <: NormL2, T3} = Term(IndBallL2(r/t.lambda), t.A)
+(<=)(t::Term{T1,T2,T3}, r::Real) where {T1, T4 <: IndBallL1, T2 <: Conjugate{T4}, T3} = Term(IndBallLinf(r/t.lambda), t.A)
 
 # Box constraints
 
@@ -94,43 +291,81 @@ import Base: <=
 
 (<=)(t::Term{T1,T2,T3} where {T1, T2 <: Rank, T3}, r::Int) = Term(IndBallRank(round(Int,r/t.lambda)), t.A)
 
-# HingeLoss
+import Base: ==
 
-export hingeloss
+"""
+Equalities constraints
 
-hingeloss(ex::AbstractExpression, b::Array{R,1}) where {R <: Real} =
-Term(HingeLoss(b), ex)
+## Affine space constraint
 
-export sqrhingeloss
+* `ex == b::Union{Real,AbstractArray}` 
 
-sqrhingeloss(ex::AbstractExpression, b::Array{R,1}) where {R <: Real} =
-Term(SqrHingeLoss(b), ex)
+  Requires expression to be affine.
 
-# CrossEntropy
+  ### Example
+  ```julia
+  julia> A,b  = randn(10,5), randn(10);
 
-export crossentropy
+  julia> x = Variable(5);
+  
+  julia> A*x == b
+  ```
 
-crossentropy(ex::AbstractExpression, b::Array{R,1}) where {R <: Real} =
-Term(CrossEntropy(b), ex)
+## Norm equality constraint
 
-# LogBarrier
+* `norm(x::AbstractExpression) == r::Number` 
 
-export logbarrier
+  ``\\| \\mathbf{x} \\| = r``
 
-logbarrier(ex::AbstractExpression, a::R) where{R <: Real} =
-Term(LogBarrier(a), ex)
+## Binary constraint
 
-# HuberLoss
+* `x::AbstractExpression == (l, u)` 
 
-export huberloss
+  ``\\mathbf{x} = \\mathbf{l}`` or ``\\mathbf{x} = \\mathbf{u}``
 
-huberloss(ex::AbstractExpression, a::R) where {R <: Real} =
-Term(HuberLoss(a), ex)
+"""
+(==)(t::Term{T1,T2,T3}, r::Real)  where {T1,T2 <: NormL2,T3} = Term(IndSphereL2(r/t.lambda), t.A)
+# IndSphereL2
 
+(==)(ex::AbstractExpression, lu::Tuple{Union{Real,AbstractArray},Union{Real,AbstractArray}}) = 
+Term(IndBinary(lu...), ex)
+# IndBinary
+
+# IndAffine
+function (==)(ex::AbstractExpression, b::Union{Real,AbstractArray}) 
+    op = operator(ex)
+    if typeof(op) <: MatrixOp
+        Term(IndAffine(op.A, b-displacement(ex), iterative = false ), variables(ex)[1])
+    else
+        # TODO change this
+        error("Currently affine equality supported only with `MatrixOp`")
+    end
+end
+
+# Transforms
 # Convex conjugate
-
 import Base: conj
 
+"""
+`conj(t::Term)`
+
+Returns the convex conjugate transform of `t`:
+```math
+f^*(\\mathbf{x}) = \\sup_{\\mathbf{y}} \\{ \\langle \\mathbf{y}, \\mathbf{x} \\rangle - f(\\mathbf{y}) \\}.
+```
+
+# Example
+```julia
+julia> x = Variable(4)
+Variable(Float64, (4,))
+
+julia> x = Variable(4);
+
+julia> t = conj(norm(x,1))
+
+```
+
+"""
 function conj(t::Term) 
 	if typeof(operator(t)) <: Eye 
 		return Term(1.0,Conjugate(Postcompose(t.f,t.lambda)),t.A) 
@@ -141,16 +376,33 @@ function conj(t::Term)
 end
 
 # Moreau Envelope
-
 export smooth
 
-function smooth(t::Term, gamma = 1.0) 
-	return Term(1.0,MoreauEnvelope(Postcompose(t.f,t.lambda),gamma),t.A) 
-end
+"""
+`smooth(t::Term, gamma = 1.0)`
 
-# other stuff, to make Term work with iterators
-import Base: start, next, done, isempty
-start(t::Term) = false
-next(t::Term, state) = (t, true)
-done(t::Term, state) =  state
-isempty(t::Term) =  false
+Smooths the nonsmooth term `t` using Moreau envelope:
+
+```math
+f^{\\gamma}(\\mathbf{x}) = \\min_{\\mathbf{z}} \\left\\{ f(\\mathbf{z}) + \\tfrac{1}{2\\gamma}\\|\\mathbf{z}-\\mathbf{x}\\|^2 \\right\\}.
+```
+
+# Example
+```julia
+julia> x = Variable(4)
+Variable(Float64, (4,))
+
+julia> x = Variable(4);
+
+julia> t = smooth(norm(x,1))
+
+```
+
+"""
+function smooth(t::Term, gamma = 1.0) 
+    if !is_smooth(t)
+        return Term(1.0,MoreauEnvelope(Postcompose(t.f,t.lambda),gamma),t.A) 
+    else
+        return t
+    end
+end

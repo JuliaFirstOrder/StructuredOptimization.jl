@@ -81,7 +81,7 @@ function solve_problem!(slv, Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, 
 					norm(M*y-M*yw) <= sqrt(fit_tol), 
 					Mp*y in [   C, 0.8], 
 					Mn*y in [-0.8,  -C])
-                _, it = @minimize cf st cstr with slv
+                it, = @minimize cf st cstr with slv
 				its[counter] += it
                 if norm(idct(~x)- ~y) <= sqrt(fit_tol) break end
 			end

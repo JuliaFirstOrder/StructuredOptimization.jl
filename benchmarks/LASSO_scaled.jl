@@ -30,7 +30,7 @@ end
 
 function solve_problem(slv::S, A, y, lambda, n, M, xJ) where {S <: StructuredOptimization.ForwardBackwardSolver}
 	x = StructuredOptimization.Variable(n)
-	_, it = @minimize ls(A*x-y)+lambda*norm(x,1) with slv
+	it, = @minimize ls(A*x-y)+lambda*norm(x,1) with slv
 	return ~x, it, :UserLimit
 end
 

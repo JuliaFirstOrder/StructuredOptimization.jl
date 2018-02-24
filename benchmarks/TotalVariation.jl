@@ -32,7 +32,7 @@ function run_demo()
 end
 
 function solve_problem!(slv,V, Y, Xt, X, lambda)
-	_, it = @minimize ls(-V'*Y+Xt)+conj(lambda*norm(Y,2,1,2)) with slv
+	it,  = @minimize ls(-V'*Y+Xt)+conj(lambda*norm(Y,2,1,2)) with slv
 	return it
 end
 

@@ -23,7 +23,6 @@ import Base: +
 (+){N}(a::Tuple{},b::NTuple{N,Term}) = b
 (+){N,M}(a::NTuple{N,Term},b::NTuple{M,Term}) = (a...,b...)
 
-
 # Define multiplication by constant
 
 import Base: *
@@ -42,6 +41,20 @@ end
 variables(t::Term) = variables(t.A)
 operator(t::Term) = operator(t.A)
 displacement(t::Term) = displacement(t.A)
+
+#importing properties from ProximalOperators
+import ProximalOperators:
+			  is_affine,
+			  is_cone,
+			  is_convex,
+			  is_generalized_quadratic,
+			  is_prox_accurate,
+			  is_quadratic,
+			  is_separable,
+			  is_set,
+			  is_singleton,
+			  is_smooth,
+			  is_strongly_convex
 
 #importing properties from AbstractOperators
 is_f = [:is_linear,
@@ -69,3 +82,10 @@ is_quadratic(t::Term) = is_quadratic(t.f) && is_linear(t)
 is_strongly_convex(t::Term) = is_strongly_convex(t.f) && is_full_column_rank(operator(t.A))
 
 include("proximalOperators_bind.jl")
+
+# other stuff, to make Term work with iterators
+import Base: start, next, done, isempty
+start(t::Term) = false
+next(t::Term, state) = (t, true)
+done(t::Term, state) =  state
+isempty(t::Term) =  false

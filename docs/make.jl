@@ -7,8 +7,9 @@ makedocs(
   authors = "Niccolò Antonello and Lorenzo Stella",
   pages = Any[
   "Home"            => "index.md",
-  "Variables"       => "variables.md",
   "Expressions"     => "expressions.md",
+  "Functions"       => "functions.md",
+  "Solvers"        => "solvers.md",
   ],
 )
 

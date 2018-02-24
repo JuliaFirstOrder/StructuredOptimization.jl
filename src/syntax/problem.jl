@@ -1,5 +1,24 @@
 export problem
 
+"""
+`problems(terms...)`
+
+Constructs a problem.
+
+# Example
+
+```julia
+
+julia> x = Variable(4)
+Variable(Float64, (4,))
+
+julia> A, b = randn(10,4), randn(10);
+
+julia> p = problem(ls(A*x-b), norm(x) <= 1)
+
+```
+
+"""
 function problem(terms::Vararg)
 	cf = ()
 	for i = 1:length(terms)
@@ -7,5 +26,3 @@ function problem(terms::Vararg)
 	end
 	return cf
 end
-
-# problem = vcat # why tuples? with arrays this is so much simpler

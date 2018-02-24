@@ -110,23 +110,23 @@ init_variable(N,slv::S) where {S <: AbstractString} = cvx.Variable(N), cvx.Varia
 
 #StructuredOptimization Matrix Free
 function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractOperator}
-    _, it = @minimize ls(F*x0-y)+lambda*norm(x0,1) with slv
+    it, = @minimize ls(F*x0-y)+lambda*norm(x0,1) with slv
 	return x0, it
 end
 
 function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractOperator}
-	_, it = @minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
+	it, = @minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
 	return x0, it
 end
 
 #StructuredOptimization non-Matrix Free
 function solve_problem!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractMatrix}
-	_, it = @minimize ls(F*x0-y)+lambda_m*norm(x0,1) with slv
+	it, = @minimize ls(F*x0-y)+lambda_m*norm(x0,1) with slv
 	return x0, it
 end
 
 function solve_problem_ncvx!(slv::S, x0, y, K, F::A, Fc, lambda, lambda_m) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractMatrix}
-	_, it = @minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
+	it, = @minimize ls(F*x0-y) st norm(x0,0) <= 2*K with slv
 	return x0, it
 end
 

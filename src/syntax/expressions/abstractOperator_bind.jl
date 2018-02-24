@@ -3,7 +3,7 @@
 import Base: *, reshape
 
 """
-`reshape(ex::AbstractExpression, dims...)`
+`reshape(x::AbstractExpression, dims...)`
 
 Reshapes the codomain of the expression.
 
@@ -77,7 +77,7 @@ end
 ## docs
 
 """
-`getindex(ex::AbstractExpression, dims...)`
+`getindex(x::AbstractExpression, dims...)`
 
 Slices the codomain of `ex`.
 
@@ -87,16 +87,19 @@ Slices the codomain of `ex`.
 julia> x = Variable(10)
 Variable(Float64, (10,))
 
-julia> x[1:4]
+julia> getindex(x,1:4)
 
-julia> getindex(randn(15,10)*x,1:10)
+julia> X = Variable(10,4)
+Variable(Float64, (10, 4))
+
+julia> X[:,1:3]
 
 ```
 """
 getindex
 
 """
-`fft(ex::AbstractExpression)`
+`fft(x::AbstractExpression)`
 
 Applies the Fourier transform.
 See documentation for `Base.fft` and `AbstractOperator.DFT`.  
@@ -117,7 +120,7 @@ julia> operator(ex)
 fft     
 
 """
-`rfft(ex::AbstractExpression, [, dims] )`
+`rfft(x::AbstractExpression, [, dims] )`
 
 Applies the Fourier transform exploiting the conjugate symmetry. 
 See documentation for `Base.rfft` and `AbstractOperator.RDFT`.  
@@ -138,7 +141,7 @@ julia> operator(ex)
 rfft    
 
 """
-`ifft(ex::AbstractExpression)`
+`ifft(x::AbstractExpression)`
 
 Applies the inverse Fourier transform.
 See documentation for `Base.ifft` and `AbstractOperator.IDFT`.  
@@ -161,9 +164,12 @@ ifft
 
 
 """
-`irfft(ex::AbstractExpression, d, [, dims] )`
+`irfft(x::AbstractExpression, d, [, dims] )`
 
 Applies the inverse Fourier transform exploiting the conjugate symmetry. 
+
+`d` must indicate the length of the real codomain.
+
 See documentation for `Base.irfft` and `AbstractOperator.IRDFT`.  
 
 # Example
@@ -182,7 +188,7 @@ julia> operator(ex)
 irfft   
 
 """
-`dct(ex::AbstractExpression)`
+`dct(x::AbstractExpression)`
 
 Applies the discrete cosine transform.
 See documentation for `Base.dct` and `AbstractOperator.DCT`.  
@@ -203,7 +209,7 @@ julia> operator(ex)
 dct     
 
 """
-`idct(ex::AbstractExpression)`
+`idct(x::AbstractExpression)`
 
 Applies the inverse discrete cosine transform.
 See documentation for `Base.idct` and `AbstractOperator.IDCT`.  
@@ -224,7 +230,7 @@ julia> operator(ex)
 idct    
 
 """
-`conv(ex::AbstractExpression, h::AbstractVector)`
+`conv(x::AbstractExpression, h::AbstractVector)`
 
 Perform discrete convolution with `h`.
 See documentation for `Base.conv` and `AbstractOperator.Conv`.  
@@ -245,7 +251,7 @@ julia> operator(ex)
 conv    
 
 """
-`xcorr(ex::AbstractExpression, h::AbstractVector)`
+`xcorr(x::AbstractExpression, h::AbstractVector)`
 
 Performs the cross correlation of the codomain of `ex` with `h`.
 See documentation for `Base.xcorr` and `AbstractOperator.Xcorr`.  
@@ -266,7 +272,7 @@ julia> operator(ex)
 xcorr   
 
 """
-`filt(ex::AbstractExpression, b::AbstractVector, [a::AbstractVector])`
+`filt(x::AbstractExpression, b::AbstractVector, [a::AbstractVector])`
 
 Filter with the finite impulse response (FIR) `b`.
 Alternatively infinite impulse responses filters (IIR) can be used as well by specifying the coefficients `a`.
@@ -294,7 +300,7 @@ FIR  ℝ^10 -> ℝ^10
 filt    
 
 """
-`finitediff(ex::AbstractExpression, dir = 1)`
+`finitediff(X::AbstractExpression, dir = 1)`
 
 Performs the discretized gradient over the specified direction `dir` obtained using forward finite differences. 
 
@@ -319,11 +325,11 @@ julia> operator(ex)
 finitediff 
 
 """
-`variation(ex::AbstractExpression)`
+`variation(X::AbstractExpression)`
 
-Performs the variation using forward finite differences. 
-Specifically if the codomain of `ex` is  `ℝ^(n, m)` the codomain of `variation(ex)` will 
-consist of `ℝ^(n*m,2)`, having in the `i`th column the vectorized gradient over the `i`th direction. 
+Returns the variation of `X` using forward finite differences. 
+Specifically if `X` is in `ℝ^(n, m)` the codomain of `variation(X)` will 
+consist of `ℝ^(n*m,2)`, having in the ``i``-th column the vectorized gradient over the ``i``-th direction. 
 
 See documentation of `AbstractOperator.Variation`.  
 
@@ -343,30 +349,43 @@ julia> operator(ex)
 variation  
 
 """
-`mimofilt(ex::AbstractExpression, B::Vector{AbstractVector}, [A::Vector{AbstractVector}])`
+`mimofilt(X::AbstractExpression, B::Vector{AbstractVector}, [A::Vector{AbstractVector}])`
 
 Multiple-input multiple-output filter: like `filt` but allows for multipule inputs. 
+
+```math
+\\mathbf{y}_i = \\sum_{j = 1}^{M} \\mathbf{h}_{i,j} * \\mathbf{x}_j 
+```
+where ``\\mathbf{y}_i`` and ``\\mathbf{x}_j`` are the ``i``-th and ``j``-th columns of the output `Y` and input `X` matrices respectively.
+
+The filters ``\\mathbf{h}_{i,j}`` can be represented either by providing coefficients `B` and `A` (IIR) or `B` alone (FIR). These coefficients must be given in a `Vector` of `Vector`s. 
+
+For example for a `3` by `2` MIMO system (i.e. `size(X,2) == 3` inputs and `size(Y,2) == 2` outputs) `B` must be:
+
+`B = [b11, b12, b13, b21, b22, b23]`
+
+where `bij` are vector containing the filter coeffients of `h_{i,j}`.
 
 See documentation of `AbstractOperator.MIMOFilt`.  
 """
 mimofilt   
 
 """
-`zeropad(ex::AbstractExpression, zp::Tuple)`
+`zeropad(x::AbstractExpression, zp::Tuple)`
 
 Performs zeropadding:
 ```math
 zp(\\mathbf{x}) = [\\mathbf{x}, 0, \\dots, 0  ]^T
 ```
-where `zp` is the number of nonzero elements that are added.
+where `zp` is a tuple containing the number of nonzero elements that are added in each dimension.
 
 See documentation of `AbstractOperator.ZeroPad`.  
 """
 zeropad    
 
 """
-`sigmoid(ex::AbstractExpression, γ = 1.0)`
-`σ(ex::AbstractExpression, γ = 1.0)`
+`sigmoid(x::AbstractExpression, γ = 1.0)`
+`σ(x::AbstractExpression, γ = 1.0)`
 
 Sigmoid function:
 ```math

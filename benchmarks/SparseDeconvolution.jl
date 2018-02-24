@@ -111,14 +111,14 @@ end
 #StructuredOptimization Matrix Free
 function solve_problem(slv::S, y, H::A, lambda, Nx) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractOperator}
 	x0 = StructuredOptimization.Variable(Nx) 
-	_, it = @minimize ls(H*x0-y)+lambda*norm(x0,1) with slv
+	it, = @minimize ls(H*x0-y)+lambda*norm(x0,1) with slv
 	return x0, it
 end
 
 #StructuredOptimization non-Matrix Free
 function solve_problem(slv::S, y, T::A, lambda, Nx) where {S <: StructuredOptimization.ForwardBackwardSolver, A <: AbstractMatrix }
 	x0 = StructuredOptimization.Variable(Nx) 
-	_, it = @minimize ls(T*x0-y)+lambda*norm(x0,1) with slv
+	it, = @minimize ls(T*x0-y)+lambda*norm(x0,1) with slv
 	return x0, it
 end
 

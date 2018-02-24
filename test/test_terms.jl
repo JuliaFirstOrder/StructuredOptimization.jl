@@ -5,6 +5,7 @@
 x = Variable(randn(10))
 X = Variable(randn(3,4))
 A = randn(4,10)
+b = randn(4)
 
 cf = norm(x, 0)
 @test cf.lambda == 1
@@ -96,7 +97,6 @@ cf = 7*(0.5*norm(x, 2))^2
 @test cf.lambda == 7*0.25
 @test cf.f(~x) == norm(~x)^2
 
-X = Variable(10, 10)
 cf = 2*rank(X) <= 6
 @test cf.lambda == 1
 @test cf.f(~X) == (IndBallRank(3))(~X)
@@ -104,40 +104,66 @@ cf = 2*rank(X) <= 6
 cf = rank(X)
 @test_throws MethodError cf.f(~X)
 
-X = Variable(10, 10)
 cf = norm(X,*)
+U, S, V = svd(~X)
 @test cf.lambda == 1
-@test cf.f(~X) == norm(~X)
+@test cf.f(~X) == sum(S)
 
 cf = rank(X)
 @test_throws MethodError cf.f(~X)
 
-b = randn(size(~x))
-cf = hingeloss(x,b)
+y = randn(size(~x))
+cf = hingeloss(x,y)
 @test cf.lambda == 1
-@test cf.f(~x) == (HingeLoss(b))(~x)
+@test cf.f(~x) == (HingeLoss(y))(~x)
 
-b = randn(size(~x))
-cf = sqrhingeloss(x,b)
+y = randn(size(~x))
+cf = sqrhingeloss(x,y)
 @test cf.lambda == 1
-@test cf.f(~x) == (SqrHingeLoss(b))(~x)
+@test cf.f(~x) == (SqrHingeLoss(y))(~x)
 
-x = Variable(rand(10))
-b = rand(size(~x))
-cf = crossentropy(x,b)
+y = randn(size(~x))
+cf = logisticloss(x,y)
 @test cf.lambda == 1
-@test cf.f(~x) == (CrossEntropy(b))(~x)
+@test cf.f(~x) == (LogisticLoss(y))(~x)
 
-x = Variable(randn(10))
-a = 1.
-cf = logbarrier(x,a)
+xp = Variable(rand(10)) 
+bp = rand(size(~xp))
+cf = crossentropy(xp,bp)
 @test cf.lambda == 1
-@test cf.f(~x) == (LogBarrier(a))(~x)
+@test cf.f(~xp) == (CrossEntropy(bp))(~xp)
+
+cf = logbarrier(x)
+@test cf.lambda == 1
+@test cf.f(~x) == (LogBarrier(1.0))(~x)
+
+cf = maximum(x)
+@test cf.lambda == 1
+@test cf.f(~x) == (Maximum(1.0))(~x)
+
+cf = sumpositive(x)
+@test cf.lambda == 1
+@test cf.f(~x) == (SumPositive())(~x)
 
 a = 1.
 cf = huberloss(x,a)
 @test cf.lambda == 1
 @test cf.f(~x) == (HuberLoss(a))(~x)
+
+#IndBinary
+lu = (-1,randn(length(~x)))
+cf = x == lu
+@test cf.lambda == 1
+@test cf.f(~x) == (IndBinary(lu...))(~x)
+
+#IndAffine
+cf = A*x-b == 0
+@test cf.lambda == 1
+@test cf.f(~x) == (IndAffine(A,b))(~x)
+
+cf = A*x == b
+@test cf.lambda == 1
+@test cf.f(~x) == (IndAffine(A,-b))(~x)
 
 cf = 2*norm(x,1)
 ccf = conj(cf)

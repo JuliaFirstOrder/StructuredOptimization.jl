@@ -128,7 +128,7 @@ end
 
 		
 function solve_problem!(slv, Na, n, y, yt, A, reg)
-	_, it = @minimize crossentropy(y,yt)+reg with slv 
+	it, = @minimize crossentropy(y,yt)+reg with slv 
 	return it
 end
 

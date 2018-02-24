@@ -1,5 +1,21 @@
 # Expressions
 
+## Variables
+
+### Creating Variables
+
+```@docs
+Variable
+```
+
+### Utilities
+
+```@docs
+~
+size
+eltype
+```
+
 ## Summing expressions
 
 ```@docs
@@ -12,7 +28,7 @@
 *
 ```
 
-## Mappings
+## Operators
 
 ### Basic
 ```@docs
@@ -41,6 +57,11 @@ finitediff
 variation
 ```
 
+### Nonlinear
+```@docs
+sigmoid
+```
+
 ## Utilities
 
 ```@docs
@@ -48,3 +69,4 @@ variables
 operator
 displacement
 ```
+

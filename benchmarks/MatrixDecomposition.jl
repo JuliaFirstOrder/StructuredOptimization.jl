@@ -40,7 +40,7 @@ function run_demo()
 end
 
 function solve_problem!(slv, B, F, Y, R, lambda, n, m, N)
-	_, it = @minimize ls(B+F-Y)+lambda*norm(F,1) st rank(B) <= R with slv 
+	it, = @minimize ls(B+F-Y)+lambda*norm(F,1) st rank(B) <= R with slv 
 	return it
 end
 
