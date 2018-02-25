@@ -5,6 +5,7 @@ using StructuredOptimization
 using Images, ImageView
 
 function set_up()
+    # dataset from: http://pione.dinf.usherbrooke.ca/static/dataset/clutter/IndianTraffic3.zip
 	Frames = 900
 	dir = "street"
 	img = load("$dir/in000000.jpg")
