@@ -35,7 +35,7 @@ Returns as output a tuple containing the number of iterations and the constructe
 """
 macro minimize(cf::Union{Expr, Symbol})
 	cost = esc(cf)
-    return :(solve(problem($(cost)), default_solver())[2])
+    return :(solve(problem($(cost)), default_solver()))
 end
 
 macro minimize(cf::Union{Expr, Symbol}, s::Symbol, cstr::Union{Expr, Symbol})
@@ -45,7 +45,7 @@ macro minimize(cf::Union{Expr, Symbol}, s::Symbol, cstr::Union{Expr, Symbol})
 		return :(solve(problem($(cost), $(constraints)), default_solver()))
 	elseif s == :(with)
 		solver = esc(cstr)
-        return :(solve(problem($(cost)), $(solver))[2])
+        return :(solve(problem($(cost)), $(solver)))
 	else
 		error("wrong symbol after cost function! use `st` or `with`")
 	end
@@ -57,5 +57,5 @@ macro minimize(cf::Union{Expr, Symbol}, s::Symbol, cstr::Union{Expr, Symbol}, w:
 	constraints = esc(cstr)
 	w != :(with) && error("wrong symbol after constraints! use `with`")
 	solver = esc(slv)
-    return :(solve(problem($(cost), $(constraints)), $(solver))[2])
+    return :(solve(problem($(cost), $(constraints)), $(solver)))
 end

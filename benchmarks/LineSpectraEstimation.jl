@@ -37,12 +37,12 @@ function set_up(;opt="")
 	xzp = rfft([y;zeros((s-1)*length(y))])
 	IDFTm = [exp(im*2*pi*k*n/(s*Nt))  for k =0:s*Nt-1, n=0:s*Nt-1] #Inverse Fourier Matrix
 	S = [speye(Nt) spzeros(Nt,(s-1)*Nt)] # selection matrix
-	Fm = full(S*IDFTm)
+	Fm = full(1/(s*Nt).*S*IDFTm)
     alpha = 0.001
 	lambda_max_m = norm(Fm'*y, Inf)
 	lambda_m = alpha*lambda_max_m
 
-    F = DFT(s*Nt)'[1:Nt] # Abstract Operator 
+    F = 1/(s*Nt)*DFT(s*Nt)'[1:Nt] # Abstract Operator 
 	lambda_max = norm(F'*y, Inf)
 	lambda = alpha*lambda_max
 
@@ -60,9 +60,9 @@ end
 
 function run_demo()
 
-    tol = 1e-5
+    tol = 1e-8
     verb = 1
-    solver = ZeroFPR
+    solver = PANOC
 
 	setup, t, f, fs, fk, ak, s, Nt, Fs, xzp, y = set_up(opt = "MatrixFree")
 	slv = solver(tol = tol, verbose = verb)
@@ -137,15 +137,15 @@ function solve_problem!(slv::S, x0, y, K, F, Fc, lambda, lambda_m) where {S <: M
 	return x0, 0
 end
 
-function benchmark(;verb = 0, samples = 5, seconds = 100, tol = 1e-5)
+function benchmark(;verb = 0, samples = 5, seconds = 100, tol = 1e-8, maxit = 20000)
 
 	suite = BenchmarkGroup()
 
 	solvers = ["PANOC", "ZeroFPR", "FPG", "PG",]
-	slv_opt = ["(verbose = $verb, tol = $tol)", 
-               "(verbose = $verb, tol = $tol)", 
-               "(verbose = $verb, tol = $tol)", 
-               "(verbose = $verb, tol = $tol)",]
+	slv_opt = ["(verbose = $verb, tol = $tol, maxit = $maxit)", 
+               "(verbose = $verb, tol = $tol, maxit = $maxit)", 
+               "(verbose = $verb, tol = $tol, maxit = $maxit)", 
+               "(verbose = $verb, tol = $tol, maxit = $maxit)",]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
@@ -174,15 +174,15 @@ function benchmark(;verb = 0, samples = 5, seconds = 100, tol = 1e-5)
 	return results
 end
 
-function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100, tol = 1e-5)
+function benchmarkMatrixFree(;verb = 0, samples = 5, seconds = 100, tol = 1e-8, maxit = 20000)
 
 	suite = BenchmarkGroup()
 
 	solvers = ["PANOC", "ZeroFPR", "FPG", "PG"]
-	slv_opt = ["(verbose = $verb, tol = $tol)", 
-               "(verbose = $verb, tol = $tol)", 
-               "(verbose = $verb, tol = $tol)", 
-               "(verbose = $verb, tol = $tol)"]
+	slv_opt = ["(verbose = $verb, tol = $tol, maxit = $maxit)", 
+               "(verbose = $verb, tol = $tol, maxit = $maxit)", 
+               "(verbose = $verb, tol = $tol, maxit = $maxit)", 
+               "(verbose = $verb, tol = $tol, maxit = $maxit)"]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
@@ -217,8 +217,8 @@ function show_results(t, f, fs, fk, ak, s, Nt, Fs, xzp, y, x1, x0)
 	plot(fs,abs.(xzp./Nt ), label = "dft zero pad.")
 	plot(f,        abs.(fft(y)./Nt)       , label = "dft")
 	plot(fk,       abs.(ak)/2     , "r*", label = "true amp.")
-	plot(fs,abs.(x1), "k*", label = "LASSO")
-	plot(fs,abs.(x0), "go", label = "IndBallL0")
+    plot(fs,abs.(x1./(s*Nt)), "k*", label = "LASSO")
+    plot(fs,abs.(x0./(s*Nt)), "go", label = "IndBallL0")
 	xlim([0;Fs/4])
 	legend()
 

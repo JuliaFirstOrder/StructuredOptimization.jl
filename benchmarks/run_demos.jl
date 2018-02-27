@@ -6,10 +6,10 @@
 #results = SparseDeconvolution.run_demo_JuMP()
 #SparseDeconvolution.show_results(results...)
 
-#include("LineSpectraEstimation.jl")
-#results = LineSpectraEstimation.run_demo()
+include("LineSpectraEstimation.jl")
+results = LineSpectraEstimation.run_demo()
 ##results = LineSpectraEstimation.run_demo_Convex()
-#LineSpectraEstimation.show_results(results...)
+LineSpectraEstimation.show_results(results...)
 
 #include("MatrixDecomposition.jl")
 #results = MatrixDecomposition.run_demo()
