@@ -34,7 +34,7 @@ function set_up()
 end
 
 function run_demo()
-	slv = ZeroFPR(tol = 1e-5, verbose = 0)
+	slv = PANOC(tol = 1e-5, verbose = 0)
 	setup = set_up()
 	@time solve_problem!(slv, setup..., true)
 
@@ -62,8 +62,8 @@ function solve_problem!(slv, Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, 
 		fill!(x.x,0.) # initialize variables
 		fill!(y.x,0.)
 
-		Irp = sort(find(    xc[z+1:z+Nl]  .>=  C) ) #positive clipping indices
-		Irn = sort(find(    xc[z+1:z+Nl]  .<= -C) ) #negative clipping indices 
+		Irp = sort(find(     xc[z+1:z+Nl]  .>=  C) ) #positive clipping indices
+		Irn = sort(find(     xc[z+1:z+Nl]  .<= -C) ) #negative clipping indices 
 		Im  = sort(find(abs.(xc[z+1:z+Nl]) .<   C)) #non clipped indices
 		yw .= xc[z+1:z+Nl].*win
 
@@ -79,8 +79,8 @@ function solve_problem!(slv, Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, 
 			for N = 30:30:30*div(Nl,30)
 				cstr = (norm(x,0) <= N, 
 					norm(M*y-M*yw) <= sqrt(fit_tol), 
-					Mp*y in [   C, 0.8], 
-					Mn*y in [-0.8,  -C])
+					Mp*y >= C, 
+                    Mn*y <= -C)
                 it, = @minimize cf st cstr with slv
 				its[counter] += it
                 if norm(idct(~x)- ~y) <= sqrt(fit_tol) break end
@@ -142,9 +142,9 @@ function show_results(Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, cf)
 end
 
 function save_wav(Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, cf)
-	wavwrite(x0,"unclipped.wav"; Fs = Fs)
-	wavwrite(xc,"clipped.wav";   Fs = Fs)
-	wavwrite(xd,"declipped.wav"; Fs = Fs)
+    wavwrite(x0 ,"unclipped.wav"; Fs = Fs, nbits = 16, compression=WAVE_FORMAT_PCM)
+    wavwrite(xc ,"clipped.wav";   Fs = Fs, nbits = 16, compression=WAVE_FORMAT_PCM)
+    wavwrite(0.8*normalize(xd,Inf) ,"declipped.wav"; Fs = Fs, nbits = 16, compression=WAVE_FORMAT_PCM)
 end
 
 end

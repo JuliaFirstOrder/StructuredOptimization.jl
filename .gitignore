@@ -9,5 +9,6 @@
 *.wav
 *.tex
 
+demos/.ipynb_checkpoints/
 docs/build/
 docs/site/

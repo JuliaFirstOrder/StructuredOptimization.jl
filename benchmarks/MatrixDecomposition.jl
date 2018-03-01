@@ -10,8 +10,7 @@ function set_up()
 	dir = "street"
 	img = load("$dir/in000000.jpg")
 	n,m = size(img,1),size(img,2)
-	#frames = sort(randperm(Frames)[1:N])
-	frames = collect(1:45:Frames)
+    frames = collect(1:135:Frames)
 	N = length(frames)
 
 	Y = zeros(Float64,n,m,N)
@@ -26,10 +25,10 @@ function set_up()
 
 	F = Variable(n*m,N)
 	B = Variable(n*m,N)
-	slv = ZeroFPR
-	slv = slv(verbose = 1, tol = 2e-1, adaptive = false, gamma = 0.5)
 
-	R, lambda = 1, 4e-2
+    println("frames: $N, number of variables: $(2*N*m*n)")
+
+	R, lambda = 1, 3e-2
 	return B, F, Y, R, lambda, n, m, N 
 end
 
@@ -50,12 +49,15 @@ function benchmark(;verb = 0, samples = 5, seconds = 100, tol = 1e-4)
 	suite = BenchmarkGroup()
 	
 	solvers = [
-               "ZeroFPR",
+             #  "ZeroFPR",
                "PANOC",
-               "PG"]
-	slv_opt = ["(verbose = $verb, tol = $tol, gamma = 0.5)", 
-               "(verbose = $verb, tol = $tol, gamma = 0.5)",
-               "(verbose = $verb, tol = $tol, gamma = 0.5)"]
+               "PG"
+              ]
+	slv_opt = [
+              # "(verbose = $verb, tol = $tol)", 
+               "(verbose = $verb, tol = $tol)",
+               "(verbose = $verb, tol = $tol)"
+              ]
 
 	its = Dict([(sol,0.) for sol in solvers])
 	for i in eachindex(solvers)
@@ -86,7 +88,7 @@ function show_results(B, F, Y, R, lambda, n, m, N)
 	B = B.x
 
 	F[F .!=0] = F[F.!=0]+reshape(B,size(F))[F.!=0]
-	F[ F.== 0] = 1. #put white in null pixels
+	F[F.== 0] = 1. #put white in null pixels
 	F[F.>1] .= 1; F[F.<0.] .= 0.
 	B[B.>1] .= 1; B[B.<0.] .= 0.
 
@@ -105,6 +107,16 @@ function show_results(B, F, Y, R, lambda, n, m, N)
 	imshow(hcat([Y[:,:,i] for i in idx]...))
 	imshow(hcat([F[:,:,i] for i in idx]...))
 	imshow(hcat([B[:,:,i] for i in idx]...))
+
+    save_stuff = false
+    if save_stuff == true
+        for (i,idxi) in enumerate(idx)
+            save("Y$i.jpg", Y[:,:,idxi])
+            save("F$i.jpg", F[:,:,idxi])
+            save("B$i.jpg", B[:,:,idxi])
+        end
+    end
+    
 end
 
 
