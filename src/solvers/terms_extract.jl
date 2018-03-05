@@ -16,7 +16,7 @@ end
 
 # extract functions from terms
 function extract_functions(t::Term)
-	f = displacement(t.A) == 0 ? t.f : PrecomposeDiagonal(t.f, 1.0, displacement(t.A)) #for now I keep this
+	f = displacement(t) == 0 ? t.f : PrecomposeDiagonal(t.f, 1.0, displacement(t)) #for now I keep this
 	f = t.lambda == 1. ? f : Postcompose(f, t.lambda)                                  #for now I keep this
 	#TODO change this
 	return f
@@ -38,7 +38,7 @@ function extract_operators{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
 	ops = ()
 	for ti in t
 		tex = expand(xAll,ti)
-		ops = (ops...,sort_and_extract(xAll,tex))
+		ops = (ops...,sort_and_extract_operators(xAll,tex))
 	end
 	return vcat(ops...)
 end
@@ -57,15 +57,29 @@ function expand{N,T1,T2,T3}(xAll::NTuple{N,Variable}, t::Term{T1,T2,T3})
 	return Term(t.lambda, t.f, ex)
 end
 
-sort_and_extract(xAll::Tuple{Variable}, t::Term) = operator(t)
+sort_and_extract_operators(xAll::Tuple{Variable}, t::Term) = operator(t)
 
-function sort_and_extract{N}(xAll::NTuple{N,Variable}, t::Term)
+function sort_and_extract_operators{N}(xAll::NTuple{N,Variable}, t::Term)
 	p = zeros(Int,N)
 	xL = variables(t)
 	for i in eachindex(xAll)
 		p[i] = findfirst( xi -> xi == xAll[i], xL)
 	end
 	return operator(t)[p]
+end
+
+# extract function and merge operator
+function extract_merge_functions(t::Term)
+    if is_eye(operator(t)) 
+        f = displacement(t) == 0 ? t.f : PrecomposeDiagonal(t.f, 1.0, displacement(t))
+    elseif is_diagonal(operator(t))
+        f = PrecomposeDiagonal(t.f, diag(operator(t)), displacement(t))
+    elseif is_AAc_diagonal(operator(t))
+        f = Precompose(t.f, operator(t), diag_AAc(operator(t)), displacement(t))
+    end
+	f = t.lambda == 1. ? f : Postcompose(f, t.lambda)                                  #for now I keep this
+	#TODO change this
+	return f
 end
 
 function extract_proximable(xAll::NTuple{N,Variable}, t::NTuple{M,Term}) where {N,M}
@@ -100,6 +114,6 @@ function extract_proximable(xAll::NTuple{N,Variable}, t::NTuple{M,Term}) where {
 	end
 end
 
-extract_proximable(xAll::Variable, t::Term) =  extract_functions(t)
+extract_proximable(xAll::Variable, t::Term) =  extract_merge_functions(t)
 extract_proximable(xAll::NTuple{N,Variable}, t::Term) where {N} = extract_proximable(xAll,(t,))
 

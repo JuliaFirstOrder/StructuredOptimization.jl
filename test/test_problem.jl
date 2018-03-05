@@ -134,7 +134,7 @@ cf = norm(x[1:2],1)+norm(x[3:5])
 xAll = StructuredOptimization.extract_variables(cf)
 
 @test all(StructuredOptimization.is_AAc_diagonal.(cf)) == true
-# @test StructuredOptimization.is_proximable(cf) == true
+@test StructuredOptimization.is_proximable(cf) == true
 
 cf = norm(x[1:2],1)+norm(x[3:5])+norm(x,Inf)
 xAll = StructuredOptimization.extract_variables(cf)
@@ -152,6 +152,40 @@ xAll = StructuredOptimization.extract_variables(cf)
 
 f = StructuredOptimization.extract_proximable(xAll,cf)
 @test norm(f(~x) - 10*norm(~x-b,1)) < 1e-12
+
+# single variable, single term, diagonal term
+x = Variable(randn(5))
+b = randn(5)
+d = randn(5)
+cf = 10*norm(d.*x-b,1)
+xAll = StructuredOptimization.extract_variables(cf)
+@test StructuredOptimization.is_proximable(cf) == true
+
+f = StructuredOptimization.extract_proximable(xAll,cf)
+@test norm(f(~x) - 10*norm(d.*~x-b,1)) < 1e-12
+
+# single variable, single term, tight frame term
+x = Variable(randn(5))
+b = randn(5)
+d = randn(5)
+cf = 10*norm(dct(x)-b,1)
+xAll = StructuredOptimization.extract_variables(cf)
+@test StructuredOptimization.is_proximable(cf) == true
+
+f = StructuredOptimization.extract_proximable(xAll,cf)
+@test norm(f(~x) - 10*norm(dct(~x)-b,1)) < 1e-12
+
+# single variable, single term, tight frame term, fft
+# TODO this not working (probably fix needed in ProxOp)
+#x = Variable(randn(5))
+#b = randn(5)
+#d = randn(5)
+#cf = 10*norm(fft(x)-b,1)
+#xAll = StructuredOptimization.extract_variables(cf)
+#@test StructuredOptimization.is_proximable(cf) == true
+#
+#f = StructuredOptimization.extract_proximable(xAll,cf) 
+#@test norm(f(~x) - 10*norm(fft(~x)-b,1)) < 1e-12
 
 # single variable, multiple terms with GetIndex
  x = Variable(randn(5))
@@ -183,7 +217,9 @@ b2 = randn(5)
 cf = 10*norm(x2+x1+b2,1)
 xAll = (x1,x2)
 @test StructuredOptimization.is_proximable(cf) == true
-f = StructuredOptimization.extract_proximable(xAll,cf) #TODO
+f = StructuredOptimization.extract_proximable(xAll,cf) 
+# TODO fix this! in ProxOp?
+# @test norm(f((~x1,~x2))-10*norm(~x2+~x1+b2,1) ) < 1e-12 
 
 # multiple variables, missing terms
 x1 = Variable(randn(5))
