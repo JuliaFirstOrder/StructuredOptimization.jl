@@ -66,7 +66,9 @@ is_f = [:is_linear,
         :is_orthogonal,
         :is_invertible,
         :is_full_row_rank,
-        :is_full_column_rank]
+        :is_full_column_rank,
+        :is_sliced
+       ]
 
 for f in is_f
 	@eval begin

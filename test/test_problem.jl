@@ -188,13 +188,22 @@ f = StructuredOptimization.extract_proximable(xAll,cf)
 #@test norm(f(~x) - 10*norm(fft(~x)-b,1)) < 1e-12
 
 # single variable, multiple terms with GetIndex
- x = Variable(randn(5))
- b = randn(2)
- cf = 10*norm(x[1:2]-b,1)+norm(x[3:5],2)
- xAll = StructuredOptimization.extract_variables(cf)
- @test StructuredOptimization.is_proximable(cf) == true
- f = StructuredOptimization.extract_proximable(xAll,cf)
- @test norm(f(~x) - sum([10*norm((~x)[1:2]-b,1);norm((~x)[3:5],2)])) < 1e-12
+x = Variable(randn(5))
+b = randn(2)
+cf = 10*norm(x[1:2]-b,1)+norm(x[3:5],2)
+xAll = StructuredOptimization.extract_variables(cf)
+@test StructuredOptimization.is_proximable(cf) == true
+f = StructuredOptimization.extract_proximable(xAll,cf)
+@test norm(f(~x) - sum([10*norm((~x)[1:2]-b,1);norm((~x)[3:5],2)])) < 1e-12
+
+# single variable, multiple terms with GetIndex composed with dct
+x = Variable(randn(5))
+b = randn(2)
+cf = 10*norm(x[1:2]-b,1)+norm(dct(x[3:5]),2)
+xAll = StructuredOptimization.extract_variables(cf)
+@test StructuredOptimization.is_proximable(cf) == true
+f = StructuredOptimization.extract_proximable(xAll,cf)
+@test norm(f(~x) - sum([10*norm((~x)[1:2]-b,1);norm(dct((~x)[3:5]),2)])) < 1e-12
 
 # multiple variables, multiple terms
 x1 = Variable(randn(5))
@@ -246,54 +255,3 @@ xAll = (x1,x2)
 f = StructuredOptimization.extract_proximable(xAll,cf)
 @test norm(f.fs[1](~x1)-norm((~x1)[1:2]+b1[1:2],2)-norm((~x1)[3:5]+b1[3:5],1) ) < 1e-12
 @test norm(f.fs[2](~x2)-10*norm(~x2-b2,1) ) < 1e-12
-
-@printf("\n Testing solver build \n")
-
-x = Variable(10)
-A = randn(5, 10)
-y = Variable(7)
-B = randn(5, 7)
-b = randn(5)
-
-prob = problem(ls(A*x + b), norm(x, 2) <= 1.0)
-built_slv = build(prob, StructuredOptimization.PG())
-solve!(built_slv)
-
-~x .= 0.
-prob = problem(ls(A*x - B*y + b) + norm(y, 1), norm(x, 2) <= 1.0)
-built_slv = build(prob, FPG())
-solve!(built_slv)
-
-@printf("\n Testing @minimize \n")
-~x .= 0.
-~y .= 0.
-slv, = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with PG()
-~x .= 0.
-slv, = @minimize ls(A*x - b) st norm(x, 1) <= 1.0 with PG()
-~x .= 0.
-slv, = @minimize ls(A*x - b) st norm(x, 1) <= 1.0
-~x .= 0.
-slv, = @minimize ls(A*x - b) + norm(x, 1) with PG()
-~x .= 0.
-slv, = @minimize ls(A*x - b) + norm(x, 1)
-~x .= 0.
-slv, = @minimize ls(A*x - b)
-
-#TODO many many more tests
-x = Variable(5)
-A = randn(10, 5)
-b = randn(10)
-
-@printf("\n Testing @minimize nonlinear \n")
-slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PG()
-xpg = copy(~x)
-~x .= 0.
-slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ZeroFPR()
-xz = copy(~x)
-~x .= 0.
-slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PANOC()
-xp = copy(~x)
-~x .= 0.
-
-@test norm(xz-xpg) <1e-4
-@test norm(xp-xpg) <1e-4

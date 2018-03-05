@@ -14,18 +14,12 @@ function is_proximable(terms::Tuple)
 	for v in vars
 		tv = [t for t in terms if v in variables(t)]
 		if length(tv) != 1
-			#TODO make this more general
-			if all( (<:).(typeof.(operator.(tv)), GetIndex) )
+            if all( is_sliced.(tv) ) && all( is_proximable.(tv) )
 				return true
 			else
 				return false
 			end
 		end
 	end
-	# NOTE: I see why GetIndex requires a special case. However, it is a more
-	# general case than just GetIndex, and I would postpone its implementation,
-	# unless we have a very concrete and important example where this is
-	# strictly required...
-	# I agree... but we have this in the Audio Declipping demo!
 	return true
 end

@@ -22,6 +22,7 @@ end
 
 @testset "Problem construction" begin
   include("test_problem.jl")
+  include("test_build_minimize.jl")
 end
 
 @testset "Integration tests" begin

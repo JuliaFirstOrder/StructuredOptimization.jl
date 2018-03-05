@@ -70,14 +70,23 @@ end
 
 # extract function and merge operator
 function extract_merge_functions(t::Term)
-    if is_eye(operator(t)) 
-        f = displacement(t) == 0 ? t.f : PrecomposeDiagonal(t.f, 1.0, displacement(t))
-    elseif is_diagonal(operator(t))
-        f = PrecomposeDiagonal(t.f, diag(operator(t)), displacement(t))
-    elseif is_AAc_diagonal(operator(t))
-        f = Precompose(t.f, operator(t), diag_AAc(operator(t)), displacement(t))
+    if is_sliced(t)
+        if typeof(operator(t)) <: Compose
+            op = operator(t).A[2]
+        else
+            op = Eye(size(operator(t),1)...)
+        end
+    else
+        op = operator(t)
     end
-	f = t.lambda == 1. ? f : Postcompose(f, t.lambda)                                  #for now I keep this
+    if is_eye(op) 
+        f = displacement(t) == 0 ? t.f : PrecomposeDiagonal(t.f, 1.0, displacement(t))
+    elseif is_diagonal(op)
+        f = PrecomposeDiagonal(t.f, diag(op), displacement(t))
+    elseif is_AAc_diagonal(op)
+        f = Precompose(t.f, op, diag_AAc(op), displacement(t))
+    end
+	f = t.lambda == 1. ? f : Postcompose(f, t.lambda) #for now I keep this
 	#TODO change this
 	return f
 end
@@ -95,13 +104,14 @@ function extract_proximable(xAll::NTuple{N,Variable}, t::NTuple{M,Term}) where {
 			fx = IndFree()
 		elseif length(tx) == 1          #only one term per variable
 			fx = extract_proximable(x,tx[1])
-		else                            #multiple terms per variable
-			                        #currently this happens only with GetIndex
-		
+		else                            
+            #multiple terms per variable
+            #currently this happens only with GetIndex
 			fxi,idxs = (),()
 			for ti in tx
-				fxi  = (fxi..., extract_functions(ti))
-				idxs = (idxs...,operator(ti).idx     )
+				fxi  = (fxi..., extract_merge_functions(ti))
+                idx = typeof(operator(ti)) <: Compose ? operator(ti).A[1].idx : operator(ti).idx
+				idxs = (idxs...,  idx   )
 			end
 			fx = SlicedSeparableSum(fxi,idxs)
 		end

@@ -12,13 +12,13 @@ where $f$ is a smooth function while $g$ is possibly nonsmooth.
 
 ## Unconstraint optimization
 
-The LASSO problem is popular example of this class of problems: 
+The *least absolute shrinkage and selection operator* (LASSO) belongs to this class of problems: 
 
 ```math
-\underset{ \mathbf{x} }{\text{minimize}} \ \tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2+  \| \mathbf{x} \|_1.
+\underset{ \mathbf{x} }{\text{minimize}} \ \tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2+ \lambda \| \mathbf{x} \|_1.
 ```
 
-Here the squared norm $\tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2$ is a _smooth_ function while the $l_1$-norm is a _nonsmooth_ function.
+Here the squared norm $\tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2$ is a *smooth* function while the $l_1$-norm is a *nonsmooth* function.
 
 This can be solved using `StructuredOptimization.jl` using only few lines of code:
 
@@ -64,13 +64,13 @@ for a nonempty set $\mathcal{S}$ the constraint of
 can be converted into an indicator function
 
 ```math
-g(\mathbf{x}) =  \begin{cases}
+g(\mathbf{x}) = \delta_{\mathcal{S}} (\mathbf{x}) =  \begin{cases}
     0       & \text{if} \ \mathbf{x} \in \mathcal{S},\\
     +\infty & \text{otherwise},
     \end{cases}
 ```
 
-to obtain the standard form. Constraints are treated as _nonsmooth functions_.
+to obtain the standard form. Constraints are treated as *nonsmooth functions*.
 
 This conversion is automatically performed by `StructuredOptimization.jl`.
 
@@ -133,35 +133,54 @@ julia> @minimize ls(X1*X2-Y) st X1 >= 0., X2 >= 0.
 
 ## Limitations
 
-**TODO simplify this**
+Currently `StructuredOptimization.jl` supports only *Proximal Gradient (aka Forward Backward) algorithms*, which require specific properties of the nonsmooth functions and costraint to be applicable.
 
-Currently `StructuredOptimization.jl` supports only Proximal Gradient (aka Forward Backward) algorithms, which require certain properties of the nonsmooth functions and costraint.
-
-In the general case a nonsmooth function of $M$ variables composed by $G$ terms can be written as: 
+If we express the nonsmooth function $g$ as the composition of 
+a function $\tilde{g}$ with a linear operator $A$: 
 ```math
-g(\mathbf{x}_1,\dots,\mathbf{x}_M) =
-\sum_{i = 0}^G g_i \left(\sum_{j = 1}^{M}
-A_{i,j} \mathbf{x}_j \right).
+g(\mathbf{x}) =
+\tilde{g}(A \mathbf{x}) 
 ```
-where the functions $g_i$ are nonsmooth functions (or indicator functions resulting from constraints) and $A_{i,j}$ linear operators.
+than the problem can be solved when $g$ satisifies the following properties:
 
-The problem can be solved when $g$ satisfies the following conditions:
+1. the mapping $A$ must be a *tight frame*  namely it must satisfy $A A^* = \mu Id$, where $\mu \geq 0$ and $A^*$ is the adjoint of $A$ and $Id$ is the identity operator.
 
-1. for all $i\in \{1,\ldots,G \}$ and $j\in\{1,\ldots,M \}$, mapping $A_{i,j}$ satisfies $A_{i,j}^* A_{i,j} = \mu_{i,j} I$, where $\mu_{i,j} \geq 0$, $A^*$ is the adjoint of $A$ and $\mathcal{I}$ is the identity operator.
-
-2. for all $j \in \{1,\dots,M \}$, the cardinality of $\{i | A_{i,j} \neq 0 \} = 1$. 
+2. if $A$ is not a tight frame, than it must be possible write $g$ as a *separable* sum $g(\mathbf{x}) =  \sum_j h_j (B_j \mathbf{x}_j)$ with $\mathbf{x}_j$ being a non-overlapping slices of $\mathbf{x}$ and $B_j$ being tight frames.
 
 Let us analyze these rules with a series of examples. 
 
-The previous example was satisfing the rules:
+The LASSO example above satisfy the first rule:
 ```julia
-@minimize ls(X1*X2-Y) st X1 >= 0., X2 >= 0.
+julia> @minimize ls( A*x - y ) + λ*norm(x, 1)
+
 ```
-Here there are two constraints each one containing only one variable and 
+since the non-smooth function $\lambda \| \cdot \|_1$ is not composed with any operator (or equivalently is composed with $Id$ which is a tight frame). 
 
+Also the following problem would be accepted:
+```julia
+julia> @minimize ls( A*x - y ) + λ*norm(dct(x), 1)
 
+```
+since the discrete cosine transform (DCT) is orthogonal and is therefore a tight frame.
 
+On the other hand, the following problem 
+```julia
+julia> @minimize ls( A*x - y ) + λ*norm(x, 1) st x >= 1.0
 
+```
+cannot be solved through proximal gradient algorithms, since the second rule would be violated. 
+Here the constraint would be converted into an indicator function and the nonsmooth function $g$ can be written as the sum: 
 
+```math
+g(\mathbf{x}) =\lambda \| \mathbf{x} \|_1 + \delta_{\mathcal{S}} (\mathbf{x})
+```
 
+which is not separable.
+
+On the other hand this problem would be accepted:
+```julia
+julia> @minimize ls( A*x - y ) + λ*norm(x[1:div(n,2)], 1) st x[div(n,2)+1:n] >= 1.0
+
+```
+as not the optimization variables $\mathbf{x}$ are partitioned into non-overlapping groups.
 
