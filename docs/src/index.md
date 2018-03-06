@@ -14,7 +14,13 @@ three different packages:
 
 * [`ProximalAlgorithms.jl`](https://github.com/kul-forbes/ProximalAlgorithms.jl) is a library of proximal algorithms (aka splitting algorithms) solvers.
 
-`StructuredOptimization.jl` can handle large-scale convex and nonconvex problems with nonsmooth cost functions: see ? for a set of demos.
+`StructuredOptimization.jl` can handle large-scale convex and nonconvex problems with nonsmooth cost functions. It supports complex variables as well. See the demos and the [Quick tutorial guide](@ref).
+
+## Citing
+
+If you use `StructuredOptimization.jl` for published work, we encourage you to cite:
+
+* N. Antonello, L. Stella, P. Patrinos, T. van Waterschoot, “Proximal Gradient Algorithms: Applications in Signal Processing,” [arXiv:1803.01621](https://arxiv.org/abs/1803.01621) (2018).
 
 # Credits
 
@@ -22,6 +28,3 @@ three different packages:
 [Lorenzo Stella](https://lostella.github.io) and
 [Niccolò Antonello](https://nantonel.github.io)
 at [KU Leuven, ESAT/Stadius](https://www.esat.kuleuven.be/stadius/).
-
-## Citing
-

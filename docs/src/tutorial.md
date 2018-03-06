@@ -1,4 +1,4 @@
-# Quick Tutorial
+# Quick tutorial guide
 
 ## Standard problem formulation
 
@@ -18,9 +18,9 @@ The *least absolute shrinkage and selection operator* (LASSO) belongs to this cl
 \underset{ \mathbf{x} }{\text{minimize}} \ \tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2+ \lambda \| \mathbf{x} \|_1.
 ```
 
-Here the squared norm $\tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2$ is a *smooth* function while the $l_1$-norm is a *nonsmooth* function.
+Here the squared norm $\tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2$ is a *smooth* function $f$ wherelse the $l_1$-norm is a *nonsmooth* function $g$.
 
-This can be solved using `StructuredOptimization.jl` using only few lines of code:
+This problem can be solved using `StructuredOptimization.jl` using only few lines of code:
 
 ```julia
 julia> using StructuredOptimization
@@ -46,11 +46,11 @@ It is possible to access to the solution by typing `~x`.
 
 By default variables are initialized by `Array`s of zeros. 
 
-It is possible to set different initializations during construction `x = Variable( [1.; 0.; ...] )` or by assignement `~x .= [1.; 0.; ...]`.
+Different initializations can be set during construction `x = Variable( [1.; 0.; ...] )` or by assignement `~x .= [1.; 0.; ...]`.
 
 ## Constraint optimization
 
-Constraint optimization is also ecompassed by [Standard problem formulation](@ref): 
+Constraint optimization is also ecompassed by the [Standard problem formulation](@ref): 
 
 for a nonempty set $\mathcal{S}$ the constraint of 
 
@@ -61,7 +61,7 @@ for a nonempty set $\mathcal{S}$ the constraint of
 \end{align*}
 ```
 
-can be converted into an indicator function
+can be converted into an *indicator function*
 
 ```math
 g(\mathbf{x}) = \delta_{\mathcal{S}} (\mathbf{x}) =  \begin{cases}
@@ -78,17 +78,16 @@ For example, the non-negative deconvolution problem:
 
 ```math
 \begin{align*}
-\underset{ \mathbf{x} }{\text{minimize}} \ &  \tfrac{1}{2} \| \mathbf{x} * \mathbf{h} - \mathbf{y} \| \\
+\underset{ \mathbf{x} }{\text{minimize}} \ &  \tfrac{1}{2} \| \mathbf{x} * \mathbf{h} - \mathbf{y} \|^2 \\
 \text{subject to} \ & \mathbf{x} \geq 0
 \end{align*}
 ```
 
-where $*$ stands fof convoluton and $\mathbf{h}$ contains the taps of a finite impluse response.
-
-This problem be solved using the following line of code:
+where $*$ stands fof convoluton and $\mathbf{h}$ contains the taps of a finite impluse response, 
+can be solved using the following lines of code:
 
 ```julia
-julia> n = 10;
+julia> n = 10;                        # define problem size 
 
 julia> x = Variable(n);               # define variable
 
@@ -105,7 +104,11 @@ julia> @minimize ls(conv(x,h)-y) st x >= 0.
     `StructuredOptimization.jl` provides a set of functions that can be used to apply 
     specific operators to variables and create mathematical expression. 
     
-    The available functions can be found in [Operators](@ref).
+    The available functions can be found in [Mappings](@ref).
+
+    In general it is more convenient to use these functions instead of matrices, 
+    as these functions apply efficient algorithms for the forward and adjoint mappings leading to 
+    *matrix free optimization*.
 
 ## Using multiple variables
 
@@ -135,13 +138,15 @@ julia> @minimize ls(X1*X2-Y) st X1 >= 0., X2 >= 0.
 
 Currently `StructuredOptimization.jl` supports only *Proximal Gradient (aka Forward Backward) algorithms*, which require specific properties of the nonsmooth functions and costraint to be applicable.
 
+In particular, the nonsmooth functions must lead to an *efficiently computable proximal mapping*.
+
 If we express the nonsmooth function $g$ as the composition of 
 a function $\tilde{g}$ with a linear operator $A$: 
 ```math
 g(\mathbf{x}) =
 \tilde{g}(A \mathbf{x}) 
 ```
-than the problem can be solved when $g$ satisifies the following properties:
+then a proximal mapping of $g$ is efficiently computable if it satisifies the following properties:
 
 1. the mapping $A$ must be a *tight frame*  namely it must satisfy $A A^* = \mu Id$, where $\mu \geq 0$ and $A^*$ is the adjoint of $A$ and $Id$ is the identity operator.
 
@@ -184,3 +189,6 @@ julia> @minimize ls( A*x - y ) + λ*norm(x[1:div(n,2)], 1) st x[div(n,2)+1:n] >=
 ```
 as not the optimization variables $\mathbf{x}$ are partitioned into non-overlapping groups.
 
+!!! note 
+
+    When the problem is not accepted it might be still possible to solve it: see [Smoothing](@ref) and [Duality](@ref).

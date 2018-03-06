@@ -6,11 +6,11 @@ makedocs(
   sitename = "StructuredOptimization",
   authors = "Niccolò Antonello and Lorenzo Stella",
   pages = Any[
-  "Home"            => "index.md",
-  "Guide"           => "tutorial.md",
-  "Expressions"     => "expressions.md",
-  "Functions"       => "functions.md",
-  "Solvers"         => "solvers.md",
+  "Home"                  => "index.md",
+  "Quick Tutorial Guide"  => "tutorial.md",
+  "Expressions"           => "expressions.md",
+  "Functions"             => "functions.md",
+  "Solvers"               => "solvers.md",
   ],
 )
 

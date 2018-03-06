@@ -9,17 +9,17 @@ Returns the norm of `x`.
 
 Supported norms:
 
-* `p = 0` ``L_0`` pseudo-norm
+* `p = 0` ``l_0``-pseudo-norm
 
-* `p = 1` ``L_1`` norm
+* `p = 1` ``l_1``-norm
 
-* `p = 2` ``L_2`` norm
+* `p = 2` ``l_2``-norm
 
-* `p = Inf` ``L_{\\infty}`` norm
+* `p = Inf` ``l_{\\infty}``-norm
 
 * `p = *` nuclear norm
 
-* `p = 2`, `q = 1` ``L_{2,1}`` mixed norm (aka Sum-of-``L_2``norms) 
+* `p = 2`, `q = 1` ``l_{2,1}`` mixed norm (aka Sum-of-``l_2``-norms) 
 ```math
 f(\\mathbf{X}) = \\sum_i \\| \\mathbf{x}_i \\|
 ```
@@ -174,7 +174,7 @@ Applies the Huber loss function:
 ```math
 f(\\mathbf{x}) = \\begin\{cases\}
   \\tfrac{1}{2}\\| \\mathbf{x} \\|^2 & \\text{if}\\ \\| \\mathbf{x} \\| \\leq \\rho \\\\
-  \\rho (\\| \\mathbf{x} \\| - \\tfrac{\\rho}{2}) & \\text{otherwise},
+  \\rho (\\| \\mathbf{x} \\| - \\tfrac{\\rho}{2}) & \\text{otherwise}.
 \\end\{cases\}
 ```
 """

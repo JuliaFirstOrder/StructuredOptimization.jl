@@ -12,7 +12,7 @@ export PG, FPG
 
 Creates an object `PG` containing the options of the Proximal Gradient solvers:
 
-  * `gamma`, stepsize (default: unspecified, determine automatically)
+  * `gamma`, stepsize (default: unspecified, determined automatically)
   * `maxit`, maximum number of iteration (default: `10000`)
   * `tol`, halting tolerance on the fixed-point residual (default: `1e-4`)
   * `adaptive`, adaptively adjust `gamma` (default: `false` if `gamma` is provided)
@@ -50,7 +50,7 @@ export ZeroFPR
 
 Creates an object `ZeroFPR` containing the options of the ZeroFPR solver:
 
-  * `gamma`, stepsize (default: unspecified, determine automatically)
+  * `gamma`, stepsize (default: unspecified, determined automatically)
   * `maxit`, maximum number of iteration (default: `10000`)
   * `tol`, halting tolerance on the fixed-point residual (default: `1e-4`)
   * `adaptive`, adaptively adjust `gamma` (default: `false` if `gamma` is provided)
@@ -79,7 +79,7 @@ export PANOC
 
 Creates an object `PANOC` containing the options of the PANOC solver:
 
-  * `gamma`, stepsize (default: unspecified, determine automatically)
+  * `gamma`, stepsize (default: unspecified, determined automatically)
   * `maxit`, maximum number of iteration (default: `10000`)
   * `tol`, halting tolerance on the fixed-point residual (default: `1e-4`)
   * `adaptive`, adaptively adjust `gamma` (default: `false` if `gamma` is provided)

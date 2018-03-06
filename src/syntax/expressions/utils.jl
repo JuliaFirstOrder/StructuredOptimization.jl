@@ -6,9 +6,9 @@ convert{T,N,A}(::Type{Expression},x::Variable{T,N,A}) =
 Expression{1}((x,),Eye(T,size(x)),zero(T))
 
 """
-`variables(E::Expression)`
+`variables(ex::Expression)`
 
-Returns a tuple containing the `Variable`s of expression `E`.
+Returns a tuple containing the `Variable`s of expression `ex`.
 
 # Example
 
@@ -27,9 +27,9 @@ variables(A::Expression)    = A.x
 variables(x::Variable)    = x
 
 """
-`operator(E::Expression)`
+`operator(ex::Expression)`
 
-Returns the `AbstractOperator` of expression `E`.
+Returns the `AbstractOperator` of expression `ex`.
 
 # Example
 
@@ -48,9 +48,9 @@ operator(A::Expression)     = A.L
 operator(x::Variable)     = Eye(~x)
 
 """
-`displacement(E::Expression)`
+`displacement(ex::Expression)`
 
-Returns the displacement of expression `E`.
+Returns the displacement of expression `ex`.
 
 # Example
 
@@ -58,10 +58,13 @@ Returns the displacement of expression `E`.
 julia> x = Variable(3)
 Variable(Float64, (3,))
 
-julia> ex = fft(x);
+julia> ex = fft(x)+[1.+im*2.;0.;3.+im*4];
 
-julia> operator(ex)
-ℱ  ℝ^3 -> ℂ^3
+julia> displacement(ex)
+3-element Array{Complex{Float64},1}:
+ 1.0+2.0im
+ 0.0+0.0im
+ 3.0+4.0im
 
 ```
 """

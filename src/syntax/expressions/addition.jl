@@ -1,7 +1,7 @@
 import Base: +, -
 
 """
-`+(A::AbstractOperator, ex::AbstractExpression)`
+`+(ex1::AbstractExpression, ex2::AbstractExpression)`
 
 Add two expressions. 
 
@@ -20,7 +20,7 @@ julia> ex2 = randn(5,2)*z
 
 ```
 
-Notice that in order for two expressions to be added toghether their associate `AbstractOperator` 
+Notice that in order for two expressions to be added toghether their associated `AbstractOperator` 
 must have the same codomain:
 
 ```julia
@@ -173,8 +173,8 @@ julia> ex = x+4
 
 ```
 
-Notice that in order to add an array to `ex`, `b` must belong to  
-of the associate `AbstractOperator` of `ex`. 
+Notice that in order to add an array to `ex`, `b` must belong to the codomain 
+of the associated `AbstractOperator` of `ex`. 
 
 ```julia
 julia> b = randn(10);

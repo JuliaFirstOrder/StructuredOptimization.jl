@@ -3,7 +3,7 @@ import Base: *
 """
 `*(A::AbstractOperator, ex::AbstractExpression)`
 
-Multiply an `AbstractOperator` with an `AbstractExpression`. 
+Multiply an 'AbstractExpression` by an `AbstractOperator`. 
 
 # Example
 
@@ -52,25 +52,27 @@ julia> A*x
 ```
 
 Other types of multiplications are also possible:
-```julia
-julia> X = Variable(10,5)
-Variable(Float64, (10, 5))
 
-julia> X*randn(5,6)
+* left array multiplication
+  ```julia
+  julia> X = Variable(10,5)
+  Variable(Float64, (10, 5))
+  
+  julia> X*randn(5,6)
+  
+  ```
 
-```
+* scalar multiplication:
+  ```julia
+  julia> π*X
+  
+  ```
 
-Scalar multiplication:
-```julia
-julia> π*X
-
-```
-
-Elementwise multiplication:
-```julia
-julia> randn(10,5).*X
-
-```
+* elementwise multiplication:
+  ```julia
+  julia> randn(10,5).*X
+  
+  ```
 
 """
 function (*)(m::T, a::Union{AbstractVector,AbstractMatrix}) where {T<:AbstractExpression}
@@ -103,7 +105,7 @@ end
 """
 `*(A::AbstractExpression, ex::AbstractExpression)`
 
-Multiply an `AbstractExpression` with an `AbstractExpression`. 
+Multiply an `AbstractExpression` by another `AbstractExpression`. 
 
 # Examples
 
