@@ -20,7 +20,7 @@ The *least absolute shrinkage and selection operator* (LASSO) belongs to this cl
 
 Here the squared norm $\tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2$ is a *smooth* function $f$ wherelse the $l_1$-norm is a *nonsmooth* function $g$.
 
-This problem can be solved using `StructuredOptimization.jl` using only few lines of code:
+This problem can be solved with only few lines of code:
 
 ```julia
 julia> using StructuredOptimization

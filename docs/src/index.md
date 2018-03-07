@@ -16,6 +16,12 @@ three different packages:
 
 `StructuredOptimization.jl` can handle large-scale convex and nonconvex problems with nonsmooth cost functions. It supports complex variables as well. See the demos and the [Quick tutorial guide](@ref).
 
+## Installation
+
+From the Julia command line hit `Pkg.clone("https://github.com/nantonel/StructuredOptimization.jl.git")`.
+Once the package is installed you can update it along with the others issuing
+`Pkg.update()` in the command line.
+
 ## Citing
 
 If you use `StructuredOptimization.jl` for published work, we encourage you to cite:
