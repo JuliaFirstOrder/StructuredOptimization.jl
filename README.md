@@ -4,7 +4,6 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/06wd5jckd8fhdi1v/branch/master?svg=true)](https://ci.appveyor.com/project/nantonel/structuredoptimization-jl/branch/master)
 [![codecov](https://codecov.io/gh/kul-forbes/StructuredOptimization.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/kul-forbes/StructuredOptimization.jl)
 
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://kul-forbes.github.io/StructuredOptimization.jl/stable)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://kul-forbes.github.io/StructuredOptimization.jl/latest)
 
 `StructuredOptimization.jl` is a high-level modeling language
@@ -49,4 +48,4 @@ julia> @minimize ls( A*x - y ) + λ*norm(x, 1); # minimize problem
 
 ```
 
-See the [documentation]() for more details about the type of problems `StructuredOptimization.jl` can handle and the [demos](https://github.com/kul-forbes/StructuredOptimization.jl/tree/master/demos) to check out some examples.
+See the [documentation](https://kul-forbes.github.io/StructuredOptimization.jl/latest) for more details about the type of problems `StructuredOptimization.jl` can handle and the [demos](https://github.com/kul-forbes/StructuredOptimization.jl/tree/master/demos) to check out some examples.

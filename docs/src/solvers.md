@@ -63,7 +63,7 @@ build
 solve!
 ```
 
-## Citations
+## References
 
 [[1]](http://www.mit.edu/~dimitrib/PTseng/papers/apgm.pdf) Tseng, *On Accelerated Proximal Gradient Methods for Convex-Concave Optimization* (2008).
 
