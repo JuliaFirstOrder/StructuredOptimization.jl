@@ -11,6 +11,7 @@ makedocs(
   "Expressions"           => "expressions.md",
   "Functions"             => "functions.md",
   "Solvers"               => "solvers.md",
+  "Demos"                 => "demos.md",
   ],
 )
 

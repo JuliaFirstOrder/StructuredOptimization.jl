@@ -1,5 +1,12 @@
 # StructuredOptimization.jl
 
+[![Build Status](https://travis-ci.org/kul-forbes/StructuredOptimization.jl.svg?branch=master)](https://travis-ci.org/kul-forbes/StructuredOptimization.jl)
+[![Build status](https://ci.appveyor.com/api/projects/status/lfrmkg2s1awyxtk8/branch/master?svg=true)](https://ci.appveyor.com/project/nantonel/abstractoperators-jl/branch/master)
+[![codecov](https://codecov.io/gh/kul-forbes/StructuredOptimization.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/kul-forbes/StructuredOptimization.jl)
+
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://kul-forbes.github.io/StructuredOptimization.jl/stable)
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://kul-forbes.github.io/StructuredOptimization.jl/latest)
+
 `StructuredOptimization.jl` is a high-level modeling language
 that utilizes a syntax that is very close to
 the mathematical formulation of an optimization problem.
@@ -10,7 +17,7 @@ three different packages:
 
 * [`ProximalOperators.jl`](https://github.com/kul-forbes/ProximalOperators.jl)
 
-* [`AbstractOperators.jl`](https://github.com/kul-forbes/ProximalOperators.jl)
+* [`AbstractOperators.jl`](https://github.com/kul-forbes/AbstractOperators.jl)
 
 * [`ProximalAlgorithms.jl`](https://github.com/kul-forbes/ProximalAlgorithms.jl)
 
@@ -42,4 +49,4 @@ julia> @minimize ls( A*x - y ) + λ*norm(x, 1); # minimize problem
 
 ```
 
-See the [documentation]() for more details about the type of problems `StructuredOptimization.jl` can handle and the [demos]() to check out some examples.
+See the [documentation]() for more details about the type of problems `StructuredOptimization.jl` can handle and the [demos](https://github.com/kul-forbes/StructuredOptimization.jl/tree/master/demos) to check out some examples.

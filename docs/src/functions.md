@@ -51,7 +51,7 @@ In some cases it is more convenient to solve the *dual problem* instead of the p
 
 It is possible to convert the primal problem into its dual form by means of the *convex conjugate*. 
 
-See the Total Variation demo for an example of such procedure.
+See the [Total Variation demo](https://github.com/kul-forbes/StructuredOptimization.jl/blob/master/demos/TotalVariationDenoising.ipynb) for an example of such procedure.
 
 ```@docs
 conj
