@@ -6,7 +6,7 @@
 
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://kul-forbes.github.io/StructuredOptimization.jl/latest)
 
-`StructuredOptimization.jl` is a high-level modeling language
+StructuredOptimization.jl is a high-level modeling language
 that utilizes a syntax that is very close to
 the mathematical formulation of an optimization problem.
 
@@ -14,13 +14,13 @@ This user-friendly interface
 acts as a parser to utilize
 three different packages:
 
-* [`ProximalOperators.jl`](https://github.com/kul-forbes/ProximalOperators.jl)
+* [ProximalOperators.jl](https://github.com/kul-forbes/ProximalOperators.jl)
 
-* [`AbstractOperators.jl`](https://github.com/kul-forbes/AbstractOperators.jl)
+* [AbstractOperators.jl](https://github.com/kul-forbes/AbstractOperators.jl)
 
-* [`ProximalAlgorithms.jl`](https://github.com/kul-forbes/ProximalAlgorithms.jl)
+* [ProximalAlgorithms.jl](https://github.com/kul-forbes/ProximalAlgorithms.jl)
 
-`StructuredOptimization.jl` can handle large-scale convex and nonconvex problems with nonsmooth cost functions. 
+StructuredOptimization.jl can handle large-scale convex and nonconvex problems with nonsmooth cost functions. 
 
 It supports complex variables as well.
 
@@ -48,4 +48,4 @@ julia> @minimize ls( A*x - y ) + λ*norm(x, 1); # minimize problem
 
 ```
 
-See the [documentation](https://kul-forbes.github.io/StructuredOptimization.jl/latest) for more details about the type of problems `StructuredOptimization.jl` can handle and the [demos](https://kul-forbes.github.io/StructuredOptimization.jl/latest/demos.html) to check out some examples.
+See the [documentation](https://kul-forbes.github.io/StructuredOptimization.jl/latest) for more details about the type of problems StructuredOptimization.jl can handle and the [demos](https://kul-forbes.github.io/StructuredOptimization.jl/latest/demos.html) to check out some examples.
