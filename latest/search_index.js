@@ -689,9 +689,9 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "solvers.html#Citations-1",
+    "location": "solvers.html#References-1",
     "page": "Solvers",
-    "title": "Citations",
+    "title": "References",
     "category": "section",
     "text": "[1] Tseng, On Accelerated Proximal Gradient Methods for Convex-Concave Optimization (2008).[2] Beck, Teboulle, A Fast Iterative Shrinkage-Thresholding Algorithm for Linear Inverse Problems, SIAM Journal on Imaging Sciences, vol. 2, no. 1, pp. 183-202 (2009).[3] Themelis, Stella, Patrinos, Forward-backward envelope for the sum of two nonconvex functions: Further properties and nonmonotone line-search algorithms, arXiv:1606.06256 (2016).[4] Stella, Themelis, Sopasakis, Patrinos, A simple and efficient algorithm for nonlinear model predictive control, 56th IEEE Conference on Decision and Control (2017)."
 },
