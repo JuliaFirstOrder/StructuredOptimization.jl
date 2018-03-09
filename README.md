@@ -1,7 +1,7 @@
 # StructuredOptimization.jl
 
 [![Build Status](https://travis-ci.org/kul-forbes/StructuredOptimization.jl.svg?branch=master)](https://travis-ci.org/kul-forbes/StructuredOptimization.jl)
-[![Build status](https://ci.appveyor.com/api/projects/status/lfrmkg2s1awyxtk8/branch/master?svg=true)](https://ci.appveyor.com/project/nantonel/abstractoperators-jl/branch/master)
+[![Build status](https://ci.appveyor.com/api/projects/status/06wd5jckd8fhdi1v/branch/master?svg=true)](https://ci.appveyor.com/project/nantonel/structuredoptimization-jl/branch/master)
 [![codecov](https://codecov.io/gh/kul-forbes/StructuredOptimization.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/kul-forbes/StructuredOptimization.jl)
 
 [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://kul-forbes.github.io/StructuredOptimization.jl/stable)
