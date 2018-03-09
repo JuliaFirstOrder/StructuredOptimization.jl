@@ -12,7 +12,7 @@ where $f$ is a smooth function while $g$ is possibly nonsmooth.
 
 ## Unconstraint optimization
 
-The *least absolute shrinkage and selection operator* (LASSO) belongs to this class of problems: 
+The *least absolute shrinkage and selection operator* (LASSO) belongs to this class of problems:
 
 ```math
 \underset{ \mathbf{x} }{\text{minimize}} \ \tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2+ \lambda \| \mathbf{x} \|_1.
@@ -25,7 +25,7 @@ This problem can be solved with only few lines of code:
 ```julia
 julia> using StructuredOptimization
 
-julia> n, m = 100, 10;                # define problem size 
+julia> n, m = 100, 10;                # define problem size
 
 julia> A, y = randn(m,n), randn(m);   # random problem data
 
@@ -33,26 +33,36 @@ julia> x = Variable(n);               # initialize optimization variable
 
 julia> λ = 1e-2*norm(A'*y,Inf);       # define λ    
 
-julia> @minimize ls( A*x - y ) + λ*norm(x, 1); # minimize problem
+julia> @minimize ls( A*x - y ) + λ*norm(x, 1); # solve problem
 
+julia> ~x                             # inspect solution
+100-element Array{Float64,1}:
+  0.0
+  0.0
+  0.0
+  0.440254
+  0.0
+  0.0
+  0.0
+[...]
 ```
 
-!!! note 
+!!! note
 
     The function `ls` is a short hand notation for `0.5*norm(...)^2`, namely a least squares term.
 
 
-It is possible to access to the solution by typing `~x`. 
+It is possible to access to the solution by typing `~x`.
 
-By default variables are initialized by `Array`s of zeros. 
+By default variables are initialized by `Array`s of zeros.
 
 Different initializations can be set during construction `x = Variable( [1.; 0.; ...] )` or by assignement `~x .= [1.; 0.; ...]`.
 
 ## Constraint optimization
 
-Constraint optimization is also ecompassed by the [Standard problem formulation](@ref): 
+Constraint optimization is also ecompassed by the [Standard problem formulation](@ref):
 
-for a nonempty set $\mathcal{S}$ the constraint of 
+for a nonempty set $\mathcal{S}$ the constraint of
 
 ```math
 \begin{align*}
@@ -83,11 +93,11 @@ For example, the non-negative deconvolution problem:
 \end{align*}
 ```
 
-where $*$ stands fof convoluton and $\mathbf{h}$ contains the taps of a finite impluse response, 
+where $*$ stands fof convoluton and $\mathbf{h}$ contains the taps of a finite impluse response,
 can be solved using the following lines of code:
 
 ```julia
-julia> n = 10;                        # define problem size 
+julia> n = 10;                        # define problem size
 
 julia> x = Variable(n);               # define variable
 
@@ -97,22 +107,22 @@ julia> @minimize ls(conv(x,h)-y) st x >= 0.
 
 ```
 
-!!! note 
+!!! note
 
-    The convolution mapping was applied to the variable `x` using `conv`. 
+    The convolution mapping was applied to the variable `x` using `conv`.
 
-    `StructuredOptimization.jl` provides a set of functions that can be used to apply 
-    specific operators to variables and create mathematical expression. 
-    
+    `StructuredOptimization.jl` provides a set of functions that can be used to apply
+    specific operators to variables and create mathematical expression.
+
     The available functions can be found in [Mappings](@ref).
 
-    In general it is more convenient to use these functions instead of matrices, 
-    as these functions apply efficient algorithms for the forward and adjoint mappings leading to 
+    In general it is more convenient to use these functions instead of matrices,
+    as these functions apply efficient algorithms for the forward and adjoint mappings leading to
     *matrix free optimization*.
 
 ## Using multiple variables
 
-It is possible to use multiple variables which are allowed to be matrices or even tensors. 
+It is possible to use multiple variables which are allowed to be matrices or even tensors.
 
 For example a non-negative matrix factorization problem:
 
@@ -126,9 +136,9 @@ can be solved using the following code:
 
 ```julia
 # matrix variables initialized with random coefficients
-julia> X1, X2 = Variable(rand(n,l)), Variable(rand(l,m)); 
+julia> X1, X2 = Variable(rand(n,l)), Variable(rand(l,m));
 
-julia> Y = rand(n,m); 
+julia> Y = rand(n,m);
 
 julia> @minimize ls(X1*X2-Y) st X1 >= 0., X2 >= 0.
 
@@ -140,11 +150,11 @@ Currently `StructuredOptimization.jl` supports only *Proximal Gradient (aka Forw
 
 In particular, the nonsmooth functions must lead to an *efficiently computable proximal mapping*.
 
-If we express the nonsmooth function $g$ as the composition of 
-a function $\tilde{g}$ with a linear operator $A$: 
+If we express the nonsmooth function $g$ as the composition of
+a function $\tilde{g}$ with a linear operator $A$:
 ```math
 g(\mathbf{x}) =
-\tilde{g}(A \mathbf{x}) 
+\tilde{g}(A \mathbf{x})
 ```
 then a proximal mapping of $g$ is efficiently computable if it satisifies the following properties:
 
@@ -152,14 +162,14 @@ then a proximal mapping of $g$ is efficiently computable if it satisifies the fo
 
 2. if $A$ is not a tight frame, than it must be possible write $g$ as a *separable* sum $g(\mathbf{x}) =  \sum_j h_j (B_j \mathbf{x}_j)$ with $\mathbf{x}_j$ being a non-overlapping slices of $\mathbf{x}$ and $B_j$ being tight frames.
 
-Let us analyze these rules with a series of examples. 
+Let us analyze these rules with a series of examples.
 
 The LASSO example above satisfy the first rule:
 ```julia
 julia> @minimize ls( A*x - y ) + λ*norm(x, 1)
 
 ```
-since the non-smooth function $\lambda \| \cdot \|_1$ is not composed with any operator (or equivalently is composed with $Id$ which is a tight frame). 
+since the non-smooth function $\lambda \| \cdot \|_1$ is not composed with any operator (or equivalently is composed with $Id$ which is a tight frame).
 
 Also the following problem would be accepted:
 ```julia
@@ -168,13 +178,13 @@ julia> @minimize ls( A*x - y ) + λ*norm(dct(x), 1)
 ```
 since the discrete cosine transform (DCT) is orthogonal and is therefore a tight frame.
 
-On the other hand, the following problem 
+On the other hand, the following problem
 ```julia
 julia> @minimize ls( A*x - y ) + λ*norm(x, 1) st x >= 1.0
 
 ```
-cannot be solved through proximal gradient algorithms, since the second rule would be violated. 
-Here the constraint would be converted into an indicator function and the nonsmooth function $g$ can be written as the sum: 
+cannot be solved through proximal gradient algorithms, since the second rule would be violated.
+Here the constraint would be converted into an indicator function and the nonsmooth function $g$ can be written as the sum:
 
 ```math
 g(\mathbf{x}) =\lambda \| \mathbf{x} \|_1 + \delta_{\mathcal{S}} (\mathbf{x})
@@ -189,6 +199,6 @@ julia> @minimize ls( A*x - y ) + λ*norm(x[1:div(n,2)], 1) st x[div(n,2)+1:n] >=
 ```
 as not the optimization variables $\mathbf{x}$ are partitioned into non-overlapping groups.
 
-!!! note 
+!!! note
 
     When the problem is not accepted it might be still possible to solve it: see [Smoothing](@ref) and [Duality](@ref).
