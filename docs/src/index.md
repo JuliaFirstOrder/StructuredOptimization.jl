@@ -8,7 +8,7 @@ This user-friendly interface
 acts as a parser to utilize
 three different packages:
 
-* [ProximalOperators.jl](https://github.com/kul-forbes/ProximalOperators.jl) provides proximal mappings of functions that are frequently used in signal processing and optimization. 
+* [ProximalOperators.jl](https://github.com/kul-forbes/ProximalOperators.jl) provides proximal mappings of functions that are frequently used in signal processing and optimization.
 
 * [AbstractOperators.jl](https://github.com/kul-forbes/AbstractOperators.jl) provides algorithms for the evaluation and combination of forward and (Jacobian) adjoint of linear and nonlinear mappings.
 
@@ -28,7 +28,7 @@ If you use StructuredOptimization.jl for published work, we encourage you to cit
 
 * N. Antonello, L. Stella, P. Patrinos, T. van Waterschoot, “Proximal Gradient Algorithms: Applications in Signal Processing,” [arXiv:1803.01621](https://arxiv.org/abs/1803.01621) (2018).
 
-# Credits
+## Credits
 
 StructuredOptimization.jl is developed by
 [Lorenzo Stella](https://lostella.github.io) and

@@ -10,7 +10,7 @@ Currently with `StructuredOptimization.jl` you can solve problems of the form
 
 where $f$ is a smooth function while $g$ is possibly nonsmooth.
 
-## Unconstraint optimization
+## Unconstrained optimization
 
 The *least absolute shrinkage and selection operator* (LASSO) belongs to this class of problems:
 
@@ -58,9 +58,9 @@ By default variables are initialized by `Array`s of zeros.
 
 Different initializations can be set during construction `x = Variable( [1.; 0.; ...] )` or by assignement `~x .= [1.; 0.; ...]`.
 
-## Constraint optimization
+## Constrained optimization
 
-Constraint optimization is also ecompassed by the [Standard problem formulation](@ref):
+Constrained optimization is also encompassed by the [Standard problem formulation](@ref):
 
 for a nonempty set $\mathcal{S}$ the constraint of
 
