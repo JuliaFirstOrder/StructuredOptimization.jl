@@ -69,7 +69,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Quick Tutorial Guide",
     "title": "Unconstrained optimization",
     "category": "section",
-    "text": "The least absolute shrinkage and selection operator (LASSO) belongs to this class of problems:underset mathbfx textminimize  tfrac12  mathbfA mathbfx - mathbfy ^2+ lambda  mathbfx _1Here the squared norm tfrac12  mathbfA mathbfx - mathbfy ^2 is a smooth function f wherelse the l_1-norm is a nonsmooth function g.This problem can be solved with only few lines of code:julia> using StructuredOptimization\n\njulia> n, m = 100, 10;                # define problem size\n\njulia> A, y = randn(m,n), randn(m);   # random problem data\n\njulia> x = Variable(n);               # initialize optimization variable\n\njulia> λ = 1e-2*norm(A\'*y,Inf);       # define λ    \n\njulia> @minimize ls( A*x - y ) + λ*norm(x, 1); # solve problem\n\njulia> ~x                             # inspect solution\n100-element Array{Float64,1}:\n  0.0\n  0.0\n  0.0\n  0.440254\n  0.0\n  0.0\n  0.0\n[...]note: Note\nThe function ls is a short hand notation for 0.5*norm(...)^2, namely a least squares term.It is possible to access to the solution by typing ~x.By default variables are initialized by Arrays of zeros.Different initializations can be set during construction x = Variable( [1.; 0.; ...] ) or by assignement ~x .= [1.; 0.; ...]."
+    "text": "The least absolute shrinkage and selection operator (LASSO) belongs to this class of problems:underset mathbfx textminimize  tfrac12  mathbfA mathbfx - mathbfy ^2+ lambda  mathbfx _1Here the squared norm tfrac12  mathbfA mathbfx - mathbfy ^2 is a smooth function f wherelse the l_1-norm is a nonsmooth function g. This problem can be solved with only few lines of code:julia> using StructuredOptimization\n\njulia> n, m = 100, 10;                # define problem size\n\njulia> A, y = randn(m,n), randn(m);   # random problem data\n\njulia> x = Variable(n);               # initialize optimization variable\n\njulia> λ = 1e-2*norm(A\'*y,Inf);       # define λ    \n\njulia> @minimize ls( A*x - y ) + λ*norm(x, 1); # solve problem\n\njulia> ~x                             # inspect solution\n100-element Array{Float64,1}:\n  0.0\n  0.0\n  0.0\n  0.440254\n  0.0\n  0.0\n  0.0\n[...]note: Note\nThe function ls is a short hand notation for 0.5*norm(...)^2, namely a least squares term.It is possible to access to the solution by typing ~x. By default variables are initialized by Arrays of zeros. Different initializations can be set during construction x = Variable( [1.; 0.; ...] ) or by assignement ~x .= [1.; 0.; ...]."
 },
 
 {
@@ -77,7 +77,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Quick Tutorial Guide",
     "title": "Constrained optimization",
     "category": "section",
-    "text": "Constrained optimization is also encompassed by the Standard problem formulation:for a nonempty set mathcalS the constraint ofbeginalign*\nunderset mathbfx textminimize    f(mathbfx) \ntextsubject to   mathbfx in mathcalS\nendalign*can be converted into an indicator functiong(mathbfx) = delta_mathcalS (mathbfx) =  begincases\n    0        textif  mathbfx in mathcalS\n    +infty  textotherwise\n    endcasesto obtain the standard form. Constraints are treated as nonsmooth functions.This conversion is automatically performed by StructuredOptimization.jl.For example, the non-negative deconvolution problem:beginalign*\nunderset mathbfx textminimize    tfrac12  mathbfx * mathbfh - mathbfy ^2 \ntextsubject to   mathbfx geq 0\nendalign*where * stands fof convoluton and mathbfh contains the taps of a finite impluse response, can be solved using the following lines of code:julia> n = 10;                        # define problem size\n\njulia> x = Variable(n);               # define variable\n\njulia> h, y = randn(n), randn(2*n-1); # random filter taps and output\n\njulia> @minimize ls(conv(x,h)-y) st x >= 0.\nnote: Note\nThe convolution mapping was applied to the variable x using conv.StructuredOptimization.jl provides a set of functions that can be used to apply specific operators to variables and create mathematical expression.The available functions can be found in Mappings.In general it is more convenient to use these functions instead of matrices, as these functions apply efficient algorithms for the forward and adjoint mappings leading to matrix free optimization."
+    "text": "Constrained optimization is also encompassed by the Standard problem formulation: for a nonempty set mathcalS the constraint ofbeginalign*\nunderset mathbfx textminimize    f(mathbfx) \ntextsubject to   mathbfx in mathcalS\nendalign*can be converted into an indicator functiong(mathbfx) = delta_mathcalS (mathbfx) =  begincases\n    0        textif  mathbfx in mathcalS\n    +infty  textotherwise\n    endcasesto obtain the standard form. Constraints are treated as nonsmooth functions. This conversion is automatically performed by StructuredOptimization.jl. For example, the non-negative deconvolution problem:beginalign*\nunderset mathbfx textminimize    tfrac12  mathbfx * mathbfh - mathbfy ^2 \ntextsubject to   mathbfx geq 0\nendalign*where * stands fof convoluton and mathbfh contains the taps of a finite impluse response, can be solved using the following lines of code:julia> n = 10;                        # define problem size\n\njulia> x = Variable(n);               # define variable\n\njulia> h, y = randn(n), randn(2*n-1); # random filter taps and output\n\njulia> @minimize ls(conv(x,h)-y) st x >= 0.\nnote: Note\nThe convolution mapping was applied to the variable x using conv. StructuredOptimization.jl provides a set of functions that can be used to apply specific operators to variables and create mathematical expression. The available functions can be found in Mappings. In general it is more convenient to use these functions instead of matrices, as these functions apply efficient algorithms for the forward and adjoint mappings leading to matrix free optimization."
 },
 
 {
@@ -85,7 +85,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Quick Tutorial Guide",
     "title": "Using multiple variables",
     "category": "section",
-    "text": "It is possible to use multiple variables which are allowed to be matrices or even tensors.For example a non-negative matrix factorization problem:beginalign*\nunderset mathbfX_1 mathbfX_2  textminimize    tfrac12  mathbfX_1 mathbfX_2 - mathbfY  \ntextsubject to   mathbfX_1 geq 0   mathbfX_2 geq 0\nendalign*can be solved using the following code:# matrix variables initialized with random coefficients\njulia> X1, X2 = Variable(rand(n,l)), Variable(rand(l,m));\n\njulia> Y = rand(n,m);\n\njulia> @minimize ls(X1*X2-Y) st X1 >= 0., X2 >= 0.\n"
+    "text": "It is possible to use multiple variables which are allowed to be matrices or even tensors. For example a non-negative matrix factorization problem:beginalign*\nunderset mathbfX_1 mathbfX_2  textminimize    tfrac12  mathbfX_1 mathbfX_2 - mathbfY  \ntextsubject to   mathbfX_1 geq 0   mathbfX_2 geq 0\nendalign*can be solved using the following code:# matrix variables initialized with random coefficients\njulia> X1, X2 = Variable(rand(n,l)), Variable(rand(l,m));\n\njulia> Y = rand(n,m);\n\njulia> @minimize ls(X1*X2-Y) st X1 >= 0., X2 >= 0.\n"
 },
 
 {
@@ -93,7 +93,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Quick Tutorial Guide",
     "title": "Limitations",
     "category": "section",
-    "text": "Currently StructuredOptimization.jl supports only Proximal Gradient (aka Forward Backward) algorithms, which require specific properties of the nonsmooth functions and costraint to be applicable.In particular, the nonsmooth functions must lead to an efficiently computable proximal mapping.If we express the nonsmooth function g as the composition of a function tildeg with a linear operator A:g(mathbfx) =\ntildeg(A mathbfx)then a proximal mapping of g is efficiently computable if it satisifies the following properties:the mapping A must be a tight frame  namely it must satisfy A A^* = mu Id, where mu geq 0 and A^* is the adjoint of A and Id is the identity operator.\nif A is not a tight frame, than it must be possible write g as a separable sum g(mathbfx) =  sum_j h_j (B_j mathbfx_j) with mathbfx_j being a non-overlapping slices of mathbfx and B_j being tight frames.Let us analyze these rules with a series of examples.The LASSO example above satisfy the first rule:julia> @minimize ls( A*x - y ) + λ*norm(x, 1)\nsince the non-smooth function lambda  cdot _1 is not composed with any operator (or equivalently is composed with Id which is a tight frame).Also the following problem would be accepted:julia> @minimize ls( A*x - y ) + λ*norm(dct(x), 1)\nsince the discrete cosine transform (DCT) is orthogonal and is therefore a tight frame.On the other hand, the following problemjulia> @minimize ls( A*x - y ) + λ*norm(x, 1) st x >= 1.0\ncannot be solved through proximal gradient algorithms, since the second rule would be violated. Here the constraint would be converted into an indicator function and the nonsmooth function g can be written as the sum:g(mathbfx) =lambda  mathbfx _1 + delta_mathcalS (mathbfx)which is not separable.On the other hand this problem would be accepted:julia> @minimize ls( A*x - y ) + λ*norm(x[1:div(n,2)], 1) st x[div(n,2)+1:n] >= 1.0\nas not the optimization variables mathbfx are partitioned into non-overlapping groups.note: Note\nWhen the problem is not accepted it might be still possible to solve it: see Smoothing and Duality."
+    "text": "Currently StructuredOptimization.jl supports only proximal gradient algorithms (i.e., forward-backward splitting base), which require specific properties of the nonsmooth functions and costraint to be applicable. In particular, the nonsmooth functions must have an efficiently computable proximal mapping.If we express the nonsmooth function g as the composition of a function tildeg with a linear operator A:g(mathbfx) =\ntildeg(A mathbfx)then the proximal mapping of g is efficiently computable if either of the following hold:Operator A is a tight frame, namely it satisfies A A^* = mu Id, where mu geq 0, A^* is the adjoint of A, and Id is the identity operator.\nFunction g is the separable sum g(mathbfx) = sum_j h_j (B_j mathbfx_j), where mathbfx_j are non-overlapping slices of mathbfx, and B_j are tight frames.Let us analyze these rules with a series of examples. The LASSO example above satisfy the first rule:julia> @minimize ls( A*x - y ) + λ*norm(x, 1)since the non-smooth function lambda  cdot _1 is not composed with any operator (or equivalently is composed with Id which is a tight frame). Also the following problem would be accepted:julia> @minimize ls( A*x - y ) + λ*norm(dct(x), 1)since the discrete cosine transform (DCT) is orthogonal and is therefore a tight frame. On the other hand, the following problemjulia> @minimize ls( A*x - y ) + λ*norm(x, 1) st x >= 1.0cannot be solved through proximal gradient algorithms, since the second rule would be violated. Here the constraint would be converted into an indicator function and the nonsmooth function g can be written as the sum:g(mathbfx) =lambda  mathbfx _1 + delta_mathcalS (mathbfx)which is not separable. On the other hand this problem would be accepted:julia> @minimize ls( A*x - y ) + λ*norm(x[1:div(n,2)], 1) st x[div(n,2)+1:n] >= 1.0as not the optimization variables mathbfx are partitioned into non-overlapping groups.note: Note\nWhen the problem is not accepted it might be still possible to solve it: see Smoothing and Duality."
 },
 
 {
@@ -109,7 +109,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Expressions",
     "title": "Expressions",
     "category": "section",
-    "text": "With StructuredOptimization.jl you can easily create mathematical expressions. Firstly, Variables must be defined: various Mappings can then be applied  following the application of Functions and constraints to create the Terms  that define the optimization problem. "
+    "text": "With StructuredOptimization.jl you can easily create mathematical expressions. Firstly, Variables must be defined: various Mappings can then be applied following the application of Functions and constraints to create the Terms  that define the optimization problem."
 },
 
 {
@@ -133,7 +133,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Expressions",
     "title": "Creating Variables",
     "category": "section",
-    "text": "Variablenote: Note\nStructuredOptimization.jl supports complex variables. It is possible to create them by specifying the type  Variable(Complex{Float64}, 10) or by initializing them with a complex array Variable(randn(10)+im*randn(10))."
+    "text": "Variablenote: Note\nStructuredOptimization.jl supports complex variables. It is possible to create them by specifying the type Variable(Complex{Float64}, 10) or by initializing them with a complex array Variable(randn(10)+im*randn(10))."
 },
 
 {
@@ -205,7 +205,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Expressions",
     "title": "Mappings",
     "category": "section",
-    "text": "As shown in the Quick tutorial guide it is possible to apply different mappings to the variables  using a simple syntax. Alternatively, as shown in Multiplying expressions, it is possible to define the mappings using  AbstractOperators.jl and to apply them  to the variable (or expression) through multiplication."
+    "text": "As shown in the Quick tutorial guide it is possible to apply different mappings to the variables using a simple syntax.Alternatively, as shown in Multiplying expressions, it is possible to define the mappings using AbstractOperators.jl and to apply them to the variable (or expression) through multiplication."
 },
 
 {
@@ -397,7 +397,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Expressions",
     "title": "Utilities",
     "category": "section",
-    "text": "It is possible to access the variables, mappings and displacement of an expression.  Notice that these commands work also for the Terms described in Functions and constraints.variables\noperator\ndisplacement"
+    "text": "It is possible to access the variables, mappings and displacement of an expression. Notice that these commands work also for the Terms described in Functions and constraints.variables\noperator\ndisplacement"
 },
 
 {
@@ -413,7 +413,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Functions and constraints",
     "category": "section",
-    "text": "Once an expression is created it is possible to create the Terms defining the optimization problem. These can consists of either Smooth functions,  Nonsmooth functions, Inequality constraints  or Equality constraints."
+    "text": "Once an expression is created it is possible to create the Terms defining the optimization problem. These can consists of either Smooth functions,  Nonsmooth functions, Inequality constraints or Equality constraints."
 },
 
 {
@@ -557,7 +557,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Smoothing",
     "category": "section",
-    "text": "Sometimes the optimization problem might involve only non-smooth terms which do not lead to efficient proximal mappings. It is possible to smooth this terms by means of the Moreau envelope.smooth"
+    "text": "Sometimes the optimization problem might involve non-smooth terms which do not have efficiently computable proximal mappings. It is possible to smoothen these terms by means of the Moreau envelope.smooth"
 },
 
 {
@@ -573,7 +573,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Duality",
     "category": "section",
-    "text": "In some cases it is more convenient to solve the dual problem instead of the primal problem. It is possible to convert the primal problem into its dual form by means of the convex conjugate. See the Total Variation demo for an example of such procedure.conj"
+    "text": "In some cases it is more convenient to solve the dual problem instead of the primal problem. It is possible to convert a problem into its dual by means of the convex conjugate.See the Total Variation demo for an example of such procedure.conj"
 },
 
 {
@@ -605,7 +605,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Solvers",
     "title": "Minimizing a problem",
     "category": "section",
-    "text": "@minimizenote: Problem warm-starting\nBy default warm-starting is always enabled. For example, if two problems that utilize the same variables are solved consecutively,  the second one will be automatically warm-started by the solution of the first one.That is because the variables are always linked to their respective data vectors. If one wants to avoid this, the optimization variables needs to be manually re-initialized  before solving the second problem e.g. to a vector of zeros: ~x .= 0.0."
+    "text": "@minimizenote: Problem warm-starting\nBy default warm-starting is always enabled. For example, if two problems that utilize the same variables are solved consecutively, the second one will be automatically warm-started by the solution of the first one. That is because the variables are always linked to their respective data vectors. If one wants to avoid this, the optimization variables needs to be manually re-initialized before solving the second problem e.g. to a vector of zeros: ~x .= 0.0."
 },
 
 {
@@ -645,7 +645,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Solvers",
     "title": "Specifying solver and options",
     "category": "section",
-    "text": "As shown above it is possible to choose the type of algorithm and specify its options by creating a Solver object.Currently, the following algorithms are supported:Proximal Gradient (PG) [1], [2]\nFast Proximal Gradient (FPG) [1], [2]\nZeroFPR [3]\nPANOC [4]PG\nFPG\nZeroFPR\nPANOC"
+    "text": "As shown above it is possible to choose the type of algorithm and specify its options by creating a Solver object. Currently, the following algorithms are supported:Proximal Gradient (PG) [1], [2]\nFast Proximal Gradient (FPG) [1], [2]\nZeroFPR [3]\nPANOC [4]PG\nFPG\nZeroFPR\nPANOC"
 },
 
 {
@@ -685,7 +685,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Solvers",
     "title": "Build and solve",
     "category": "section",
-    "text": "The macro @minimize automatically parse and solve the problem. An alternative syntax is given by the function problem and solve.problem\nsolveIt is important to stress out that the Solver objects created using the functions above (PG, FPG, etc.) specify only the type of algorithm to be used together with its options. The actual solver  (namely the one of ProximalAlgorithms.jl)  is constructed altogether with the problem formulation. The problem parsing procedure can be separated from the solver application using the functions build and solve!.build\nsolve!"
+    "text": "The macro @minimize automatically parse and solve the problem. An alternative syntax is given by the function problem and solve.problem\nsolveIt is important to stress out that the Solver objects created using the functions above (PG, FPG, etc.) specify only the type of algorithm to be used together with its options. The actual solver (namely the one of ProximalAlgorithms.jl) is constructed altogether with the problem formulation. The problem parsing procedure can be separated from the solver application using the functions build and solve!.build\nsolve!"
 },
 
 {
