@@ -12,7 +12,7 @@ huberloss
 sqrhingeloss
 crossentropy
 logisticloss
-logbarrier
+dot
 ```
 
 ## Nonsmooth functions
@@ -22,6 +22,7 @@ norm
 maximum
 sumpositive
 hingeloss
+logbarrier
 ```
 
 ## Inequality constraints

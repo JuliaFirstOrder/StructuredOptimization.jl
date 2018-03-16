@@ -150,6 +150,11 @@ cf = huberloss(x,a)
 @test cf.lambda == 1
 @test cf.f(~x) == (HuberLoss(a))(~x)
 
+a = randn(size(x))
+cf = dot(a,x)
+@test cf.lambda == 1
+@test cf.f(~x) == (Linear(a))(~x)
+
 #IndBinary
 lu = (-1,randn(length(~x)))
 cf = x == lu

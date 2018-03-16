@@ -207,6 +207,20 @@ f(\\mathbf{x}) = \\sum_i \\max \\{x_i, 0\\}.
 sumpositive(ex::AbstractExpression) =
 Term(SumPositive(), ex)
 
+import Base: dot
+
+"""
+`dot(c::AbstractVector, x::AbstractExpression)`
+
+Applies the function: 
+```math
+f(\\mathbf{x}) = \\mathbf{c}^{T}\\mathbf{x}.
+```
+"""
+dot(c::AbstractVector, ex::AbstractExpression) =
+Term(Linear(c), ex)
+
+
 # Inequalities
 
 import Base: <=
