@@ -457,11 +457,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "functions.html#StructuredOptimization.logbarrier",
+    "location": "functions.html#Base.LinAlg.dot",
     "page": "Functions",
-    "title": "StructuredOptimization.logbarrier",
+    "title": "Base.LinAlg.dot",
     "category": "function",
-    "text": "logbarrier(x::AbstractExpression)\n\nApplies the log barrier function: \n\nf(mathbfx) = -sum_i log( x_i )\n\n\n\n"
+    "text": "dot(c::AbstractVector, x::AbstractExpression)\n\nApplies the function: \n\nf(mathbfx) = mathbfc^Tmathbfx\n\n\n\n"
 },
 
 {
@@ -469,7 +469,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Functions",
     "title": "Smooth functions",
     "category": "section",
-    "text": "ls\nhuberloss\nsqrhingeloss\ncrossentropy\nlogisticloss\nlogbarrier"
+    "text": "ls\nhuberloss\nsqrhingeloss\ncrossentropy\nlogisticloss\ndot"
 },
 
 {
@@ -505,11 +505,19 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "functions.html#StructuredOptimization.logbarrier",
+    "page": "Functions",
+    "title": "StructuredOptimization.logbarrier",
+    "category": "function",
+    "text": "logbarrier(x::AbstractExpression)\n\nApplies the log barrier function: \n\nf(mathbfx) = -sum_i log( x_i )\n\n\n\n"
+},
+
+{
     "location": "functions.html#Nonsmooth-functions-1",
     "page": "Functions",
     "title": "Nonsmooth functions",
     "category": "section",
-    "text": "norm\nmaximum\nsumpositive\nhingeloss"
+    "text": "norm\nmaximum\nsumpositive\nhingeloss\nlogbarrier"
 },
 
 {
