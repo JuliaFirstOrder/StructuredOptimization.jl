@@ -89,18 +89,21 @@ function (*)(M::AbstractMatrix, a::T) where {T<:AbstractExpression}
 end
 #MatrixOp
 
-function Base.broadcast(::typeof(*), d::AbstractArray, a::T) where {T<:AbstractExpression}
+function Base.broadcast(::typeof(*), d::D, a::T) where {D <: Union{Number,AbstractArray}, T<:AbstractExpression}
 	A = convert(Expression,a)
 	op = DiagOp(codomainType(operator(A)),size(operator(A),1),d)
 	return op*A
 end
+Base.broadcast(::typeof(*), a::T, d::D) where {D <: Union{Number,AbstractArray}, T<:AbstractExpression} = 
+d.*a
 #DiagOp
 
 function (*)(coeff::T1, a::T) where {T1<:Number, T<:AbstractExpression}
 	A = convert(Expression,a)
 	return Expression{length(A.x)}(A.x,coeff*operator(A),coeff*displacement(A))
 end
-#Scale
+(*)(a::T, coeff::T1) where {T1<:Number, T<:AbstractExpression} = coeff*a
+##Scale
 
 """
 `*(A::AbstractExpression, ex::AbstractExpression)`
@@ -127,6 +130,9 @@ I*σ  ℝ^(10, 5)  ℝ^(5, 15) -> ℝ^(10, 15)
 function (*)(ex1::AbstractExpression, ex2::AbstractExpression)
 	ex1 = convert(Expression,ex1)
 	ex2 = convert(Expression,ex2)
+    if any([x in variables(ex2) for x in variables(ex1)])
+        error("cannot muliply expressions containing the same variable")
+    end
 	op = NonLinearCompose(operator(ex1),operator(ex2))
 	d = (displacement(ex1) != 0 && displacement(ex2) != 0) ? displacement(ex1)*displacement(ex2) : 
 	zero(codomainType(op))
@@ -141,3 +147,46 @@ function (*)(ex1::AbstractExpression, ex2::AbstractExpression)
 	return exp3 
 end
 # NonLinearCompose
+
+"""
+`.*(A::AbstractExpression, ex::AbstractExpression)`
+
+Elementwise multiplication between `AbstractExpression`. 
+
+# Examples
+
+```julia
+julia> W1 = Variable(10,5)
+Variable(Float64, (10, 5))
+
+julia> W2 = Variable(5,15)
+Variable(Float64, (5, 15))
+
+julia> ex = W1*σ(W2);
+
+julia> operator(ex)
+I*σ  ℝ^(10, 5)  ℝ^(5, 15) -> ℝ^(10, 15)
+
+```
+
+"""
+function Base.broadcast(::typeof(*), ex1::AbstractExpression, ex2::AbstractExpression) 
+    ex1 = convert(Expression,ex1)
+	ex2 = convert(Expression,ex2)
+    if any([x in variables(ex2) for x in variables(ex1)])
+        error("cannot muliply expressions containing the same variable")
+    end
+	op = Hadamard(operator(ex1),operator(ex2))
+	d = (displacement(ex1) != 0 && displacement(ex2) != 0) ? displacement(ex1).*displacement(ex2) : 
+	zero(codomainType(op))
+	x = (variables(ex1)...,variables(ex2)...) 
+	exp3 = Expression{length(x)}(x,op,d)
+	if displacement(ex2) != 0.
+		exp3 += Expression{length(ex1.x)}(ex1.x,ex1.L,0.).*displacement(ex2)
+	end
+	if displacement(ex1) != 0.
+		exp3 += displacement(ex1).*Expression{length(ex2.x)}(ex2.x,ex2.L,0.)
+	end
+	return exp3 
+end
+# Hadamard

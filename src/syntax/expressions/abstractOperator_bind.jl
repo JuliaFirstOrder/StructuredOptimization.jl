@@ -39,6 +39,11 @@ imported = [:getindex :GetIndex;
             :conv     :Conv;
             :xcorr    :Xcorr;
             :filt     :Filt;
+            :exp      :Exp;
+            :cos      :Cos;
+            :sin      :Sin;
+            :atan     :Atan;
+            :tanh     :Tanh;
            ]
 
 exported = [:finitediff :FiniteDiff;

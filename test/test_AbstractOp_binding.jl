@@ -25,6 +25,25 @@ x = Variable(randn(n))
 ex = d.*x
 @test norm(operator(ex)*(~x)-op*(~x)) <1e-12
 
+# DiagOp with Scalar
+n = 3
+d = randn(n)
+op = DiagOp(Float64,(n,),d)
+x = Variable(randn(n))
+ex = d.*x
+@test norm(operator(ex)*(~x)-op*(~x)) <1e-12
+ex = x.*d
+@test norm(operator(ex)*(~x)-op*(~x)) <1e-12
+
+# Scale
+n = 3
+d = 5
+x = Variable(randn(n))
+ex = d*x
+@test norm(operator(ex)*(~x)-5*(~x)) <1e-12
+ex = x*d
+@test norm(operator(ex)*(~x)-5*(~x)) <1e-12
+
 ## GetIndex
 n = 5
 op = GetIndex(Float64,(n,),(1:2,))
@@ -139,4 +158,39 @@ op = Sigmoid(Float64,(n,),10)
 x = Variable(randn(n))
 ex = sigmoid(x,10)
 ex = σ(x,10)
+@test norm(operator(ex)*(~x)-op*(~x)) <1e-12
+
+# Exp
+n = 5
+op = Exp(Float64,(n,))
+x = Variable(randn(n))
+ex = exp(x)
+@test norm(operator(ex)*(~x)-op*(~x)) <1e-12
+
+# Cos
+n = 5
+op = Cos(Float64,(n,))
+x = Variable(randn(n))
+ex = cos(x)
+@test norm(operator(ex)*(~x)-op*(~x)) <1e-12
+
+# Sin
+n = 5
+op = Sin(Float64,(n,))
+x = Variable(randn(n))
+ex = sin(x)
+@test norm(operator(ex)*(~x)-op*(~x)) <1e-12
+
+# Atan
+n = 5
+op = Atan(Float64,(n,))
+x = Variable(randn(n))
+ex = atan(x)
+@test norm(operator(ex)*(~x)-op*(~x)) <1e-12
+
+# Tanh
+n = 5
+op = Tanh(Float64,(n,))
+x = Variable(randn(n))
+ex = tanh(x)
 @test norm(operator(ex)*(~x)-op*(~x)) <1e-12
