@@ -160,6 +160,13 @@ ex = sigmoid(x,10)
 ex = σ(x,10)
 @test norm(operator(ex)*(~x)-op*(~x)) <1e-12
 
+# Pow
+n = 5
+op = Pow(Float64,(n,),2)
+x = Variable(randn(n))
+ex = pow(x,2)
+@test norm(operator(ex)*(~x)-op*(~x)) <1e-12
+
 # Exp
 n = 5
 op = Exp(Float64,(n,))

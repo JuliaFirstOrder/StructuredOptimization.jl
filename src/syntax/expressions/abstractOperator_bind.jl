@@ -52,6 +52,7 @@ exported = [:finitediff :FiniteDiff;
             :zeropad    :ZeroPad;
             :sigmoid    :Sigmoid;
             :σ          :Sigmoid; #alias
+            :pow        :Pow; #alias
            ]
 
 #importing functions from Base
