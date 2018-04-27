@@ -20,12 +20,7 @@ julia> reshape(A*x-b,2,5)
 function reshape(a::AbstractExpression, dims...)
 	A = convert(Expression,a)
 	op = Reshape(A.L, dims...)
-	if typeof(displacement(A)) <: Number
-		d = displacement(A)
-	else
-		d = reshape(displacement(A), dims...)
-	end
-	return Expression{length(A.x)}(A.x,op,d)
+	return Expression{length(A.x)}(A.x,op)
 end
 #Reshape
 

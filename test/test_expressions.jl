@@ -47,16 +47,16 @@ x1, x2  = Variable(randn(m1,n)), Variable(randn(m2,n))
 # multiply Expressions (NonLinearCompose) 
 ex = (opA1*x1)*(opA2*x2)
 @test variables(ex) == (x1,x2)
-@test norm(operator(ex)*(~x1,~x2) - (A1*(~x1))*(A2*(~x2))) < 1e-12
+@test norm(affine(ex)*(~x1,~x2) - (A1*(~x1))*(A2*(~x2))) < 1e-12
 ex = (opA1*x1-b1)*(opA2*x2)
 @test variables(ex) == (x1,x2)
-@test norm(operator(ex)*(~x1,~x2) - (A1*(~x1)-b1)*(A2*(~x2))) < 1e-12
+@test norm(affine(ex)*(~x1,~x2) - (A1*(~x1)-b1)*(A2*(~x2))) < 1e-12
 ex = (opA1*x1)*(opA2*x2+b2)
 @test variables(ex) == (x1,x2)
-@test norm(operator(ex)*(~x1,~x2) - (A1*(~x1))*(A2*(~x2)+b2)) < 1e-12
+@test norm(affine(ex)*(~x1,~x2) - (A1*(~x1))*(A2*(~x2)+b2)) < 1e-12
 ex = (opA1*x1+b1)*(opA2*x2+b2)
 @test variables(ex) == (x1,x2)
-@test norm(operator(ex)*(~x1,~x2)+displacement(ex) - (A1*(~x1)+b1)*(A2*(~x2)+b2)) < 1e-12
+@test norm(affine(ex)*(~x1,~x2) - (A1*(~x1)+b1)*(A2*(~x2)+b2)) < 1e-12
 @test_throws ErrorException ex = (opA1*x1)*(opA1*x1)
 
 n, m1, m2, k = 3, 4, 5, 6
@@ -70,16 +70,16 @@ x1, x2  = Variable(randn(m1,n)), Variable(randn(m2,n))
 ## multiply Expressions elementwise (Hadamard) 
 ex = (opA1*x1).*(opA2*x2)
 @test variables(ex) == (x1,x2)
-@test norm(operator(ex)*(~x1,~x2) - (A1*(~x1)).*(A2*(~x2))) < 1e-12
+@test norm(affine(ex)*(~x1,~x2) - (A1*(~x1)).*(A2*(~x2))) < 1e-12
 ex = (opA1*x1-b1).*(opA2*x2)
 @test variables(ex) == (x1,x2)
-@test norm(operator(ex)*(~x1,~x2) - (A1*(~x1)-b1).*(A2*(~x2))) < 1e-12
+@test norm(affine(ex)*(~x1,~x2) - (A1*(~x1)-b1).*(A2*(~x2))) < 1e-12
 ex = (opA1*x1).*(opA2*x2+b2)
 @test variables(ex) == (x1,x2)
-@test norm(operator(ex)*(~x1,~x2) - (A1*(~x1)).*(A2*(~x2)+b2)) < 1e-12
+@test norm(affine(ex)*(~x1,~x2) - (A1*(~x1)).*(A2*(~x2)+b2)) < 1e-12
 ex = (opA1*x1+b1).*(opA2*x2+b2)
 @test variables(ex) == (x1,x2)
-@test norm(operator(ex)*(~x1,~x2) + displacement(ex) - (A1*(~x1)+b1).*(A2*(~x2)+b2)) < 1e-12
+@test norm(affine(ex)*(~x1,~x2) - (A1*(~x1)+b1).*(A2*(~x2)+b2)) < 1e-12
 @test_throws ErrorException ex = (opA1*x1)*(opA1*x1)
 
 ##### reshape ####
@@ -291,6 +291,5 @@ ex2 = opB*xb-b0
 ex3 = ex1-ex2
 @test norm(displacement(ex3) - (-b+b0)) == 0.
 
-@test_throws ArgumentError MatrixOp(randn(10,20))*Variable(20)+randn(11)
-@test_throws ArgumentError MatrixOp(randn(10,20))*Variable(20)+(3+im)
-
+@test_throws DimensionMismatch MatrixOp(randn(10,20))*Variable(20)+randn(11)
+@test_throws ErrorException MatrixOp(randn(10,20))*Variable(20)+(3+im)

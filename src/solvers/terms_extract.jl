@@ -43,6 +43,48 @@ function extract_operators{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
 	return vcat(ops...)
 end
 
+sort_and_extract_operators(xAll::Tuple{Variable}, t::Term) = operator(t)
+
+function sort_and_extract_operators{N}(xAll::NTuple{N,Variable}, t::Term)
+	p = zeros(Int,N)
+	xL = variables(t)
+	for i in eachindex(xAll)
+		p[i] = findfirst( xi -> xi == xAll[i], xL)
+	end
+	return operator(t)[p]
+end
+
+# extract affines from terms
+
+# returns all affines with an order dictated by xAll
+
+#single term, single variable
+extract_affines(xAll::Tuple{Variable}, t::Term)  = affine(t)
+
+extract_affines{N}(xAll::NTuple{N,Variable}, t::Term) = extract_affines(xAll, (t,))
+
+#multiple terms, multiple variables
+function extract_affines{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
+	ops = ()
+	for ti in t
+		tex = expand(xAll,ti)
+		ops = (ops...,sort_and_extract_affines(xAll,tex))
+	end
+	return vcat(ops...)
+end
+
+sort_and_extract_affines(xAll::Tuple{Variable}, t::Term) = affine(t)
+
+function sort_and_extract_affines{N}(xAll::NTuple{N,Variable}, t::Term)
+	p = zeros(Int,N)
+	xL = variables(t)
+	for i in eachindex(xAll)
+		p[i] = findfirst( xi -> xi == xAll[i], xL)
+	end
+	return affine(t)[p]
+end
+
+# expand term domain dimensions
 function expand{N,T1,T2,T3}(xAll::NTuple{N,Variable}, t::Term{T1,T2,T3})
 	xt   = variables(t)
 	C    = codomainType(operator(t))
@@ -55,17 +97,6 @@ function expand{N,T1,T2,T3}(xAll::NTuple{N,Variable}, t::Term{T1,T2,T3})
 		end
 	end
 	return Term(t.lambda, t.f, ex)
-end
-
-sort_and_extract_operators(xAll::Tuple{Variable}, t::Term) = operator(t)
-
-function sort_and_extract_operators{N}(xAll::NTuple{N,Variable}, t::Term)
-	p = zeros(Int,N)
-	xL = variables(t)
-	for i in eachindex(xAll)
-		p[i] = findfirst( xi -> xi == xAll[i], xL)
-	end
-	return operator(t)[p]
 end
 
 # extract function and merge operator
