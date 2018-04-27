@@ -15,15 +15,15 @@
 #results = MatrixDecomposition.run_demo()
 #MatrixDecomposition.show_results(results...)
 		
-#include("DNN.jl")
-#results = DNN.run_demo()
-#DNN.show_results(results...)
+include("DNN.jl")
+results = DNN.run_demo()
+DNN.show_results(results...)
 
 #include("TotalVariation.jl")
 #results = TotalVariation.run_demo()
 #TotalVariation.show_results(results...)
 
-include("AudioDeclipping.jl")
-#results = AudioDeclipping.run_demo()
-#AudioDeclipping.show_results(results...)
-AudioDeclipping.save_wav(results...)
+#include("AudioDeclipping.jl")
+##results = AudioDeclipping.run_demo()
+##AudioDeclipping.show_results(results...)
+#AudioDeclipping.save_wav(results...)
