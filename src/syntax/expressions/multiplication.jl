@@ -139,22 +139,6 @@ end
 
 Elementwise multiplication between `AbstractExpression`. 
 
-# Examples
-
-```julia
-julia> W1 = Variable(10,5)
-Variable(Float64, (10, 5))
-
-julia> W2 = Variable(5,15)
-Variable(Float64, (5, 15))
-
-julia> ex = W1*σ(W2);
-
-julia> affine(ex)
-I*σ  ℝ^(10, 5)  ℝ^(5, 15) -> ℝ^(10, 15)
-
-```
-
 """
 function Base.broadcast(::typeof(*), ex1::AbstractExpression, ex2::AbstractExpression) 
     ex1 = convert(Expression,ex1)
