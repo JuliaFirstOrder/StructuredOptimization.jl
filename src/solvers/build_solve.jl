@@ -39,11 +39,12 @@ function build(terms::Tuple, solver::ForwardBackwardSolver)
 			append!(kwargs, [(:Aq, Aq)])
 		end
 		if !isempty(smooth)
-			fs = extract_functions(smooth)
 			if is_linear(smooth)
+                fs = extract_functions(smooth)
                 As = extract_operators(x, smooth)
 				append!(kwargs, [(:As, As)])
 			else
+                fs = extract_functions_nodisp(smooth)
                 As = extract_affines(x, smooth)
 				fs = PrecomposeNonlinear(fs, As)
 			end

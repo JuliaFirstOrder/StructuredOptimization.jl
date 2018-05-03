@@ -24,6 +24,14 @@ end
 extract_functions{N}(t::NTuple{N,Term}) = SeparableSum(extract_functions.(t))
 extract_functions(t::Tuple{Term}) = extract_functions(t[1])
 
+# extract functions from terms without displacement
+function extract_functions_nodisp(t::Term)
+	f = t.lambda == 1. ? t.f : Postcompose(t.f, t.lambda)
+	return f
+end
+extract_functions_nodisp{N}(t::NTuple{N,Term}) = SeparableSum(extract_functions_nodisp.(t))
+extract_functions_nodisp(t::Tuple{Term}) = extract_functions_nodisp(t[1])
+
 # extract operators from terms
 
 # returns all operators with an order dictated by xAll
