@@ -18,7 +18,7 @@ The *least absolute shrinkage and selection operator* (LASSO) belongs to this cl
 \underset{ \mathbf{x} }{\text{minimize}} \ \tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2+ \lambda \| \mathbf{x} \|_1.
 ```
 
-Here the squared norm $\tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2$ is a *smooth* function $f$ wherelse the $l_1$-norm is a *nonsmooth* function $g$. This problem can be solved with only few lines of code:
+Here the squared norm $\tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2$ is a *smooth* function $f$ where else the $l_1$-norm is a *nonsmooth* function $g$. This problem can be solved with only few lines of code:
 
 ```julia
 julia> using StructuredOptimization
@@ -52,7 +52,7 @@ julia> ~x                             # inspect solution
 
 It is possible to access to the solution by typing `~x`.
 By default variables are initialized by `Array`s of zeros.
-Different initializations can be set during construction `x = Variable( [1.; 0.; ...] )` or by assignement `~x .= [1.; 0.; ...]`.
+Different initializations can be set during construction `x = Variable( [1.; 0.; ...] )` or by assignment `~x .= [1.; 0.; ...]`.
 
 ## Constrained optimization
 
@@ -85,7 +85,7 @@ For example, the non-negative deconvolution problem:
 \end{align*}
 ```
 
-where $*$ stands fof convoluton and $\mathbf{h}$ contains the taps of a finite impluse response,
+where $*$ stands for convolution and $\mathbf{h}$ contains the taps of a finite impulse response,
 can be solved using the following lines of code:
 
 ```julia
@@ -134,7 +134,7 @@ julia> @minimize ls(X1*X2-Y) st X1 >= 0., X2 >= 0.
 
 ## Limitations
 
-Currently `StructuredOptimization.jl` supports only *proximal gradient algorithms* (i.e., *forward-backward splitting* base), which require specific properties of the nonsmooth functions and costraint to be applicable. In particular, the nonsmooth functions must have an *efficiently computable proximal mapping*.
+Currently `StructuredOptimization.jl` supports only *proximal gradient algorithms* (i.e., *forward-backward splitting* base), which require specific properties of the nonsmooth functions and constraint to be applicable. In particular, the nonsmooth functions must have an *efficiently computable proximal mapping*.
 
 If we express the nonsmooth function $g$ as the composition of
 a function $\tilde{g}$ with a linear operator $A$:
