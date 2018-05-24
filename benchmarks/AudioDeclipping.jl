@@ -54,6 +54,7 @@ function solve_problem!(slv, Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, 
 	fit_tol = 1e-5
 	z = 0                             # frame initial intex
 	counter = 0
+    winC = C.*win
 	#weighted Overlap-Add
 	while z+Nl < Nt
 		counter += 1
@@ -79,8 +80,8 @@ function solve_problem!(slv, Fs, x, x0, xd, xc, y, yw, Nl, Nt, C, win, overlap, 
 			for N = 30:30:30*div(Nl,30)
 				cstr = (norm(x,0) <= N, 
 					norm(M*y-M*yw) <= sqrt(fit_tol), 
-					Mp*y >= C, 
-                    Mn*y <= -C)
+					Mp*y >=  Mp*winC, 
+                    Mn*y <= -Mn*winC)
                 it, = @minimize cf st cstr with slv
 				its[counter] += it
                 if norm(idct(~x)- ~y) <= sqrt(fit_tol) break end
@@ -98,7 +99,7 @@ function benchmark(;verb = 0, samples = 1, seconds = 100)
 
 	suite = BenchmarkGroup()
 
-	tol = 1e-5
+	tol = 1e-4
 	solvers = [
                "PANOC",
                "ZeroFPR",
