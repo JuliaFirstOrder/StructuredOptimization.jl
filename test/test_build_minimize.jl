@@ -50,7 +50,7 @@ xp = copy(~x)
 @test norm(xp-xpg) <1e-4
 
 # test nonconvex Rosenbrock function with known minimum
-solvers = ["FPG(tol = 1e-6)","ZeroFPR(tol = 1e-6)","PANOC(tol = 1e-6)"]
+solvers = ["ZeroFPR(tol = 1e-6)","PANOC(tol = 1e-6)"]
 for slv in solvers
     solver = eval(parse(slv))
     x = Variable(1)
