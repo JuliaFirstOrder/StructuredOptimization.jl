@@ -120,6 +120,10 @@ I*σ  ℝ^(10, 5)  ℝ^(5, 15) -> ℝ^(10, 15)
 
 ```
 
+`.*(A::AbstractExpression, ex::AbstractExpression)`
+
+Elementwise multiplication between `AbstractExpression` (i.e. Hadamard product). 
+
 """
 function (*)(ex1::AbstractExpression, ex2::AbstractExpression)
 	ex1 = convert(Expression,ex1)
@@ -134,12 +138,6 @@ function (*)(ex1::AbstractExpression, ex2::AbstractExpression)
 end
 # NonLinearCompose
 
-"""
-`.*(A::AbstractExpression, ex::AbstractExpression)`
-
-Elementwise multiplication between `AbstractExpression`. 
-
-"""
 function Base.broadcast(::typeof(*), ex1::AbstractExpression, ex2::AbstractExpression) 
     ex1 = convert(Expression,ex1)
 	ex2 = convert(Expression,ex2)

@@ -2,7 +2,7 @@
 
 ## Standard problem formulation
 
-Currently with `StructuredOptimization.jl` you can solve problems of the form
+Currently with StructuredOptimization.jl one can solve problems of the form
 
 ```math
 \underset{ \mathbf{x} }{\text{minimize}} \ f(\mathbf{x}) + g(\mathbf{x}),
@@ -18,7 +18,7 @@ The *least absolute shrinkage and selection operator* (LASSO) belongs to this cl
 \underset{ \mathbf{x} }{\text{minimize}} \ \tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2+ \lambda \| \mathbf{x} \|_1.
 ```
 
-Here the squared norm $\tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2$ is a *smooth* function $f$ where else the $l_1$-norm is a *nonsmooth* function $g$. This problem can be solved with only few lines of code:
+Here the squared norm $\tfrac{1}{2} \| \mathbf{A} \mathbf{x} - \mathbf{y} \|^2$ is a *smooth* function $f$ whereas the $l_1$-norm is a *nonsmooth* function $g$. This problem can be solved with only few lines of code:
 
 ```julia
 julia> using StructuredOptimization
@@ -70,12 +70,12 @@ can be converted into an *indicator function*
 ```math
 g(\mathbf{x}) = \delta_{\mathcal{S}} (\mathbf{x}) =  \begin{cases}
     0       & \text{if} \ \mathbf{x} \in \mathcal{S},\\
-    +\infty & \text{otherwise},
+    +\infty & \text{otherwise}.
     \end{cases}
 ```
 
-to obtain the standard form. Constraints are treated as *nonsmooth functions*.
-This conversion is automatically performed by `StructuredOptimization.jl`.
+Constraints are treated as *nonsmooth functions*.
+This conversion is automatically performed by StructuredOptimization.jl.
 For example, the non-negative deconvolution problem:
 
 ```math
@@ -85,7 +85,7 @@ For example, the non-negative deconvolution problem:
 \end{align*}
 ```
 
-where $*$ stands for convolution and $\mathbf{h}$ contains the taps of a finite impulse response,
+where $*$ stands for convolution and $\mathbf{h}$ contains the taps of a finite impulse response filter,
 can be solved using the following lines of code:
 
 ```julia
@@ -102,7 +102,7 @@ julia> @minimize ls(conv(x,h)-y) st x >= 0.
 !!! note
 
     The convolution mapping was applied to the variable `x` using `conv`.
-    `StructuredOptimization.jl` provides a set of functions that can be
+    StructuredOptimization.jl provides a set of functions that can be
     used to apply specific operators to variables and create mathematical
     expression. The available functions can be found in [Mappings](@ref).
     In general it is more convenient to use these functions instead of matrices,
@@ -134,7 +134,7 @@ julia> @minimize ls(X1*X2-Y) st X1 >= 0., X2 >= 0.
 
 ## Limitations
 
-Currently `StructuredOptimization.jl` supports only *proximal gradient algorithms* (i.e., *forward-backward splitting* base), which require specific properties of the nonsmooth functions and constraint to be applicable. In particular, the nonsmooth functions must have an *efficiently computable proximal mapping*.
+Currently StructuredOptimization.jl supports only *proximal gradient algorithms* (i.e., *forward-backward splitting* base), which require specific properties of the nonsmooth functions and constraint to be applicable. In particular, the nonsmooth functions must have an *efficiently computable proximal mapping*.
 
 If we express the nonsmooth function $g$ as the composition of
 a function $\tilde{g}$ with a linear operator $A$:
@@ -148,7 +148,7 @@ then the proximal mapping of $g$ is efficiently computable if either of the foll
 
 1. Operator $A$ is a *tight frame*, namely it satisfies $A A^* = \mu Id$, where $\mu \geq 0$, $A^*$ is the adjoint of $A$, and $Id$ is the identity operator.
 
-2. Function $g$ is the *separable sum* $g(\mathbf{x}) = \sum_j h_j (B_j \mathbf{x}_j)$, where $\mathbf{x}_j$ are non-overlapping slices of $\mathbf{x}$, and $B_j$ are tight frames.
+2. Function $g$ is a *separable sum* $g(\mathbf{x}) = \sum_j h_j (B_j \mathbf{x}_j)$, where $\mathbf{x}_j$ are non-overlapping slices of $\mathbf{x}$, and $B_j$ are tight frames.
 
 Let us analyze these rules with a series of examples.
 The LASSO example above satisfy the first rule:
@@ -157,8 +157,8 @@ The LASSO example above satisfy the first rule:
 julia> @minimize ls( A*x - y ) + λ*norm(x, 1)
 ```
 
-since the non-smooth function $\lambda \| \cdot \|_1$ is not composed with any operator (or equivalently is composed with $Id$ which is a tight frame).
-Also the following problem would be accepted:
+since the nonsmooth function $\lambda \| \cdot \|_1$ is not composed with any operator (or equivalently is composed with $Id$ which is a tight frame).
+Also the following problem would be accepted by StructuredOptimization.jl:
 
 ```julia
 julia> @minimize ls( A*x - y ) + λ*norm(dct(x), 1)

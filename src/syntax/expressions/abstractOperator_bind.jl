@@ -397,3 +397,75 @@ See documentation of `AbstractOperator.Sigmoid`.
 """
 sigmoid    
 σ          
+
+"""
+`exp(x::AbstractExpression)`
+
+Exponential function:
+```math
+e^{ \\mathbf{x}  }
+```
+
+See documentation of `AbstractOperator.Exp`.  
+"""
+exp 
+
+"""
+`sin(x::AbstractExpression)`
+
+Sine function:
+```math
+\\sin( \\mathbf{x}  )
+```
+
+See documentation of `AbstractOperator.Sin`.  
+"""
+sin 
+
+"""
+`cos(x::AbstractExpression)`
+
+Cosine function:
+```math
+\\cos( \\mathbf{x}  )
+```
+
+See documentation of `AbstractOperator.Cos`.  
+"""
+cos 
+
+"""
+`atan(x::AbstractExpression)`
+
+Inverse tangent function:
+```math
+\\tan^{-1}( \\mathbf{x}  )
+```
+
+See documentation of `AbstractOperator.Atan`.  
+"""
+atan 
+
+"""
+`tanh(x::AbstractExpression)`
+
+Hyperbolic tangent function:
+```math
+\\tanh ( \\mathbf{x}  )
+```
+
+See documentation of `AbstractOperator.Tanh`.  
+"""
+tanh 
+
+"""
+`pow(x::AbstractExpression, n)`
+
+Elementwise power 'n' of 'x':
+```math
+x_i^{n} \\ \\forall \\  i = 0,1, \\dots
+```
+
+See documentation of `AbstractOperator.Pow`.  
+"""
+pow
