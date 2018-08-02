@@ -19,5 +19,4 @@ x3i = Variable(xx)
 @test xx == (~x3i)
 
 @test typeof(operator(x1)) <: Eye
-@test displacement(x1) == 0.
 @test variables(x1) == x1

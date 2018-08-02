@@ -1,9 +1,10 @@
 # utils
-export variables, operator, displacement
+export variables, operator, affine
 import Base: convert
+import AbstractOperators: displacement
 
 convert{T,N,A}(::Type{Expression},x::Variable{T,N,A}) =
-Expression{1}((x,),Eye(T,size(x)),zero(T))
+Expression{1}((x,),Eye(T,size(x)))
 
 """
 `variables(ex::Expression)`
@@ -44,8 +45,17 @@ julia> operator(ex)
 
 ```
 """
-operator(A::Expression)     = A.L
-operator(x::Variable)     = Eye(~x)
+operator(A::Expression) = remove_displacement(A.L)
+operator(x::Variable)   = Eye(~x)
+
+"""
+`affine(ex::Expression)`
+
+Returns the `AbstractOperator` of expression `ex` keeping any affine addition.
+
+"""
+affine(A::Expression) = A.L
+affine(x::Variable)   = Eye(~x)
 
 """
 `displacement(ex::Expression)`
@@ -68,5 +78,5 @@ julia> displacement(ex)
 
 ```
 """
-displacement(A::Expression) = A.d
 displacement(A::Variable{T}) where {T} = zero(T)
+displacement(E::Expression) = displacement(affine(E))

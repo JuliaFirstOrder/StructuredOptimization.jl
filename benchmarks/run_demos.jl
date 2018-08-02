@@ -15,9 +15,9 @@
 #results = MatrixDecomposition.run_demo()
 #MatrixDecomposition.show_results(results...)
 		
-#include("DNN.jl")
-#results = DNN.run_demo()
-#DNN.show_results(results...)
+include("DNN.jl")
+results = DNN.run_demo()
+DNN.show_results(results...)
 
 #include("TotalVariation.jl")
 #results = TotalVariation.run_demo()

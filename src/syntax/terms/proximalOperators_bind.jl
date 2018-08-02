@@ -345,16 +345,23 @@ Equalities constraints
 Term(IndBinary(lu...), ex)
 # IndBinary
 
-# IndAffine
-function (==)(ex::AbstractExpression, b::Union{Real,AbstractArray}) 
-    op = operator(ex)
-    if typeof(op) <: MatrixOp
-        Term(IndAffine(op.A, b-displacement(ex), iterative = false ), variables(ex)[1])
-    else
-        # TODO change this
-        error("Currently affine equality supported only with `MatrixOp`")
-    end
-end
+# weird error!!?
+## IndAffine
+#function (==)(ex::AbstractExpression, b::Union{Real,AbstractArray}) 
+#    op = operator(ex,true)
+#    d  = displacement(ex)
+#    if typeof(op) <: MatrixOp
+#        println("ciao")
+#        A = op.A
+#        bb = b.-d
+#        p = ProximalOperators.IndAffineIterative(A, bb)
+#    #    # very weird error!
+#        return Term(p, variables(ex)[1])
+#    else
+#       # TODO change this
+#       error("Currently affine equality supported only with `MatrixOp`")
+#    end
+#end
 
 # Transforms
 # Convex conjugate

@@ -40,6 +40,7 @@ end
 
 variables(t::Term) = variables(t.A)
 operator(t::Term) = operator(t.A)
+affine(t::Term) = affine(t.A)
 displacement(t::Term) = displacement(t.A)
 
 #importing properties from ProximalOperators

@@ -20,20 +20,14 @@ julia> B = DCT(9)
 
 julia> ex2 = B*ex;
 
-julia> operator(ex2)
+julia> affine(ex2)
 ℱc*δx  ℝ^10 -> ℝ^9
 ```
 
 """
 function (*)(L::AbstractOperator, a::AbstractExpression)
 	A = convert(Expression,a)
-	if typeof(displacement(A)) <: Number
-		d = displacement(A) == 0. ? zero(codomainType(L)) :
-		L*(displacement(A)*ones(codomainType(operator(A)),size(operator(A),1)))
-	else
-		d = L*displacement(A)
-	end
-	Expression{length(A.x)}(A.x,L*operator(A),d)
+	Expression{length(A.x)}(A.x,L*affine(A))
 end
 
 """
@@ -77,30 +71,33 @@ Other types of multiplications are also possible:
 """
 function (*)(m::T, a::Union{AbstractVector,AbstractMatrix}) where {T<:AbstractExpression}
 	M = convert(Expression,m)
-	op = LMatrixOp(codomainType(operator(M)),size(operator(M),1),a)
+	op = LMatrixOp(codomainType(affine(M)),size(affine(M),1),a)
 	return op*M
 end
 #LMatrixOp
 
 function (*)(M::AbstractMatrix, a::T) where {T<:AbstractExpression}
 	A = convert(Expression,a)
-	op = MatrixOp(codomainType(operator(A)),size(operator(A),1),M)
+	op = MatrixOp(codomainType(affine(A)),size(affine(A),1),M)
 	return op*A
 end
 #MatrixOp
 
-function Base.broadcast(::typeof(*), d::AbstractArray, a::T) where {T<:AbstractExpression}
+function Base.broadcast(::typeof(*), d::D, a::T) where {D <: Union{Number,AbstractArray}, T<:AbstractExpression}
 	A = convert(Expression,a)
-	op = DiagOp(codomainType(operator(A)),size(operator(A),1),d)
+	op = DiagOp(codomainType(affine(A)),size(affine(A),1),d)
 	return op*A
 end
+Base.broadcast(::typeof(*), a::T, d::D) where {D <: Union{Number,AbstractArray}, T<:AbstractExpression} = 
+d.*a
 #DiagOp
 
 function (*)(coeff::T1, a::T) where {T1<:Number, T<:AbstractExpression}
 	A = convert(Expression,a)
-	return Expression{length(A.x)}(A.x,coeff*operator(A),coeff*displacement(A))
+	return Expression{length(A.x)}(A.x,coeff*affine(A))
 end
-#Scale
+(*)(a::T, coeff::T1) where {T1<:Number, T<:AbstractExpression} = coeff*a
+##Scale
 
 """
 `*(A::AbstractExpression, ex::AbstractExpression)`
@@ -118,26 +115,38 @@ Variable(Float64, (5, 15))
 
 julia> ex = W1*σ(W2);
 
-julia> operator(ex)
+julia> affine(ex)
 I*σ  ℝ^(10, 5)  ℝ^(5, 15) -> ℝ^(10, 15)
 
 ```
+
+`.*(A::AbstractExpression, ex::AbstractExpression)`
+
+Elementwise multiplication between `AbstractExpression` (i.e. Hadamard product). 
 
 """
 function (*)(ex1::AbstractExpression, ex2::AbstractExpression)
 	ex1 = convert(Expression,ex1)
 	ex2 = convert(Expression,ex2)
-	op = NonLinearCompose(operator(ex1),operator(ex2))
-	d = (displacement(ex1) != 0 && displacement(ex2) != 0) ? displacement(ex1)*displacement(ex2) : 
-	zero(codomainType(op))
+    if any([x in variables(ex2) for x in variables(ex1)])
+        error("cannot muliply expressions containing the same variable")
+    end
+	op = NonLinearCompose(affine(ex1),affine(ex2))
 	x = (variables(ex1)...,variables(ex2)...) 
-	exp3 = Expression{length(x)}(x,op,d)
-	if displacement(ex2) != 0.
-		exp3 += Expression{length(ex1.x)}(ex1.x,ex1.L,0.)*displacement(ex2)
-	end
-	if displacement(ex1) != 0.
-		exp3 += displacement(ex1)*Expression{length(ex2.x)}(ex2.x,ex2.L,0.)
-	end
+	exp3 = Expression{length(x)}(x,op)
 	return exp3 
 end
 # NonLinearCompose
+
+function Base.broadcast(::typeof(*), ex1::AbstractExpression, ex2::AbstractExpression) 
+    ex1 = convert(Expression,ex1)
+	ex2 = convert(Expression,ex2)
+    if any([x in variables(ex2) for x in variables(ex1)])
+        error("cannot muliply expressions containing the same variable")
+    end
+	op = Hadamard(affine(ex1),affine(ex2))
+	x = (variables(ex1)...,variables(ex2)...) 
+	exp3 = Expression{length(x)}(x,op)
+	return exp3 
+end
+# Hadamard

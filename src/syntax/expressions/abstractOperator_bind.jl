@@ -20,12 +20,7 @@ julia> reshape(A*x-b,2,5)
 function reshape(a::AbstractExpression, dims...)
 	A = convert(Expression,a)
 	op = Reshape(A.L, dims...)
-	if typeof(displacement(A)) <: Number
-		d = displacement(A)
-	else
-		d = reshape(displacement(A), dims...)
-	end
-	return Expression{length(A.x)}(A.x,op,d)
+	return Expression{length(A.x)}(A.x,op)
 end
 #Reshape
 
@@ -39,6 +34,11 @@ imported = [:getindex :GetIndex;
             :conv     :Conv;
             :xcorr    :Xcorr;
             :filt     :Filt;
+            :exp      :Exp;
+            :cos      :Cos;
+            :sin      :Sin;
+            :atan     :Atan;
+            :tanh     :Tanh;
            ]
 
 exported = [:finitediff :FiniteDiff;
@@ -47,6 +47,7 @@ exported = [:finitediff :FiniteDiff;
             :zeropad    :ZeroPad;
             :sigmoid    :Sigmoid;
             :σ          :Sigmoid; #alias
+            :pow        :Pow; #alias
            ]
 
 #importing functions from Base
@@ -396,3 +397,75 @@ See documentation of `AbstractOperator.Sigmoid`.
 """
 sigmoid    
 σ          
+
+"""
+`exp(x::AbstractExpression)`
+
+Exponential function:
+```math
+e^{ \\mathbf{x}  }
+```
+
+See documentation of `AbstractOperator.Exp`.  
+"""
+exp 
+
+"""
+`sin(x::AbstractExpression)`
+
+Sine function:
+```math
+\\sin( \\mathbf{x}  )
+```
+
+See documentation of `AbstractOperator.Sin`.  
+"""
+sin 
+
+"""
+`cos(x::AbstractExpression)`
+
+Cosine function:
+```math
+\\cos( \\mathbf{x}  )
+```
+
+See documentation of `AbstractOperator.Cos`.  
+"""
+cos 
+
+"""
+`atan(x::AbstractExpression)`
+
+Inverse tangent function:
+```math
+\\tan^{-1}( \\mathbf{x}  )
+```
+
+See documentation of `AbstractOperator.Atan`.  
+"""
+atan 
+
+"""
+`tanh(x::AbstractExpression)`
+
+Hyperbolic tangent function:
+```math
+\\tanh ( \\mathbf{x}  )
+```
+
+See documentation of `AbstractOperator.Tanh`.  
+"""
+tanh 
+
+"""
+`pow(x::AbstractExpression, n)`
+
+Elementwise power 'n' of 'x':
+```math
+x_i^{n} \\ \\forall \\  i = 0,1, \\dots
+```
+
+See documentation of `AbstractOperator.Pow`.  
+"""
+pow

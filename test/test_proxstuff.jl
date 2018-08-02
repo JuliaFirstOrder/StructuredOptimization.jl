@@ -1,8 +1,8 @@
 # Testing precomposition by nonlinear operator
 
 b = randn(10)
-g = ProximalOperators.Translate(ProximalOperators.SqrNormL2(3.0), -b)
-G = AbstractOperators.Sigmoid((10,), 1.0)
+g = ProximalOperators.SqrNormL2(3.0)
+G = AffineAdd(AbstractOperators.Sigmoid((10,), 1.0),b,false)
 f = StructuredOptimization.PrecomposeNonlinear(g, G)
 
 x = randn(10)
@@ -24,10 +24,10 @@ A = randn(l,m1)
 B = randn(m2,n1)
 r = randn(l,n2)
 
-G = NonLinearCompose( MatrixOp(A,m2), MatrixOp(B,n2) )
-
 b = randn(l,n2)
-g = ProximalOperators.Translate(ProximalOperators.SqrNormL2(3.0), -b)
+G = AffineAdd(NonLinearCompose( MatrixOp(A,m2), MatrixOp(B,n2) ),b,false)
+
+g = ProximalOperators.SqrNormL2(3.0)
 f = StructuredOptimization.PrecomposeNonlinear(g, G)
 
 x = (randn(m1,m2),randn(n1,n2))

@@ -75,6 +75,12 @@ variation
 
 ### Nonlinear mappings
 ```@docs
+sin
+cos
+atan
+tanh
+exp
+pow
 sigmoid
 ```
 
@@ -86,5 +92,6 @@ Notice that these commands work also for the `Term`s described in [Functions and
 ```@docs
 variables
 operator
-displacement
+affine
+AbstractOperators.displacement
 ```
