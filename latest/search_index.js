@@ -61,7 +61,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Quick Tutorial Guide",
     "title": "Standard problem formulation",
     "category": "section",
-    "text": "Currently with StructuredOptimization.jl you can solve problems of the formunderset mathbfx textminimize  f(mathbfx) + g(mathbfx)where f is a smooth function while g is possibly nonsmooth."
+    "text": "Currently with StructuredOptimization.jl one can solve problems of the formunderset mathbfx textminimize  f(mathbfx) + g(mathbfx)where f is a smooth function while g is possibly nonsmooth."
 },
 
 {
@@ -69,7 +69,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Quick Tutorial Guide",
     "title": "Unconstrained optimization",
     "category": "section",
-    "text": "The least absolute shrinkage and selection operator (LASSO) belongs to this class of problems:underset mathbfx textminimize  tfrac12  mathbfA mathbfx - mathbfy ^2+ lambda  mathbfx _1Here the squared norm tfrac12  mathbfA mathbfx - mathbfy ^2 is a smooth function f wherelse the l_1-norm is a nonsmooth function g. This problem can be solved with only few lines of code:julia> using StructuredOptimization\n\njulia> n, m = 100, 10;                # define problem size\n\njulia> A, y = randn(m,n), randn(m);   # random problem data\n\njulia> x = Variable(n);               # initialize optimization variable\n\njulia> λ = 1e-2*norm(A\'*y,Inf);       # define λ    \n\njulia> @minimize ls( A*x - y ) + λ*norm(x, 1); # solve problem\n\njulia> ~x                             # inspect solution\n100-element Array{Float64,1}:\n  0.0\n  0.0\n  0.0\n  0.440254\n  0.0\n  0.0\n  0.0\n[...]note: Note\nThe function ls is a short hand notation for 0.5*norm(...)^2, namely a least squares term.It is possible to access to the solution by typing ~x. By default variables are initialized by Arrays of zeros. Different initializations can be set during construction x = Variable( [1.; 0.; ...] ) or by assignement ~x .= [1.; 0.; ...]."
+    "text": "The least absolute shrinkage and selection operator (LASSO) belongs to this class of problems:underset mathbfx textminimize  tfrac12  mathbfA mathbfx - mathbfy ^2+ lambda  mathbfx _1Here the squared norm tfrac12  mathbfA mathbfx - mathbfy ^2 is a smooth function f whereas the l_1-norm is a nonsmooth function g. This problem can be solved with only few lines of code:julia> using StructuredOptimization\n\njulia> n, m = 100, 10;                # define problem size\n\njulia> A, y = randn(m,n), randn(m);   # random problem data\n\njulia> x = Variable(n);               # initialize optimization variable\n\njulia> λ = 1e-2*norm(A\'*y,Inf);       # define λ    \n\njulia> @minimize ls( A*x - y ) + λ*norm(x, 1); # solve problem\n\njulia> ~x                             # inspect solution\n100-element Array{Float64,1}:\n  0.0\n  0.0\n  0.0\n  0.440254\n  0.0\n  0.0\n  0.0\n[...]note: Note\nThe function ls is a short hand notation for 0.5*norm(...)^2, namely a least squares term.It is possible to access to the solution by typing ~x. By default variables are initialized by Arrays of zeros. Different initializations can be set during construction x = Variable( [1.; 0.; ...] ) or by assignment ~x .= [1.; 0.; ...]."
 },
 
 {
@@ -77,7 +77,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Quick Tutorial Guide",
     "title": "Constrained optimization",
     "category": "section",
-    "text": "Constrained optimization is also encompassed by the Standard problem formulation: for a nonempty set mathcalS the constraint ofbeginalign*\nunderset mathbfx textminimize    f(mathbfx) \ntextsubject to   mathbfx in mathcalS\nendalign*can be converted into an indicator functiong(mathbfx) = delta_mathcalS (mathbfx) =  begincases\n    0        textif  mathbfx in mathcalS\n    +infty  textotherwise\n    endcasesto obtain the standard form. Constraints are treated as nonsmooth functions. This conversion is automatically performed by StructuredOptimization.jl. For example, the non-negative deconvolution problem:beginalign*\nunderset mathbfx textminimize    tfrac12  mathbfx * mathbfh - mathbfy ^2 \ntextsubject to   mathbfx geq 0\nendalign*where * stands fof convoluton and mathbfh contains the taps of a finite impluse response, can be solved using the following lines of code:julia> n = 10;                        # define problem size\n\njulia> x = Variable(n);               # define variable\n\njulia> h, y = randn(n), randn(2*n-1); # random filter taps and output\n\njulia> @minimize ls(conv(x,h)-y) st x >= 0.\nnote: Note\nThe convolution mapping was applied to the variable x using conv. StructuredOptimization.jl provides a set of functions that can be used to apply specific operators to variables and create mathematical expression. The available functions can be found in Mappings. In general it is more convenient to use these functions instead of matrices, as these functions apply efficient algorithms for the forward and adjoint mappings leading to matrix free optimization."
+    "text": "Constrained optimization is also encompassed by the Standard problem formulation: for a nonempty set mathcalS the constraint ofbeginalign*\nunderset mathbfx textminimize    f(mathbfx) \ntextsubject to   mathbfx in mathcalS\nendalign*can be converted into an indicator functiong(mathbfx) = delta_mathcalS (mathbfx) =  begincases\n    0        textif  mathbfx in mathcalS\n    +infty  textotherwise\n    endcasesConstraints are treated as nonsmooth functions. This conversion is automatically performed by StructuredOptimization.jl. For example, the non-negative deconvolution problem:beginalign*\nunderset mathbfx textminimize    tfrac12  mathbfx * mathbfh - mathbfy ^2 \ntextsubject to   mathbfx geq 0\nendalign*where * stands for convolution and mathbfh contains the taps of a finite impulse response filter, can be solved using the following lines of code:julia> n = 10;                        # define problem size\n\njulia> x = Variable(n);               # define variable\n\njulia> h, y = randn(n), randn(2*n-1); # random filter taps and output\n\njulia> @minimize ls(conv(x,h)-y) st x >= 0.\nnote: Note\nThe convolution mapping was applied to the variable x using conv. StructuredOptimization.jl provides a set of functions that can be used to apply specific operators to variables and create mathematical expression. The available functions can be found in Mappings. In general it is more convenient to use these functions instead of matrices, as these functions apply efficient algorithms for the forward and adjoint mappings leading to matrix free optimization."
 },
 
 {
@@ -93,7 +93,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Quick Tutorial Guide",
     "title": "Limitations",
     "category": "section",
-    "text": "Currently StructuredOptimization.jl supports only proximal gradient algorithms (i.e., forward-backward splitting base), which require specific properties of the nonsmooth functions and costraint to be applicable. In particular, the nonsmooth functions must have an efficiently computable proximal mapping.If we express the nonsmooth function g as the composition of a function tildeg with a linear operator A:g(mathbfx) =\ntildeg(A mathbfx)then the proximal mapping of g is efficiently computable if either of the following hold:Operator A is a tight frame, namely it satisfies A A^* = mu Id, where mu geq 0, A^* is the adjoint of A, and Id is the identity operator.\nFunction g is the separable sum g(mathbfx) = sum_j h_j (B_j mathbfx_j), where mathbfx_j are non-overlapping slices of mathbfx, and B_j are tight frames.Let us analyze these rules with a series of examples. The LASSO example above satisfy the first rule:julia> @minimize ls( A*x - y ) + λ*norm(x, 1)since the non-smooth function lambda  cdot _1 is not composed with any operator (or equivalently is composed with Id which is a tight frame). Also the following problem would be accepted:julia> @minimize ls( A*x - y ) + λ*norm(dct(x), 1)since the discrete cosine transform (DCT) is orthogonal and is therefore a tight frame. On the other hand, the following problemjulia> @minimize ls( A*x - y ) + λ*norm(x, 1) st x >= 1.0cannot be solved through proximal gradient algorithms, since the second rule would be violated. Here the constraint would be converted into an indicator function and the nonsmooth function g can be written as the sum:g(mathbfx) =lambda  mathbfx _1 + delta_mathcalS (mathbfx)which is not separable. On the other hand this problem would be accepted:julia> @minimize ls( A*x - y ) + λ*norm(x[1:div(n,2)], 1) st x[div(n,2)+1:n] >= 1.0as not the optimization variables mathbfx are partitioned into non-overlapping groups.note: Note\nWhen the problem is not accepted it might be still possible to solve it: see Smoothing and Duality."
+    "text": "Currently StructuredOptimization.jl supports only proximal gradient algorithms (i.e., forward-backward splitting base), which require specific properties of the nonsmooth functions and constraint to be applicable. In particular, the nonsmooth functions must have an efficiently computable proximal mapping.If we express the nonsmooth function g as the composition of a function tildeg with a linear operator A:g(mathbfx) =\ntildeg(A mathbfx)then the proximal mapping of g is efficiently computable if either of the following hold:Operator A is a tight frame, namely it satisfies A A^* = mu Id, where mu geq 0, A^* is the adjoint of A, and Id is the identity operator.\nFunction g is a separable sum g(mathbfx) = sum_j h_j (B_j mathbfx_j), where mathbfx_j are non-overlapping slices of mathbfx, and B_j are tight frames.Let us analyze these rules with a series of examples. The LASSO example above satisfy the first rule:julia> @minimize ls( A*x - y ) + λ*norm(x, 1)since the nonsmooth function lambda  cdot _1 is not composed with any operator (or equivalently is composed with Id which is a tight frame). Also the following problem would be accepted by StructuredOptimization.jl:julia> @minimize ls( A*x - y ) + λ*norm(dct(x), 1)since the discrete cosine transform (DCT) is orthogonal and is therefore a tight frame. On the other hand, the following problemjulia> @minimize ls( A*x - y ) + λ*norm(x, 1) st x >= 1.0cannot be solved through proximal gradient algorithms, since the second rule would be violated. Here the constraint would be converted into an indicator function and the nonsmooth function g can be written as the sum:g(mathbfx) =lambda  mathbfx _1 + delta_mathcalS (mathbfx)which is not separable. On the other hand this problem would be accepted:julia> @minimize ls( A*x - y ) + λ*norm(x[1:div(n,2)], 1) st x[div(n,2)+1:n] >= 1.0as not the optimization variables mathbfx are partitioned into non-overlapping groups.note: Note\nWhen the problem is not accepted it might be still possible to solve it: see Smoothing and Duality."
 },
 
 {
@@ -173,7 +173,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Expressions",
     "title": "Base.:+",
     "category": "function",
-    "text": "+(ex1::AbstractExpression, ex2::AbstractExpression)\n\nAdd two expressions. \n\nExamples\n\njulia> x,y = Variable(5), Variable(5)\n(Variable(Float64, (5,)), Variable(Float64, (5,)))\n\njulia> ex1 = x+y\n\njulia> z = Variable(2)\nVariable(Float64, (2,))\n\njulia> ex2 = randn(5,2)*z\n\n\nNotice that in order for two expressions to be added toghether their associated AbstractOperator  must have the same codomain:\n\njulia> operator(ex1)\n[I,I]  ℝ^5  ℝ^5 -> ℝ^5 \n\njulia> operator(ex2)\n▒  ℝ^2 -> ℝ^5 \n\njulia> ex3 = ex1 + ex2\n\n\nIt is also possible to use broadcasted addition:\n\njulia> z = Variable(1)\nVariable(Float64, (1,))\n\njulia> ex3.+z\n\n\n\n\n+(ex::AbstractExpression, b::Union{AbstractArray,Number})\n\nAdd a scalar or an Array to an expression: \n\nExample\n\njulia> x = Variable(10)\nVariable(Float64, (10,))\n\njulia> ex = x+4\n\n\nNotice that in order to add an array to ex, b must belong to the codomain  of the associated AbstractOperator of ex. \n\njulia> b = randn(10);\n\njulia> size(b), eltype(b)\n((10,), Float64)\n\njulia> size(operator(ex),1), codomainType(operator(ex))\n((10,), Float64)\n\njulia> ex + b\n\n\n\n\n"
+    "text": "+(ex1::AbstractExpression, ex2::AbstractExpression)\n\nAdd two expressions. \n\nExamples\n\njulia> x,y = Variable(5), Variable(5)\n(Variable(Float64, (5,)), Variable(Float64, (5,)))\n\njulia> ex1 = x+y\n\njulia> z = Variable(2)\nVariable(Float64, (2,))\n\njulia> ex2 = randn(5,2)*z\n\n\nNotice that in order for two expressions to be added toghether their associated AbstractOperator  must have the same codomain:\n\njulia> operator(ex1)\n[I,I]  ℝ^5  ℝ^5 -> ℝ^5 \n\njulia> operator(ex2)\n▒  ℝ^2 -> ℝ^5 \n\njulia> ex3 = ex1 + ex2\n\n\nIt is also possible to use broadcasted addition:\n\njulia> z = Variable(1)\nVariable(Float64, (1,))\n\njulia> ex3.+z\n\n\n\n\n+(ex::AbstractExpression, b::Union{AbstractArray,Number})\n\nAdd a scalar or an Array to an expression: \n\nExample\n\njulia> x = Variable(10)\nVariable(Float64, (10,))\n\njulia> ex = x+4\n\n\nNotice that in order to add an array to ex, b must belong to the codomain  of the associated AbstractOperator of ex. \n\njulia> b = randn(10);\n\njulia> size(b), eltype(b)\n((10,), Float64)\n\njulia> size(affine(ex),1), codomainType(affine(ex))\n((10,), Float64)\n\njulia> ex + b\n\n\n\n\n"
 },
 
 {
@@ -189,7 +189,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Expressions",
     "title": "Base.:*",
     "category": "function",
-    "text": "*(A::AbstractOperator, ex::AbstractExpression)\n\nMultiply an \'AbstractExpressionby anAbstractOperator`. \n\nExample\n\njulia> A = FiniteDiff(Float64, (10,))\nδx  ℝ^10 -> ℝ^9\n\njulia> x = Variable(10);\n\njulia> ex = A*x;\n\njulia> B = DCT(9)\nℱc  ℝ^9 -> ℝ^9\n\njulia> ex2 = B*ex;\n\njulia> operator(ex2)\nℱc*δx  ℝ^10 -> ℝ^9\n\n\n\n*(A::AbstractMatrix, ex::AbstractExpression)\n\nMultiply an AbstractExpression by an AbstractMatrix. \n\njulia> A = randn(10,5);\n\njulia> x = Variable(5)\nVariable(Float64, (5,))\n\njulia> A*x\n\n\nOther types of multiplications are also possible:\n\nleft array multiplication\njulia> X = Variable(10,5)\nVariable(Float64, (10, 5))\n\njulia> X*randn(5,6)\n\nscalar multiplication:\njulia> π*X\n\nelementwise multiplication:\njulia> randn(10,5).*X\n\n\n\n\n*(A::AbstractExpression, ex::AbstractExpression)\n\nMultiply an AbstractExpression by another AbstractExpression. \n\nExamples\n\njulia> W1 = Variable(10,5)\nVariable(Float64, (10, 5))\n\njulia> W2 = Variable(5,15)\nVariable(Float64, (5, 15))\n\njulia> ex = W1*σ(W2);\n\njulia> operator(ex)\nI*σ  ℝ^(10, 5)  ℝ^(5, 15) -> ℝ^(10, 15)\n\n\n\n\n"
+    "text": "*(A::AbstractOperator, ex::AbstractExpression)\n\nMultiply an \'AbstractExpressionby anAbstractOperator`. \n\nExample\n\njulia> A = FiniteDiff(Float64, (10,))\nδx  ℝ^10 -> ℝ^9\n\njulia> x = Variable(10);\n\njulia> ex = A*x;\n\njulia> B = DCT(9)\nℱc  ℝ^9 -> ℝ^9\n\njulia> ex2 = B*ex;\n\njulia> affine(ex2)\nℱc*δx  ℝ^10 -> ℝ^9\n\n\n\n*(A::AbstractMatrix, ex::AbstractExpression)\n\nMultiply an AbstractExpression by an AbstractMatrix. \n\njulia> A = randn(10,5);\n\njulia> x = Variable(5)\nVariable(Float64, (5,))\n\njulia> A*x\n\n\nOther types of multiplications are also possible:\n\nleft array multiplication\njulia> X = Variable(10,5)\nVariable(Float64, (10, 5))\n\njulia> X*randn(5,6)\n\nscalar multiplication:\njulia> π*X\n\nelementwise multiplication:\njulia> randn(10,5).*X\n\n\n\n\n*(A::AbstractExpression, ex::AbstractExpression)\n\nMultiply an AbstractExpression by another AbstractExpression. \n\nExamples\n\njulia> W1 = Variable(10,5)\nVariable(Float64, (10, 5))\n\njulia> W2 = Variable(5,15)\nVariable(Float64, (5, 15))\n\njulia> ex = W1*σ(W2);\n\njulia> affine(ex)\nI*σ  ℝ^(10, 5)  ℝ^(5, 15) -> ℝ^(10, 15)\n\n\n.*(A::AbstractExpression, ex::AbstractExpression)\n\nElementwise multiplication between AbstractExpression (i.e. Hadamard product). \n\n\n\n"
 },
 
 {
@@ -353,6 +353,54 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "expressions.html#Base.sin",
+    "page": "Expressions",
+    "title": "Base.sin",
+    "category": "function",
+    "text": "sin(x::AbstractExpression)\n\nSine function:\n\nsin( mathbfx  )\n\nSee documentation of AbstractOperator.Sin.  \n\n\n\n"
+},
+
+{
+    "location": "expressions.html#Base.cos",
+    "page": "Expressions",
+    "title": "Base.cos",
+    "category": "function",
+    "text": "cos(x::AbstractExpression)\n\nCosine function:\n\ncos( mathbfx  )\n\nSee documentation of AbstractOperator.Cos.  \n\n\n\n"
+},
+
+{
+    "location": "expressions.html#Base.atan",
+    "page": "Expressions",
+    "title": "Base.atan",
+    "category": "function",
+    "text": "atan(x::AbstractExpression)\n\nInverse tangent function:\n\ntan^-1( mathbfx  )\n\nSee documentation of AbstractOperator.Atan.  \n\n\n\n"
+},
+
+{
+    "location": "expressions.html#Base.tanh",
+    "page": "Expressions",
+    "title": "Base.tanh",
+    "category": "function",
+    "text": "tanh(x::AbstractExpression)\n\nHyperbolic tangent function:\n\ntanh ( mathbfx  )\n\nSee documentation of AbstractOperator.Tanh.  \n\n\n\n"
+},
+
+{
+    "location": "expressions.html#Base.exp",
+    "page": "Expressions",
+    "title": "Base.exp",
+    "category": "function",
+    "text": "exp(x::AbstractExpression)\n\nExponential function:\n\ne^ mathbfx  \n\nSee documentation of AbstractOperator.Exp.  \n\n\n\n"
+},
+
+{
+    "location": "expressions.html#StructuredOptimization.pow",
+    "page": "Expressions",
+    "title": "StructuredOptimization.pow",
+    "category": "function",
+    "text": "pow(x::AbstractExpression, n)\n\nElementwise power \'n\' of \'x\':\n\nx_i^n  forall   i = 01 dots\n\nSee documentation of AbstractOperator.Pow.  \n\n\n\n"
+},
+
+{
     "location": "expressions.html#StructuredOptimization.sigmoid",
     "page": "Expressions",
     "title": "StructuredOptimization.sigmoid",
@@ -365,7 +413,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Expressions",
     "title": "Nonlinear mappings",
     "category": "section",
-    "text": "sigmoid"
+    "text": "sin\ncos\natan\ntanh\nexp\npow\nsigmoid"
 },
 
 {
@@ -385,9 +433,17 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "expressions.html#StructuredOptimization.displacement",
+    "location": "expressions.html#StructuredOptimization.affine",
     "page": "Expressions",
-    "title": "StructuredOptimization.displacement",
+    "title": "StructuredOptimization.affine",
+    "category": "function",
+    "text": "affine(ex::Expression)\n\nReturns the AbstractOperator of expression ex keeping any affine addition.\n\n\n\n"
+},
+
+{
+    "location": "expressions.html#AbstractOperators.displacement",
+    "page": "Expressions",
+    "title": "AbstractOperators.displacement",
     "category": "function",
     "text": "displacement(ex::Expression)\n\nReturns the displacement of expression ex.\n\nExample\n\njulia> x = Variable(3)\nVariable(Float64, (3,))\n\njulia> ex = fft(x)+[1.+im*2.;0.;3.+im*4];\n\njulia> displacement(ex)\n3-element Array{Complex{Float64},1}:\n 1.0+2.0im\n 0.0+0.0im\n 3.0+4.0im\n\n\n\n\n"
 },
@@ -397,7 +453,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Expressions",
     "title": "Utilities",
     "category": "section",
-    "text": "It is possible to access the variables, mappings and displacement of an expression. Notice that these commands work also for the Terms described in Functions and constraints.variables\noperator\ndisplacement"
+    "text": "It is possible to access the variables, mappings and displacement of an expression. Notice that these commands work also for the Terms described in Functions and constraints.variables\noperator\naffine\nAbstractOperators.displacement"
 },
 
 {
