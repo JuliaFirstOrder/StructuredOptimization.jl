@@ -3,7 +3,7 @@ export variables, operator, affine
 import Base: convert
 import AbstractOperators: displacement
 
-convert{T,N,A}(::Type{Expression},x::Variable{T,N,A}) =
+convert(::Type{Expression},x::Variable{T,N,A}) where {T,N,A} =
 Expression{1}((x,),Eye(T,size(x)))
 
 """

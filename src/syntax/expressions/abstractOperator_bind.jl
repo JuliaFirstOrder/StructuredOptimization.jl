@@ -24,7 +24,16 @@ function reshape(a::AbstractExpression, dims...)
 end
 #Reshape
 
-imported = [:getindex :GetIndex;
+imported = [
+            :getindex :GetIndex;
+            :exp      :Exp;
+            :cos      :Cos;
+            :sin      :Sin;
+            :atan     :Atan;
+            :tanh     :Tanh;
+           ]
+
+exported = [
             :fft      :DFT;
             :rfft     :RDFT;
             :irfft    :IRDFT;
@@ -34,14 +43,7 @@ imported = [:getindex :GetIndex;
             :conv     :Conv;
             :xcorr    :Xcorr;
             :filt     :Filt;
-            :exp      :Exp;
-            :cos      :Cos;
-            :sin      :Sin;
-            :atan     :Atan;
-            :tanh     :Tanh;
-           ]
-
-exported = [:finitediff :FiniteDiff;
+            :finitediff :FiniteDiff;
             :variation  :Variation;
             :mimofilt   :MIMOFilt;
             :zeropad    :ZeroPad;
