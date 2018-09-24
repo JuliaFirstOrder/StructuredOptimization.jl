@@ -1,4 +1,4 @@
-srand(0)
+Random.seed!(0)
 
 ################################################################################
 ### Regularized least squares, with two variable blocks to make things weird
@@ -62,17 +62,17 @@ grad2 = A2'*res
 ind1_zero = (~x1_fpg .== 0)
 subgr1 = lam1*sign.(~x1_fpg)
 subdiff1_low, subdiff1_upp = copy(subgr1), copy(subgr1)
-subdiff1_low[ind1_zero] = -lam1
-subdiff1_upp[ind1_zero] = +lam1
+subdiff1_low[ind1_zero] .= -lam1
+subdiff1_upp[ind1_zero] .= +lam1
 subgr2 = lam2*(~x2_fpg/norm(~x2_fpg, 2))
 
 @test maximum(subdiff1_low + grad1) <= 1e-6
 @test maximum(-subdiff1_upp - grad1) <= 1e-6
 @test norm(grad2 + subgr2) <= 1e-6
 
-################################################################################
-### Lasso problem with known solution
-################################################################################
+###############################################################################
+## Lasso problem with known solution
+###############################################################################
 
 println("Testing: lasso problem with known solution")
 
@@ -80,7 +80,7 @@ m, n, nnz_x_star = 200, 100, 10
 A = randn(m, n)
 lam = 1.0
 x_star = randn(n)
-x_star[nnz_x_star+1:end] = 0.0
+x_star[nnz_x_star+1:end] .= 0.0
 y_star = lam*sign.(x_star)
 b = A*x_star + A'\y_star
 @test norm(A'*(A*x_star - b) + lam*sign.(x_star)) <= 1e-12
@@ -139,7 +139,7 @@ m, n, nnz_x_orig = 200, 500, 10
 A = randn(m, n)
 lam = 1.0
 x_orig = randn(n)
-x_orig[nnz_x_orig+1:end] = 0.0
+x_orig[nnz_x_orig+1:end] .= 0.0
 b = A*x_orig + randn(m)
 
 # Solve with PG
@@ -271,9 +271,9 @@ println("Testing: non-negative least-squares from a known solution")
 m, n, nnz_x_star = 500, 200, 100
 A = randn(m, n)
 x_star = rand(n)
-x_star[nnz_x_star+1:end] = 0.0
+x_star[nnz_x_star+1:end] .= 0.0
 y_star = -rand(n)
-y_star[1:nnz_x_star] = 0.0
+y_star[1:nnz_x_star] .= 0.0
 b = A*x_star + A'\y_star
 
 # Solve with PG

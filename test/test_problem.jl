@@ -1,4 +1,4 @@
-@printf("\nTesting extraction from Terms\n")
+println("\nTesting extraction from Terms\n")
 
 # testing extracting stuff from terms
 
@@ -106,7 +106,7 @@ V = StructuredOptimization.extract_operators(xAll,cf)
 @test typeof(V[6][4]) <: Zeros
 @test typeof(V[6][5]) <: Eye
 
-@printf("\nTesting splitting Terms\n")
+println("\nTesting splitting Terms\n")
 
 x = Variable(5)
 y = Variable(5)
@@ -134,7 +134,7 @@ fq, fs = StructuredOptimization.split_quadratic(cf)
 @test fs[1] == cf[1]
 @test fq[1] == cf[2]
 
-@printf("\nTesting extracting Proximable functions\n")
+println("\nTesting extracting Proximable functions\n")
 # testing is_proximable
 @test StructuredOptimization.is_proximable(AAc) == true
 @test StructuredOptimization.is_proximable(nonAAc) == false

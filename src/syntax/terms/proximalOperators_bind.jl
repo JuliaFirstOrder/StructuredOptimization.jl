@@ -26,7 +26,7 @@ f(\\mathbf{X}) = \\sum_i \\| \\mathbf{x}_i \\|
 where ``\\mathbf{x}_i`` is the ``i``-th column if `dim == 1` (or row if  `dim == 2`) of ``\\mathbf{X}``.
 
 """
-function norm(ex::AbstractExpression, p=2)
+function norm(ex::AbstractExpression, p::Real=2)
 	if p == 0
 		f = NormL0()
 	elseif p == 1
@@ -345,16 +345,15 @@ Equalities constraints
 Term(IndBinary(lu...), ex)
 # IndBinary
 
-# weird error!!?
+## weird error!!?
 ## IndAffine
 #function (==)(ex::AbstractExpression, b::Union{Real,AbstractArray}) 
-#    op = operator(ex,true)
+#    op = operator(ex)
 #    d  = displacement(ex)
 #    if typeof(op) <: MatrixOp
-#        println("ciao")
 #        A = op.A
 #        bb = b.-d
-#        p = ProximalOperators.IndAffineIterative(A, bb)
+#        p = IndAffine(A, bb)
 #    #    # very weird error!
 #        return Term(p, variables(ex)[1])
 #    else

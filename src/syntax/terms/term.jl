@@ -87,8 +87,6 @@ is_strongly_convex(t::Term) = is_strongly_convex(t.f) && is_full_column_rank(ope
 include("proximalOperators_bind.jl")
 
 # other stuff, to make Term work with iterators
-import Base: start, next, done, isempty
-start(t::Term) = false
-next(t::Term, state) = (t, true)
-done(t::Term, state) =  state
+import Base: iterate, isempty
+iterate(t::Term, state = true) = state ? (t, false) : nothing
 isempty(t::Term) =  false

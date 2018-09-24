@@ -1,4 +1,3 @@
-
 println("\nTesting linear expressions\n")
 
 #### * ####
@@ -230,7 +229,7 @@ x1 = Variable(randn(1))
 x2 = Variable(randn(n))
 ex1 = (x1+2).-(x2+b) 
 @test norm(operator(ex1)*(~x1,~x2)-((~x1).-(~x2))) < 1e-9
-@test displacement(ex1) == (2. -b)
+@test displacement(ex1) == (2 .-b)
 
 x1 = Variable(randn(n))
 x2 = Variable(randn(1))

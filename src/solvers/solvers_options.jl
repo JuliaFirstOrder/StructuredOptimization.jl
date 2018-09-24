@@ -22,7 +22,7 @@ Creates an object `PG` containing the options of the Proximal Gradient solvers:
 
 """
 struct PG <: ForwardBackwardSolver
-    kwargs::Array
+    kwargs::Iterators.Pairs
     function PG(; kwargs...)
         new(kwargs)
     end
@@ -61,7 +61,7 @@ Creates an object `ZeroFPR` containing the options of the ZeroFPR solver:
 
 """
 struct ZeroFPR <: ForwardBackwardSolver
-    kwargs::Array
+    kwargs::Iterators.Pairs
     function ZeroFPR(; kwargs...)
         new(kwargs)
     end
@@ -90,7 +90,7 @@ Creates an object `PANOC` containing the options of the PANOC solver:
 
 """
 struct PANOC <: ForwardBackwardSolver
-    kwargs::Array
+    kwargs::Iterators.Pairs
     function PANOC(; kwargs...)
         new(kwargs)
     end

@@ -1,4 +1,4 @@
-@printf("\n Testing solver build \n")
+println("\n Testing solver build \n")
 
 x = Variable(10)
 A = randn(5, 10)
@@ -15,7 +15,7 @@ prob = problem(ls(A*x - B*y + b) + norm(y, 1), norm(x, 2) <= 1.0)
 built_slv = build(prob, FPG())
 solve!(built_slv)
 
-@printf("\n Testing @minimize \n")
+println("\n Testing @minimize \n")
 ~x .= 0.
 ~y .= 0.
 slv, = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with PG()
@@ -35,7 +35,7 @@ x = Variable(5)
 A = randn(10, 5)
 b = randn(10)
 
-@printf("\nTesting @minimize nonlinear \n")
+println("\nTesting @minimize nonlinear \n")
 slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PG()
 xpg = copy(~x)
 ~x .= 0.
@@ -52,7 +52,7 @@ xp = copy(~x)
 # test nonconvex Rosenbrock function with known minimum
 solvers = ["ZeroFPR(tol = 1e-6)","PANOC(tol = 1e-6)"]
 for slv in solvers
-    solver = eval(parse(slv))
+    solver = eval(Meta.parse(slv))
     x = Variable(1)
     y = Variable(1)
     a,b = 2.0, 100.0

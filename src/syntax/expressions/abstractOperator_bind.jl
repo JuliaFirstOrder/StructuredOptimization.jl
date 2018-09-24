@@ -33,16 +33,22 @@ imported = [
             :tanh     :Tanh;
            ]
 
-exported = [
-            :fft      :DFT;
+importedFFTW = [
+            :fft      :(AbstractOperators.DFT);
             :rfft     :RDFT;
             :irfft    :IRDFT;
             :ifft     :IDFT;
             :dct      :DCT;
             :idct     :IDCT;
+           ]
+
+importedDSP = [
             :conv     :Conv;
             :xcorr    :Xcorr;
             :filt     :Filt;
+           ]
+
+exported = [
             :finitediff :FiniteDiff;
             :variation  :Variation;
             :mimofilt   :MIMOFilt;
@@ -58,6 +64,18 @@ for f in  imported[:,1]
 		import Base: $f
 	end
 end
+#importing functions from FFTW
+for f in  importedFFTW[:,1]
+	@eval begin
+		import FFTW: $f
+	end
+end
+#importing functions from DSP
+for f in  importedDSP[:,1]
+	@eval begin
+		import DSP: $f
+	end
+end
 #exporting functions
 for f in  exported[:,1]
 	@eval begin
@@ -65,7 +83,7 @@ for f in  exported[:,1]
 	end
 end
 
-fun = [imported; exported]
+fun = [imported; importedFFTW; importedDSP; exported]
 for i = 1:size(fun,1)
 	f,fAbsOp = fun[i,1],fun[i,2]
 	@eval begin

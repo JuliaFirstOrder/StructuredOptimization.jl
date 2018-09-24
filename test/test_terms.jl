@@ -1,4 +1,4 @@
-@printf("\nTesting cost terms\n")
+println("\nTesting cost terms\n")
 
 # Simple Terms
 
@@ -41,11 +41,11 @@ cf = pi*norm(x,2)
 
 cf = 3*norm(X,2,1)
 @test cf.lambda - 3 == 0
-@test cf.f(~X) == sum(sqrt.(sum((~X).^2,1))) 
+@test cf.f(~X) == sum(  sqrt.(sum((~X).^2, dims=1 )) ) 
 
 cf = 4*norm(X,2,1,2)
 @test cf.lambda - 4 == 0
-@test cf.f(~X) == sum(sqrt.(sum((~X).^2,2))) 
+@test cf.f(~X) == sum(  sqrt.(sum((~X).^2, dims=2 )) ) 
 
 @test_throws ErrorException 4*norm(X,1,2)
 
@@ -128,7 +128,7 @@ cf = logisticloss(x,y)
 @test cf.f(~x) == (LogisticLoss(y))(~x)
 
 xp = Variable(rand(10)) 
-bp = rand(size(~xp))
+bp = rand(Float64, size(~xp))
 cf = crossentropy(xp,bp)
 @test cf.lambda == 1
 @test cf.f(~xp) == (CrossEntropy(bp))(~xp)
@@ -166,7 +166,7 @@ cf = x == lu
 #cf = A*x-b == 0
 #@test cf.lambda == 1
 #@test cf.f(~x) == (IndAffine(A,b))(~x)
-
+#
 #cf = (A*x == b)
 #@test cf.lambda == 1
 #@test cf.f(~x) == (IndAffine(A,-b))(~x)
