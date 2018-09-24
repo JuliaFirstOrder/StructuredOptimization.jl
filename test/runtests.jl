@@ -2,7 +2,7 @@ using StructuredOptimization
 using AbstractOperators
 using AbstractOperators.BlockArrays
 using ProximalOperators
-using Random
+using LinearAlgebra, Random
 using DSP, FFTW
 using Test
 
