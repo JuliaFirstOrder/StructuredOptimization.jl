@@ -172,10 +172,10 @@ export huberloss
 
 Applies the Huber loss function: 
 ```math
-f(\\mathbf{x}) = \\begin\\{cases\\}
-  \\tfrac{1}{2}\\| \\mathbf{x} \\|^2 & \\text{if}\\ \\| \\mathbf{x} \\| \\leq \\rho \\\\
+f(\\mathbf{x}) = \\begin{cases}
+  \\tfrac{1}{2}\\| \\mathbf{x} \\|^2 & \\text{if} \\ \\| \\mathbf{x} \\| \\leq \\rho \\\\
   \\rho (\\| \\mathbf{x} \\| - \\tfrac{\\rho}{2}) & \\text{otherwise}.
-\\end\\{cases\\}
+\\end{cases}
 ```
 """
 huberloss(ex::AbstractExpression, rho::R = 1.0) where {R <: Real} =
@@ -243,7 +243,7 @@ Inequalities constrains
 
 * `norm(x::AbstractExpression, Inf) <= r::Number` 
 
-  `` \\max{x_1, x_2, \\dots}  \\leq r``
+  `` \\max \\{ x_1, x_2, \\dots \\}  \\leq r``
 
 ## Box inequality constraints
 
