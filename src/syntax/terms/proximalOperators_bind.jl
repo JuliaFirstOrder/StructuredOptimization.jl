@@ -1,6 +1,6 @@
 # Norms
 
-import Base: norm
+import LinearAlgebra: norm
 
 """
 `norm(x::AbstractExpression, p=2, [q,] [dim=1])`
@@ -26,7 +26,7 @@ f(\\mathbf{X}) = \\sum_i \\| \\mathbf{x}_i \\|
 where ``\\mathbf{x}_i`` is the ``i``-th column if `dim == 1` (or row if  `dim == 2`) of ``\\mathbf{X}``.
 
 """
-function norm(ex::AbstractExpression, p=2)
+function norm(ex::AbstractExpression, p::Real=2)
 	if p == 0
 		f = NormL0()
 	elseif p == 1
@@ -75,7 +75,7 @@ ls(ex) = Term(SqrNormL2(), ex)
 
 import Base: ^
 
-function (^){T1, T2  <: NormL2, T3}(t::Term{T1,T2,T3}, exp::Integer)
+function (^)(t::Term{T1,T2,T3}, exp::Integer) where {T1, T2  <: NormL2, T3}
 	if exp == 2
 		# The coefficient 2.0 is due to the fact that SqrNormL2 divides by 2.0
 		return t.lambda^2*Term(SqrNormL2(2.0), t.A)
@@ -172,10 +172,10 @@ export huberloss
 
 Applies the Huber loss function: 
 ```math
-f(\\mathbf{x}) = \\begin\{cases\}
-  \\tfrac{1}{2}\\| \\mathbf{x} \\|^2 & \\text{if}\\ \\| \\mathbf{x} \\| \\leq \\rho \\\\
+f(\\mathbf{x}) = \\begin{cases}
+  \\tfrac{1}{2}\\| \\mathbf{x} \\|^2 & \\text{if} \\ \\| \\mathbf{x} \\| \\leq \\rho \\\\
   \\rho (\\| \\mathbf{x} \\| - \\tfrac{\\rho}{2}) & \\text{otherwise}.
-\\end\{cases\}
+\\end{cases}
 ```
 """
 huberloss(ex::AbstractExpression, rho::R = 1.0) where {R <: Real} =
@@ -207,7 +207,7 @@ f(\\mathbf{x}) = \\sum_i \\max \\{x_i, 0\\}.
 sumpositive(ex::AbstractExpression) =
 Term(SumPositive(), ex)
 
-import Base: dot
+import LinearAlgebra: dot
 
 """
 `dot(c::AbstractVector, x::AbstractExpression)`
@@ -235,7 +235,7 @@ Inequalities constrains
 
 * `norm(x::AbstractExpression, 1) <= r::Number` 
 
-  ``\\sum_i \| x_i \| \\leq r``
+  ``\\sum_i \\| x_i \\| \\leq r``
 
 * `norm(x::AbstractExpression, 2) <= r::Number` 
 
@@ -243,7 +243,7 @@ Inequalities constrains
 
 * `norm(x::AbstractExpression, Inf) <= r::Number` 
 
-  `` \\max{x_1, x_2, \\dots}  \\leq r``
+  `` \\max \\{ x_1, x_2, \\dots \\}  \\leq r``
 
 ## Box inequality constraints
 
@@ -290,7 +290,7 @@ end
 
 # Rank constraints
 
-import Base: rank
+import LinearAlgebra: rank
 
 # Dirty trick: the "rank" function only makes sense in constraints such as
 #   rank(X) <= r,
@@ -298,7 +298,7 @@ import Base: rank
 # We should probably fix this: it allows weird things in expressing problems.
 # Maybe we should have Rank <: ProximableFunction (with no prox! nor gradient!
 # defined), that gives IndBallRank when combined with <=.
-immutable Rank <: ProximableFunction end
+struct Rank <: ProximableFunction end
 rank(ex::AbstractExpression) = Term(Rank(), ex)
 
 import Base: <=
@@ -345,16 +345,15 @@ Equalities constraints
 Term(IndBinary(lu...), ex)
 # IndBinary
 
-# weird error!!?
+## weird error!!?
 ## IndAffine
 #function (==)(ex::AbstractExpression, b::Union{Real,AbstractArray}) 
-#    op = operator(ex,true)
+#    op = operator(ex)
 #    d  = displacement(ex)
 #    if typeof(op) <: MatrixOp
-#        println("ciao")
 #        A = op.A
 #        bb = b.-d
-#        p = ProximalOperators.IndAffineIterative(A, bb)
+#        p = IndAffine(A, bb)
 #    #    # very weird error!
 #        return Term(p, variables(ex)[1])
 #    else

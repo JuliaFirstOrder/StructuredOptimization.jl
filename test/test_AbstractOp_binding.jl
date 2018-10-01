@@ -1,5 +1,4 @@
-
-@printf("\nTesting AbstractOperators binding\n")
+println("\nTesting AbstractOperators binding\n")
 
 # MatrixOp
 n,m = 3,4
@@ -53,7 +52,7 @@ ex = x[1:2]
 
 # DFT
 n = 5
-op = DFT(Float64,(n,))
+op = AbstractOperators.DFT(Float64,(n,))
 x = Variable(randn(n))
 ex = fft(x)
 @test norm(operator(ex)*(~x)-op*(~x)) <1e-12

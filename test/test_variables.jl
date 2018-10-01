@@ -1,5 +1,4 @@
-
-@printf("\nTesting variables\n")
+println("\nTesting variables\n")
 
 n, m, k = 3, 4, 5
 x1t = Variable(Float32, n)

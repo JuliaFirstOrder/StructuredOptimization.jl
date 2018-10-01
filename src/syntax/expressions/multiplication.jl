@@ -83,12 +83,12 @@ function (*)(M::AbstractMatrix, a::T) where {T<:AbstractExpression}
 end
 #MatrixOp
 
-function Base.broadcast(::typeof(*), d::D, a::T) where {D <: Union{Number,AbstractArray}, T<:AbstractExpression}
+function Broadcast.broadcasted(::typeof(*), d::D, a::T) where {D <: Union{Number,AbstractArray}, T<:AbstractExpression}
 	A = convert(Expression,a)
 	op = DiagOp(codomainType(affine(A)),size(affine(A),1),d)
 	return op*A
 end
-Base.broadcast(::typeof(*), a::T, d::D) where {D <: Union{Number,AbstractArray}, T<:AbstractExpression} = 
+Broadcast.broadcasted(::typeof(*), a::T, d::D) where {D <: Union{Number,AbstractArray}, T<:AbstractExpression} = 
 d.*a
 #DiagOp
 
@@ -138,7 +138,7 @@ function (*)(ex1::AbstractExpression, ex2::AbstractExpression)
 end
 # NonLinearCompose
 
-function Base.broadcast(::typeof(*), ex1::AbstractExpression, ex2::AbstractExpression) 
+function Broadcast.broadcasted(::typeof(*), ex1::AbstractExpression, ex2::AbstractExpression) 
     ex1 = convert(Expression,ex1)
 	ex2 = convert(Expression,ex2)
     if any([x in variables(ex2) for x in variables(ex1)])

@@ -4,7 +4,7 @@
 #
 # Splits cost function into `SmoothFunction` and `NonSmoothFunction` terms.
 # """
-# split_smooth(cf::Vararg{Term}) = cf[find(is_smooth(cf))],cf[find((!).(is_smooth(cf)))]
+# split_smooth(cf::Vararg{Term}) = cf[findall(is_smooth(cf))],cf[findall((!).(is_smooth(cf)))]
 # split_smooth{N}(cf::NTuple{N,Term}) = split_smooth(cf...)
 #
 # """
@@ -12,7 +12,7 @@
 #
 # Splits cost function into terms with L'*L diagonal operator.
 # """
-# split_AAc_diagonal(cf::Vararg{Term}) = cf[find(is_AAc_diagonal(cf))],cf[find((!).(is_AAc_diagonal(cf)))]
+# split_AAc_diagonal(cf::Vararg{Term}) = cf[findall(is_AAc_diagonal(cf))],cf[findall((!).(is_AAc_diagonal(cf)))]
 # split_AAc_diagonal{N}(cf::NTuple{N,Term}) = split_AAc_diagonal(cf...)
 #
 # #""" TODO
@@ -22,10 +22,10 @@
 # #"""
 
 split_smooth(terms::Tuple) =
-    terms[find(is_smooth.(terms))], terms[find((!).(is_smooth.(terms)))]
+    terms[findall(is_smooth.(terms))], terms[findall((!).(is_smooth.(terms)))]
 
 split_quadratic(terms::Tuple) =
-    terms[find(is_quadratic.(terms))], terms[find((!).(is_quadratic.(terms)))]
+    terms[findall(is_quadratic.(terms))], terms[findall((!).(is_quadratic.(terms)))]
 
 split_AAc_diagonal(terms::Tuple) =
-    terms[find(is_AAc_diagonal.(terms))], terms[find((!).(is_AAc_diagonal.(terms)))]
+    terms[findall(is_AAc_diagonal.(terms))], terms[findall((!).(is_AAc_diagonal.(terms)))]

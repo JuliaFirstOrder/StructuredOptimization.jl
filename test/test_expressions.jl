@@ -1,5 +1,4 @@
-
-@printf("\nTesting linear expressions\n")
+println("\nTesting linear expressions\n")
 
 #### * ####
 n, m1, m2, k = 3, 4, 5, 6
@@ -57,7 +56,7 @@ ex = (opA1*x1)*(opA2*x2+b2)
 ex = (opA1*x1+b1)*(opA2*x2+b2)
 @test variables(ex) == (x1,x2)
 @test norm(affine(ex)*(~x1,~x2) - (A1*(~x1)+b1)*(A2*(~x2)+b2)) < 1e-12
-@test_throws ErrorException ex = (opA1*x1)*(opA1*x1)
+@test_throws ErrorException (opA1*x1)*(opA1*x1)
 
 n, m1, m2, k = 3, 4, 5, 6
 A1 = randn(n, m1)
@@ -80,7 +79,7 @@ ex = (opA1*x1).*(opA2*x2+b2)
 ex = (opA1*x1+b1).*(opA2*x2+b2)
 @test variables(ex) == (x1,x2)
 @test norm(affine(ex)*(~x1,~x2) - (A1*(~x1)+b1).*(A2*(~x2)+b2)) < 1e-12
-@test_throws ErrorException ex = (opA1*x1)*(opA1*x1)
+@test_throws ErrorException (opA1*x1)*(opA1*x1)
 
 ##### reshape ####
 m,n = 8,10
@@ -90,16 +89,16 @@ b = randn(n)
 B = reshape(b,2,5)
 
 ex = reshape(x,4,2)
-@test vecnorm(operator(ex)*~x - reshape(~x,4,2)) < 1e-12
+@test norm(operator(ex)*~x - reshape(~x,4,2)) < 1e-12
 
 ex2 = reshape(A*x,2,5)
-@test vecnorm(operator(ex2)*~x - reshape(A*~x,2,5)) < 1e-12
+@test norm(operator(ex2)*~x - reshape(A*~x,2,5)) < 1e-12
 
 ex3 = reshape(A*x,2,5)+B
-@test vecnorm(operator(ex2)*~x+displacement(ex3)- reshape(A*~x,2,5)-B) < 1e-12
+@test norm(operator(ex2)*~x+displacement(ex3)- reshape(A*~x,2,5)-B) < 1e-12
 
 ex4 = reshape(A*x-b,2,5)
-@test vecnorm(operator(ex4)*~x+displacement(ex4)- reshape(A*~x-b,2,5)) < 1e-12
+@test norm(operator(ex4)*~x+displacement(ex4)- reshape(A*~x-b,2,5)) < 1e-12
 
 #### + ####
 
@@ -163,7 +162,7 @@ ex2 = opB*xb+b0
 
 # (+) sum displacemented expressions
 ex3 = ex1+ex2
-@test norm(displacement(ex3) - (b+b0)) == 0.
+@test norm(displacement(ex3) - (b.+b0)) == 0.
 
 #### (.+) sum 
 n = 3
@@ -230,7 +229,7 @@ x1 = Variable(randn(1))
 x2 = Variable(randn(n))
 ex1 = (x1+2).-(x2+b) 
 @test norm(operator(ex1)*(~x1,~x2)-((~x1).-(~x2))) < 1e-9
-@test displacement(ex1) == (2.-b)
+@test displacement(ex1) == (2 .-b)
 
 x1 = Variable(randn(n))
 x2 = Variable(randn(1))
@@ -289,7 +288,7 @@ ex2 = opB*xb-b0
 
 # (+) sum displacemented expressions
 ex3 = ex1-ex2
-@test norm(displacement(ex3) - (-b+b0)) == 0.
+@test norm(displacement(ex3) - (-b.+b0)) == 0.
 
 @test_throws DimensionMismatch MatrixOp(randn(10,20))*Variable(20)+randn(11)
 @test_throws ErrorException MatrixOp(randn(10,20))*Variable(20)+(3+im)

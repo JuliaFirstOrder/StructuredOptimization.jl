@@ -1,7 +1,7 @@
 # returns all variables of a cost function, in terms of appearance
 extract_variables(t::Term) = variables(t) 
 
-function extract_variables{N}(t::NTuple{N,Term})
+function extract_variables(t::NTuple{N,Term}) where {N}
 	x = variables.(t)
 	xAll = x[1]
 	for i = 2:length(x)
@@ -21,7 +21,7 @@ function extract_functions(t::Term)
 	#TODO change this
 	return f
 end
-extract_functions{N}(t::NTuple{N,Term}) = SeparableSum(extract_functions.(t))
+extract_functions(t::NTuple{N,Term}) where {N} = SeparableSum(extract_functions.(t))
 extract_functions(t::Tuple{Term}) = extract_functions(t[1])
 
 # extract functions from terms without displacement
@@ -29,7 +29,7 @@ function extract_functions_nodisp(t::Term)
 	f = t.lambda == 1. ? t.f : Postcompose(t.f, t.lambda)
 	return f
 end
-extract_functions_nodisp{N}(t::NTuple{N,Term}) = SeparableSum(extract_functions_nodisp.(t))
+extract_functions_nodisp(t::NTuple{N,Term}) where {N} = SeparableSum(extract_functions_nodisp.(t))
 extract_functions_nodisp(t::Tuple{Term}) = extract_functions_nodisp(t[1])
 
 # extract operators from terms
@@ -39,10 +39,10 @@ extract_functions_nodisp(t::Tuple{Term}) = extract_functions_nodisp(t[1])
 #single term, single variable
 extract_operators(xAll::Tuple{Variable}, t::Term)  = operator(t)
 
-extract_operators{N}(xAll::NTuple{N,Variable}, t::Term) = extract_operators(xAll, (t,))
+extract_operators(xAll::NTuple{N,Variable}, t::Term) where {N} = extract_operators(xAll, (t,))
 
 #multiple terms, multiple variables
-function extract_operators{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
+function extract_operators(xAll::NTuple{N,Variable}, t::NTuple{M,Term}) where {N,M}
 	ops = ()
 	for ti in t
 		tex = expand(xAll,ti)
@@ -53,7 +53,7 @@ end
 
 sort_and_extract_operators(xAll::Tuple{Variable}, t::Term) = operator(t)
 
-function sort_and_extract_operators{N}(xAll::NTuple{N,Variable}, t::Term)
+function sort_and_extract_operators(xAll::NTuple{N,Variable}, t::Term) where {N}
 	p = zeros(Int,N)
 	xL = variables(t)
 	for i in eachindex(xAll)
@@ -69,10 +69,10 @@ end
 #single term, single variable
 extract_affines(xAll::Tuple{Variable}, t::Term)  = affine(t)
 
-extract_affines{N}(xAll::NTuple{N,Variable}, t::Term) = extract_affines(xAll, (t,))
+extract_affines(xAll::NTuple{N,Variable}, t::Term) where {N} = extract_affines(xAll, (t,))
 
 #multiple terms, multiple variables
-function extract_affines{N,M}(xAll::NTuple{N,Variable}, t::NTuple{M,Term})
+function extract_affines(xAll::NTuple{N,Variable}, t::NTuple{M,Term}) where {N,M}
 	ops = ()
 	for ti in t
 		tex = expand(xAll,ti)
@@ -83,7 +83,7 @@ end
 
 sort_and_extract_affines(xAll::Tuple{Variable}, t::Term) = affine(t)
 
-function sort_and_extract_affines{N}(xAll::NTuple{N,Variable}, t::Term)
+function sort_and_extract_affines(xAll::NTuple{N,Variable}, t::Term) where {N}
 	p = zeros(Int,N)
 	xL = variables(t)
 	for i in eachindex(xAll)
@@ -93,7 +93,7 @@ function sort_and_extract_affines{N}(xAll::NTuple{N,Variable}, t::Term)
 end
 
 # expand term domain dimensions
-function expand{N,T1,T2,T3}(xAll::NTuple{N,Variable}, t::Term{T1,T2,T3})
+function expand(xAll::NTuple{N,Variable}, t::Term{T1,T2,T3}) where {N,T1,T2,T3}
 	xt   = variables(t)
 	C    = codomainType(operator(t))
 	size_out = size(operator(t),1)
@@ -165,4 +165,3 @@ end
 
 extract_proximable(xAll::Variable, t::Term) =  extract_merge_functions(t)
 extract_proximable(xAll::NTuple{N,Variable}, t::Term) where {N} = extract_proximable(xAll,(t,))
-

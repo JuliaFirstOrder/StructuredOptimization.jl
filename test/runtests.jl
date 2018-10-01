@@ -2,10 +2,11 @@ using StructuredOptimization
 using AbstractOperators
 using AbstractOperators.BlockArrays
 using ProximalOperators
-using Base.Test
-using Base.Profile
+using LinearAlgebra, Random
+using DSP, FFTW
+using Test
 
-srand(0)
+Random.seed!(0)
 
 @testset "StructuredOptimization" begin
 

@@ -2,6 +2,7 @@ __precompile__()
 
 module StructuredOptimization
 
+using LinearAlgebra
 using AbstractOperators
 using AbstractOperators.BlockArrays
 using ProximalOperators

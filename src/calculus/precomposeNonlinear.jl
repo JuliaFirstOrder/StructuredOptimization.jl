@@ -27,9 +27,9 @@ function (f::PrecomposeNonlinear)(x)
 end
 
 function gradient!(y::D, f::PrecomposeNonlinear{P,T,D,C}, x::D) where {P,T,D,C}
-    A_mul_B!(f.bufC, f.G, x)
+    mul!(f.bufC, f.G, x)
     v = gradient!(f.bufC2, f.g, f.bufC)
     J = Jacobian(f.G, x)
-    y = Ac_mul_B!(y, J, f.bufC2)
+    y = mul!(y, J', f.bufC2)
     return v
 end

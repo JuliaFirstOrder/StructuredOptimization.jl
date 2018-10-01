@@ -1,4 +1,4 @@
-using Documenter, StructuredOptimization
+using Documenter, StructuredOptimization, LinearAlgebra, DSP, AbstractFFTs, FFTW, AbstractOperators
 
 makedocs(
   modules = [StructuredOptimization],
@@ -17,7 +17,7 @@ makedocs(
 
 deploydocs(
   repo   = "github.com/kul-forbes/StructuredOptimization.jl.git",
-  julia  = "0.6",
+  julia  = "1.0",
   osname = "linux",
   target = "build",
   deps = nothing,

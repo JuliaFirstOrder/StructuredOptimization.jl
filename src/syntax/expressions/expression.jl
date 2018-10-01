@@ -1,4 +1,4 @@
-immutable Expression{N,A<:AbstractOperator} <: AbstractExpression
+struct Expression{N,A<:AbstractOperator} <: AbstractExpression
 	x::NTuple{N,Variable}
 	L::A
 	function Expression{N}(x::NTuple{N,Variable}, L::A) where {N,A<:AbstractOperator}

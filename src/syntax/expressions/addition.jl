@@ -95,7 +95,7 @@ function Usum_op(xA::NTuple{N,Variable},
 		 A::L1,
 		 B::AbstractOperator,sign::Bool) where {N, M, L1<:HCAT{M,N}}
 	if xB[1] in xA
-		idx = findfirst(xA.==xB[1])
+        idx = findfirst(xA.==Ref(xB[1]))
 		S = sign ? A[idx]+B : A[idx]-B
 		xNew = xA
 		opNew = hcat(A[1:idx-1],S,A[idx+1:N]  )
@@ -113,7 +113,7 @@ function Usum_op(xA::Tuple{Variable},
 		 A::AbstractOperator,
 		 B::L2,sign::Bool) where {N, M, L2<:HCAT{M,N}}
 	if xA[1] in xB
-		idx = findfirst(xA.==xB[1])
+        idx = findfirst(xA.==Ref(xB[1]))
 		S = sign ? A+B[idx] : B[idx]-A
 		xNew = xB
 		opNew = sign ? hcat(B[1:idx-1],S,B[idx+1:N]  ) : -hcat(B[1:idx-1],S,B[idx+1:N]  )
@@ -207,9 +207,8 @@ end
 # sum with array/scalar
 
 #broadcasted + -
-import Base: broadcast
 
-function broadcast(::typeof(+),a::AbstractExpression, b::AbstractExpression)
+function Broadcast.broadcasted(::typeof(+),a::AbstractExpression, b::AbstractExpression)
 	A = convert(Expression,a)
 	B = convert(Expression,b)
 	if size(affine(A),1) != size(affine(B),1)
@@ -225,7 +224,7 @@ function broadcast(::typeof(+),a::AbstractExpression, b::AbstractExpression)
 	return A+B
 end
 
-function broadcast(::typeof(-),a::AbstractExpression, b::AbstractExpression)
+function Broadcast.broadcasted(::typeof(-),a::AbstractExpression, b::AbstractExpression)
 	A = convert(Expression,a)
 	B = convert(Expression,b)
 	if size(affine(A),1) != size(affine(B),1)

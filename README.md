@@ -26,8 +26,11 @@ It supports complex variables as well.
 
 ## Installation
 
-From the Julia command line hit `Pkg.clone("https://github.com/kul-forbes/StructuredOptimization.jl.git")`.
-Once the package is installed you can update it along with the others issuing `Pkg.update()` in the command line.
+To install the package, hit `]` from the Julia command line to enter the package manager, then
+
+```julia
+pkg> add https://github.com/kul-forbes/StructuredOptimization.jl
+```
 
 ## Usage
 

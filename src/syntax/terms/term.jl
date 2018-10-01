@@ -1,11 +1,11 @@
-immutable Term{T1 <: Real, T2 <: ProximableFunction, T3 <: AbstractExpression}
+struct Term{T1 <: Real, T2 <: ProximableFunction, T3 <: AbstractExpression}
 	lambda::T1
 	f::T2
 	A::T3
 	Term(lambda::T1, f::T2, ex::T3) where {T1,T2,T3} = new{T1,T2,T3}(lambda,f,ex)
 end
 
-function Term{T<:ProximableFunction}(f::T, ex::AbstractExpression)
+function Term(f::T, ex::AbstractExpression) where {T<:ProximableFunction}
 	A = convert(Expression,ex)
 	Term(1,f, A)
 end
@@ -17,22 +17,22 @@ end
 import Base: +
 
 (+)(a::Term,b::Term) = (a,b)
-(+){N}(a::NTuple{N,Term},b::Term) = (a...,b)
-(+){N}(a::Term,b::NTuple{N,Term}) = (a,b...)
-(+){N}(a::NTuple{N,Term},b::Tuple{}) = a
-(+){N}(a::Tuple{},b::NTuple{N,Term}) = b
-(+){N,M}(a::NTuple{N,Term},b::NTuple{M,Term}) = (a...,b...)
+(+)(a::NTuple{N,Term},b::Term)    where {N} = (a...,b)
+(+)(a::Term,b::NTuple{N,Term})    where {N} = (a,b...)
+(+)(a::NTuple{N,Term},b::Tuple{}) where {N} = a
+(+)(a::Tuple{},b::NTuple{N,Term}) where {N} = b
+(+)(a::NTuple{N,Term},b::NTuple{M,Term}) where {N,M} = (a...,b...)
 
 # Define multiplication by constant
 
 import Base: *
 
-function (*){T1<:Real, T, T2, T3}(a::T1, t::Term{T,T2,T3})
+function (*)(a::T1, t::Term{T,T2,T3}) where {T1<:Real, T, T2, T3}
 	coeff = *(promote(a,t.lambda)...)
 	Term(coeff, t.f, t.A)
 end
 
-function (*){T1<:Real, N, T2 <: Tuple{Vararg{<:Term,N}} }(a::T1, t::T2)
+function (*)(a::T1, t::T2) where {T1<:Real, N, T2 <: Tuple{Vararg{<:Term,N}} }
 	return a.*t 
 end
 
@@ -75,7 +75,7 @@ for f in is_f
 	@eval begin
 		import AbstractOperators: $f
 		$f(t::Term) = $f(operator(t))
-		$f{N}(t::NTuple{N,Term}) = all($f.(t))
+		$f(t::NTuple{N,Term}) where {N} = all($f.(t))
 	end
 end
 
@@ -87,8 +87,6 @@ is_strongly_convex(t::Term) = is_strongly_convex(t.f) && is_full_column_rank(ope
 include("proximalOperators_bind.jl")
 
 # other stuff, to make Term work with iterators
-import Base: start, next, done, isempty
-start(t::Term) = false
-next(t::Term, state) = (t, true)
-done(t::Term, state) =  state
+import Base: iterate, isempty
+iterate(t::Term, state = true) = state ? (t, false) : nothing
 isempty(t::Term) =  false
