@@ -29,7 +29,7 @@ It supports complex variables as well.
 To install the package, hit `]` from the Julia command line to enter the package manager, then
 
 ```julia
-pkg> add https://github.com/kul-forbes/StructuredOptimization.jl
+pkg> add StructuredOptimization
 ```
 
 ## Usage

@@ -21,7 +21,7 @@ StructuredOptimization.jl can handle large-scale convex and nonconvex problems w
 To install the package, hit `]` from the Julia command line to enter the package manager, then
 
 ```julia
-pkg> add https://github.com/kul-forbes/StructuredOptimization.jl
+pkg> add StructuredOptimization
 ```
 
 ## Citing
