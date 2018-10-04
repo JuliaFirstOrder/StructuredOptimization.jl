@@ -1,6 +1,7 @@
 # Norms
 
 import LinearAlgebra: norm
+export norm
 
 """
 `norm(x::AbstractExpression, p=2, [q,] [dim=1])`
@@ -208,6 +209,7 @@ sumpositive(ex::AbstractExpression) =
 Term(SumPositive(), ex)
 
 import LinearAlgebra: dot
+export dot
 
 """
 `dot(c::AbstractVector, x::AbstractExpression)`
@@ -291,6 +293,7 @@ end
 # Rank constraints
 
 import LinearAlgebra: rank
+export rank
 
 # Dirty trick: the "rank" function only makes sense in constraints such as
 #   rank(X) <= r,

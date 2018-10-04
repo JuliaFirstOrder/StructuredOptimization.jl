@@ -68,12 +68,14 @@ end
 for f in  importedFFTW[:,1]
 	@eval begin
 		import FFTW: $f
+        export $f
 	end
 end
 #importing functions from DSP
 for f in  importedDSP[:,1]
 	@eval begin
 		import DSP: $f
+		export $f
 	end
 end
 #exporting functions
