@@ -4,9 +4,9 @@ module StructuredOptimization
 
 using LinearAlgebra
 using AbstractOperators
-using AbstractOperators.BlockArrays
 using ProximalOperators
 using ProximalAlgorithms
+using RecursiveArrayTools
 
 include("syntax/syntax.jl")
 include("calculus/precomposeNonlinear.jl") #TODO move to ProximalOperators?

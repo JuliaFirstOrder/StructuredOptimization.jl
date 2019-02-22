@@ -1,7 +1,8 @@
 using StructuredOptimization
 using AbstractOperators
-using AbstractOperators.BlockArrays
 using ProximalOperators
+using ProximalAlgorithms
+using RecursiveArrayTools
 using LinearAlgebra, Random
 using DSP, FFTW
 using Test
