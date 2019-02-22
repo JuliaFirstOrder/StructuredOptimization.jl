@@ -348,7 +348,6 @@ Equalities constraints
 Term(IndBinary(lu...), ex)
 # IndBinary
 
-# weird error!!?
 # IndAffine
 function (==)(ex::AbstractExpression, b::Union{Real,AbstractArray}) 
     op = operator(ex)
@@ -357,7 +356,6 @@ function (==)(ex::AbstractExpression, b::Union{Real,AbstractArray})
         A = op.A
         bb = b.-d
         p = IndAffine(A, bb)
-    #    # very weird error!
         return Term(p, variables(ex)[1])
     else
        # TODO change this

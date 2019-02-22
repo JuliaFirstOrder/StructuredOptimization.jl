@@ -162,7 +162,6 @@ cf = x == lu
 @test cf.f(~x) == (IndBinary(lu...))(~x)
 
 #IndAffine
-#something very weird happens here!!!
 cf = A*x-b == 0
 @test cf.lambda == 1
 @test cf.f(~x) == (IndAffine(A,b))(~x)
