@@ -1,11 +1,11 @@
-using Documenter, StructuredOptimization, LinearAlgebra, DSP, AbstractFFTs, FFTW, AbstractOperators
+using Documenter, StructuredOptimization, LinearAlgebra, DSP, FFTW, AbstractOperators
 
 makedocs(
   modules = [StructuredOptimization],
-  format = :html,
+  format = Documenter.HTML(),
   sitename = "StructuredOptimization",
   authors = "Niccolò Antonello and Lorenzo Stella",
-  pages = Any[
+  pages = [
   "Home"                  => "index.md",
   "Quick Tutorial Guide"  => "tutorial.md",
   "Expressions"           => "expressions.md",
@@ -16,10 +16,6 @@ makedocs(
 )
 
 deploydocs(
-  repo   = "github.com/kul-forbes/StructuredOptimization.jl.git",
-  julia  = "1.0",
-  osname = "linux",
+  repo   = "github.com/kul-forbes/AbstractOperators.jl.git",
   target = "build",
-  deps = nothing,
-  make = nothing,
 )
