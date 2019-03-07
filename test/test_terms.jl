@@ -161,14 +161,16 @@ cf = x == lu
 @test cf.lambda == 1
 @test cf.f(~x) == (IndBinary(lu...))(~x)
 
-#IndAffine
-cf = A*x-b == 0
-@test cf.lambda == 1
-@test cf.f(~x) == (IndAffine(A,b))(~x)
+# IndAffine (not working in julia < 1.1)
+if VERSION.major >= 1 && VERSION.minor >= 1
+  cf = A*x-b == 0
+  @test cf.lambda == 1
+  @test cf.f(~x) == (IndAffine(A,b))(~x)
 
-cf = (A*x == b)
-@test cf.lambda == 1
-@test cf.f(~x) == (IndAffine(A,-b))(~x)
+  cf = (A*x == b)
+  @test cf.lambda == 1
+  @test cf.f(~x) == (IndAffine(A,-b))(~x)
+end
 
 cf = 2*norm(x,1)
 ccf = conj(cf)

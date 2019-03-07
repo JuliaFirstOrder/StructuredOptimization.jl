@@ -1,4 +1,4 @@
-println("\n Testing solver build \n")
+println("\nTesting solver build \n")
 
 x = Variable(10)
 A = randn(5, 10)
@@ -15,7 +15,7 @@ prob = problem(ls(A*x - B*y + b) + norm(y, 1), norm(x, 2) <= 1.0)
 built_slv = build(prob, FPG())
 solve!(built_slv)
 
-println("\n Testing @minimize \n")
+println("\nTesting @minimize \n")
 ~x .= 0.
 ~y .= 0.
 slv, = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with PG()
