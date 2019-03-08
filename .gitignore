@@ -8,6 +8,7 @@
 *.jpg
 *.wav
 *.tex
+*.DS_Store
 
 demos/.ipynb_checkpoints/
 docs/build/
