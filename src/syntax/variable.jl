@@ -38,7 +38,7 @@ Returns the `Array` of the variable `x`
 """
 ~(x::Variable) = x.x
 ~(x::Tuple{Variable}) = (~)(x[1])
-~(x::NTuple{N,Variable}) where {N} = (~).(x)
+~(x::NTuple{N,Variable}) where {N} = ArrayPartition((~).(x))
 
 """
 size(x::Variable, [dim...])
@@ -53,4 +53,4 @@ eltype(x::Variable)
 
 Like `eltype(x::AbstractArray)` returns the type of the elements of `x`.
 """
-eltype(x::Variable) = blockeltype(x.x)
+eltype(x::Variable) = eltype(x.x)

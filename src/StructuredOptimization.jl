@@ -3,8 +3,8 @@ __precompile__()
 module StructuredOptimization
 
 using LinearAlgebra
+using RecursiveArrayTools
 using AbstractOperators
-using AbstractOperators.BlockArrays
 using ProximalOperators
 using ProximalAlgorithms
 

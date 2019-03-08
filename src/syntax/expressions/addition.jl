@@ -48,17 +48,15 @@ function (+)(a::AbstractExpression, b::AbstractExpression)
 	A = convert(Expression,a)
 	B = convert(Expression,b)
 	if variables(A) == variables(B)
-		return Expression{length(A.x)}(A.x,affine(A)+affine(B))
+    return Expression{length(A.x)}(A.x,affine(A)+affine(B))
 	else
-		opA = affine(A)
-		xA = variables(A)
-		opB = affine(B)
-		xB = variables(B)
-
-		xNew, opNew = Usum_op(xA,xB,opA,opB,true)
-		return Expression{length(xNew)}(xNew,opNew)
+    opA = affine(A)
+    xA = variables(A)
+    opB = affine(B)
+    xB = variables(B)
+    xNew, opNew = Usum_op(xA,xB,opA,opB,true)
+    return Expression{length(xNew)}(xNew,opNew)
 	end
-
 end
 # sum expressions
 
@@ -66,17 +64,15 @@ function (-)(a::AbstractExpression, b::AbstractExpression)
 	A = convert(Expression,a)
 	B = convert(Expression,b)
 	if variables(A) == variables(B)
-		return Expression{length(A.x)}(A.x,affine(A)-affine(B))
+    return Expression{length(A.x)}(A.x,affine(A)-affine(B))
 	else
-		opA = affine(A)
-		xA = variables(A)
-		opB = affine(B)
-		xB = variables(B)
-
-		xNew, opNew = Usum_op(xA,xB,opA,opB,false)
-		return Expression{length(xNew)}(xNew,opNew)
+    opA = affine(A)
+    xA = variables(A)
+    opB = affine(B)
+    xB = variables(B)
+    xNew, opNew = Usum_op(xA,xB,opA,opB,false)
+    return Expression{length(xNew)}(xNew,opNew)
 	end
-
 end
 
 #unsigned sum affines with single variables
@@ -93,17 +89,16 @@ end
 function Usum_op(xA::NTuple{N,Variable},
 		 xB::Tuple{Variable},
 		 A::L1,
-		 B::AbstractOperator,sign::Bool) where {N, M, L1<:HCAT{M,N}}
+		 B::AbstractOperator,sign::Bool) where {N, M, L1<:HCAT{N}}
 	if xB[1] in xA
-        idx = findfirst(xA.==Ref(xB[1]))
-		S = sign ? A[idx]+B : A[idx]-B
-		xNew = xA
-		opNew = hcat(A[1:idx-1],S,A[idx+1:N]  )
+    idx = findfirst(xA.==Ref(xB[1]))
+    S = sign ? A[idx]+B : A[idx]-B
+    xNew = xA
+    opNew = hcat(A[1:idx-1],S,A[idx+1:N]  )
 	else
-		xNew  = (xA...,xB...)
-		opNew = sign ? hcat(A,B) : hcat(A,-B)
+    xNew  = (xA...,xB...)
+    opNew = sign ? hcat(A,B) : hcat(A,-B)
 	end
-
 	return xNew, opNew
 end
 
@@ -111,15 +106,15 @@ end
 function Usum_op(xA::Tuple{Variable},
 		 xB::NTuple{N,Variable},
 		 A::AbstractOperator,
-		 B::L2,sign::Bool) where {N, M, L2<:HCAT{M,N}}
-	if xA[1] in xB
-        idx = findfirst(xA.==Ref(xB[1]))
-		S = sign ? A+B[idx] : B[idx]-A
-		xNew = xB
-		opNew = sign ? hcat(B[1:idx-1],S,B[idx+1:N]  ) : -hcat(B[1:idx-1],S,B[idx+1:N]  )
+		 B::L2,sign::Bool) where {N, M, L2<:HCAT{N}}
+  if xA[1] in xB
+    idx = findfirst(xA.==Ref(xB[1]))
+    S = sign ? A+B[idx] : B[idx]-A
+    xNew = xB
+    opNew = sign ? hcat(B[1:idx-1],S,B[idx+1:N]  ) : -hcat(B[1:idx-1],S,B[idx+1:N]  )
 	else
-		xNew  = (xA...,xB...)
-		opNew = sign ? hcat(A,B) : hcat(A,-B)
+    xNew  = (xA...,xB...)
+    opNew = sign ? hcat(A,B) : hcat(A,-B)
 	end
 
 	return xNew, opNew
@@ -130,12 +125,12 @@ function Usum_op(xA::NTuple{NA,Variable},
 		 xB::NTuple{NB,Variable},
 		 A::L1,
 		 B::L2,sign::Bool) where {NA,NB,M,
-					  L1<:HCAT{M,NB},
-					  L2<:HCAT{M,NB}     }
+					  L1<:HCAT{NB},
+					  L2<:HCAT{NB}     }
 	xNew = xA
 	opNew = A
 	for i in eachindex(xB)
-		xNew, opNew = Usum_op(xNew, (xB[i],), opNew, B[i], sign)
+    xNew, opNew = Usum_op(xNew, (xB[i],), opNew, B[i], sign)
 	end
 return xNew,opNew
 end
@@ -146,12 +141,12 @@ function Usum_op(xA::NTuple{N,Variable},
 		 A::AbstractOperator,
 		 B::AbstractOperator,sign::Bool) where {N}
 	if xB[1] in xA
-		Z = Zeros(A)       #this will be an HCAT
-		xNew, opNew = Usum_op(xA,xB,Z,B,sign)
-		opNew += A
+    Z = Zeros(A)       #this will be an HCAT
+    xNew, opNew = Usum_op(xA,xB,Z,B,sign)
+    opNew += A
 	else
-		xNew  = (xA...,xB...)
-		opNew = sign ? hcat(A,B) : hcat(A,-B)
+    xNew  = (xA...,xB...)
+    opNew = sign ? hcat(A,B) : hcat(A,-B)
 	end
 	return xNew, opNew
 end
@@ -190,19 +185,19 @@ julia> ex + b
 """
 function (+)(a::AbstractExpression, b::Union{AbstractArray,Number}) 
 	A = convert(Expression,a)
-    return Expression{length(A.x)}(A.x,AffineAdd(affine(A),b))
+  return Expression{length(A.x)}(A.x,AffineAdd(affine(A),b))
 end
 
 (+)(a::Union{AbstractArray,Number}, b::AbstractExpression) = b+a
 
 function (-)(a::AbstractExpression, b::Union{AbstractArray,Number})
 	A = convert(Expression,a)
-    return Expression{length(A.x)}(A.x,AffineAdd(affine(A),b,false))
+  return Expression{length(A.x)}(A.x,AffineAdd(affine(A),b,false))
 end
 
 function (-)(a::Union{AbstractArray,Number}, b::AbstractExpression)
 	B = convert(Expression,b)
-    return Expression{length(B.x)}(B.x,-AffineAdd(affine(B),a))
+  return Expression{length(B.x)}(B.x,-AffineAdd(affine(B),a))
 end
 # sum with array/scalar
 
@@ -212,14 +207,14 @@ function Broadcast.broadcasted(::typeof(+),a::AbstractExpression, b::AbstractExp
 	A = convert(Expression,a)
 	B = convert(Expression,b)
 	if size(affine(A),1) != size(affine(B),1)
-		if prod(size(affine(A),1)) > prod(size(affine(B),1))
-			B = Expression{length(B.x)}(variables(B),
-						    BroadCast(affine(B),size(affine(A),1)))
-		elseif prod(size(affine(B),1)) > prod(size(affine(A),1))
-			A = Expression{length(A.x)}(variables(A),
-						    BroadCast(affine(A),size(affine(B),1)))
-		end
-		return A+B
+    if prod(size(affine(A),1)) > prod(size(affine(B),1))
+      B = Expression{length(B.x)}(variables(B),
+                                  BroadCast(affine(B),size(affine(A),1)))
+    elseif prod(size(affine(B),1)) > prod(size(affine(A),1))
+      A = Expression{length(A.x)}(variables(A),
+                                  BroadCast(affine(A),size(affine(B),1)))
+    end
+    return A+B
 	end
 	return A+B
 end
@@ -228,14 +223,14 @@ function Broadcast.broadcasted(::typeof(-),a::AbstractExpression, b::AbstractExp
 	A = convert(Expression,a)
 	B = convert(Expression,b)
 	if size(affine(A),1) != size(affine(B),1)
-		if prod(size(affine(A),1)) > prod(size(affine(B),1))
-			B = Expression{length(B.x)}(variables(B),
-						    BroadCast(affine(B),size(affine(A),1)))
-		elseif prod(size(affine(B),1)) > prod(size(affine(A),1))
-			A = Expression{length(A.x)}(variables(A),
-						    BroadCast(affine(A),size(affine(B),1)))
-		end
-		return A-B
+    if prod(size(affine(A),1)) > prod(size(affine(B),1))
+      B = Expression{length(B.x)}(variables(B),
+                                  BroadCast(affine(B),size(affine(A),1)))
+    elseif prod(size(affine(B),1)) > prod(size(affine(A),1))
+      A = Expression{length(A.x)}(variables(A),
+                                  BroadCast(affine(A),size(affine(B),1)))
+    end
+    return A-B
 	end
 	return A-B
 end

@@ -85,7 +85,7 @@ julia> solve!(x_solver);
 function solve!(x_and_iter::Tuple{Tuple{Vararg{Variable}}, ProximalAlgorithms.ProximalAlgorithm})
     x, iterator = x_and_iter
     it, x_star = ProximalAlgorithms.run!(iterator)
-    blockset!(~x, x_star)
+    ~x .= x_star
     return it, iterator 
 end
 
