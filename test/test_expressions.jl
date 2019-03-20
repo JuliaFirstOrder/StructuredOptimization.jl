@@ -43,7 +43,7 @@ b2 = randn(n,n)
 opA1 = MatrixOp(A1,n)
 opA2 = MatrixOp(A2,n)
 x1, x2  = Variable(randn(m1,n)), Variable(randn(m2,n))
-# multiply Expressions (NonLinearCompose) 
+# multiply Expressions (Ax_mul_Bx) 
 ex = (opA1*x1)*(opA2*x2)
 @test variables(ex) == (x1,x2)
 @test norm(affine(ex)*(~variables(ex)) - (A1*(~x1))*(A2*(~x2))) < 1e-12
@@ -56,7 +56,9 @@ ex = (opA1*x1)*(opA2*x2+b2)
 ex = (opA1*x1+b1)*(opA2*x2+b2)
 @test variables(ex) == (x1,x2)
 @test norm(affine(ex)*(~variables(ex)) - (A1*(~x1)+b1)*(A2*(~x2)+b2)) < 1e-12
-@test_throws ErrorException (opA1*x1)*(opA1*x1)
+ex = (opA1*x1-b1)*(opA1*x1+b1)
+@test variables(ex) == (x1,)
+@test norm(affine(ex)*(~variables(ex)) - (A1*(~x1)-b1)*(A1*(~x1)+b1)) < 1e-12
 
 n, m1, m2, k = 3, 4, 5, 6
 A1 = randn(n, m1)
@@ -79,7 +81,9 @@ ex = (opA1*x1).*(opA2*x2+b2)
 ex = (opA1*x1+b1).*(opA2*x2+b2)
 @test variables(ex) == (x1,x2)
 @test norm(affine(ex)*(~variables(ex)) - (A1*(~x1)+b1).*(A2*(~x2)+b2)) < 1e-12
-@test_throws ErrorException (opA1*x1)*(opA1*x1)
+ex = (opA1*x1-b1).*(opA1*x1+b1)
+@test variables(ex) == (x1,)
+@test norm(affine(ex)*(~variables(ex)) - (A1*(~x1)-b1).*(A1*(~x1)+b1)) < 1e-12
 
 ##### reshape ####
 m,n = 8,10
