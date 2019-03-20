@@ -20,6 +20,15 @@ struct Expression{N,A<:AbstractOperator} <: AbstractExpression
   end
 end
 
+struct AdjointExpression{E <: AbstractExpression} <: AbstractExpression
+  ex::E
+end
+
+import Base: adjoint
+
+adjoint(ex::AbstractExpression) = AdjointExpression(convert(Expression,ex))
+adjoint(ex::AdjointExpression) = ex.ex
+
 include("utils.jl")
 include("multiplication.jl")
 include("addition.jl")

@@ -135,7 +135,31 @@ function (*)(ex1::AbstractExpression, ex2::AbstractExpression)
   exp3 = Expression{length(x)}(x,op)
   return exp3 
 end
-# NonLinearCompose
+# Ax_mul_Bx
+
+function (*)(ex1::AdjointExpression, ex2::AbstractExpression)
+  ex1 = ex1.ex
+  ex2 = convert(Expression,ex2)
+  x = extract_variables((ex1,ex2))
+  A = extract_affines(x, ex1)
+  B = extract_affines(x, ex2)
+  op = Axt_mul_Bx(A,B)
+  exp3 = Expression{length(x)}(x,op)
+  return exp3 
+end
+# Axt_mul_Bx
+
+function (*)(ex1::AbstractExpression, ex2::AdjointExpression)
+  ex1 = convert(Expression,ex1)
+  ex2 = ex2.ex
+  x = extract_variables((ex1,ex2))
+  A = extract_affines(x, ex1)
+  B = extract_affines(x, ex2)
+  op = Ax_mul_Bxt(A,B)
+  exp3 = Expression{length(x)}(x,op)
+  return exp3 
+end
+# Ax_mul_Bxt
 
 function Broadcast.broadcasted(::typeof(*), ex1::AbstractExpression, ex2::AbstractExpression) 
   ex1 = convert(Expression,ex1)

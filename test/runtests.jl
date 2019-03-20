@@ -16,7 +16,7 @@ Random.seed!(0)
 end
 
 @testset "Syntax" begin
-  include("test_variables.jl")
+#  include("test_variables.jl")
   include("test_expressions.jl")
   include("test_AbstractOp_binding.jl")
   include("test_terms.jl")
