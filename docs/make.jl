@@ -16,6 +16,6 @@ makedocs(
 )
 
 deploydocs(
-  repo   = "github.com/kul-forbes/AbstractOperators.jl.git",
+  repo   = "github.com/kul-forbes/StructuredOptimization.jl.git",
   target = "build",
 )
