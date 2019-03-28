@@ -45,110 +45,110 @@ julia> ex3.+z
 
 """
 function (+)(a::AbstractExpression, b::AbstractExpression)
-	A = convert(Expression,a)
-	B = convert(Expression,b)
-	if variables(A) == variables(B)
+  A = convert(Expression,a)
+  B = convert(Expression,b)
+  if variables(A) == variables(B)
     return Expression{length(A.x)}(A.x,affine(A)+affine(B))
-	else
+  else
     opA = affine(A)
     xA = variables(A)
     opB = affine(B)
     xB = variables(B)
     xNew, opNew = Usum_op(xA,xB,opA,opB,true)
     return Expression{length(xNew)}(xNew,opNew)
-	end
+  end
 end
 # sum expressions
 
 function (-)(a::AbstractExpression, b::AbstractExpression)
-	A = convert(Expression,a)
-	B = convert(Expression,b)
-	if variables(A) == variables(B)
+  A = convert(Expression,a)
+  B = convert(Expression,b)
+  if variables(A) == variables(B)
     return Expression{length(A.x)}(A.x,affine(A)-affine(B))
-	else
+  else
     opA = affine(A)
     xA = variables(A)
     opB = affine(B)
     xB = variables(B)
     xNew, opNew = Usum_op(xA,xB,opA,opB,false)
     return Expression{length(xNew)}(xNew,opNew)
-	end
+  end
 end
 
 #unsigned sum affines with single variables
 function Usum_op(xA::Tuple{Variable},
-		 xB::Tuple{Variable},
-		 A::AbstractOperator,
-		 B::AbstractOperator,sign::Bool) 
-	xNew  = (xA...,xB...)
-	opNew = sign ? hcat(A,B) : hcat(A,-B)
-	return xNew, opNew
+                 xB::Tuple{Variable},
+                 A::AbstractOperator,
+                 B::AbstractOperator,sign::Bool) 
+  xNew  = (xA...,xB...)
+  opNew = sign ? hcat(A,B) : hcat(A,-B)
+  return xNew, opNew
 end
 
 #unsigned sum: HCAT + AbstractOperator
 function Usum_op(xA::NTuple{N,Variable},
-		 xB::Tuple{Variable},
-		 A::L1,
-		 B::AbstractOperator,sign::Bool) where {N, M, L1<:HCAT{N}}
-	if xB[1] in xA
+                 xB::Tuple{Variable},
+                 A::L1,
+                 B::AbstractOperator,sign::Bool) where {N, M, L1<:HCAT{N}}
+  if xB[1] in xA
     idx = findfirst(xA.==Ref(xB[1]))
     S = sign ? A[idx]+B : A[idx]-B
     xNew = xA
     opNew = hcat(A[1:idx-1],S,A[idx+1:N]  )
-	else
+  else
     xNew  = (xA...,xB...)
     opNew = sign ? hcat(A,B) : hcat(A,-B)
-	end
-	return xNew, opNew
+  end
+  return xNew, opNew
 end
 
 #unsigned sum: AbstractOperator+HCAT
 function Usum_op(xA::Tuple{Variable},
-		 xB::NTuple{N,Variable},
-		 A::AbstractOperator,
-		 B::L2,sign::Bool) where {N, M, L2<:HCAT{N}}
+                 xB::NTuple{N,Variable},
+                 A::AbstractOperator,
+                 B::L2,sign::Bool) where {N, M, L2<:HCAT{N}}
   if xA[1] in xB
     idx = findfirst(xA.==Ref(xB[1]))
     S = sign ? A+B[idx] : B[idx]-A
     xNew = xB
     opNew = sign ? hcat(B[1:idx-1],S,B[idx+1:N]  ) : -hcat(B[1:idx-1],S,B[idx+1:N]  )
-	else
+  else
     xNew  = (xA...,xB...)
     opNew = sign ? hcat(A,B) : hcat(A,-B)
-	end
+  end
 
-	return xNew, opNew
+  return xNew, opNew
 end
 
 #unsigned sum: HCAT+HCAT
 function Usum_op(xA::NTuple{NA,Variable},
-		 xB::NTuple{NB,Variable},
-		 A::L1,
-		 B::L2,sign::Bool) where {NA,NB,M,
-					  L1<:HCAT{NB},
-					  L2<:HCAT{NB}     }
-	xNew = xA
-	opNew = A
-	for i in eachindex(xB)
+                 xB::NTuple{NB,Variable},
+                 A::L1,
+                 B::L2,sign::Bool) where {NA,NB,M,
+                                          L1<:HCAT{NB},
+                                          L2<:HCAT{NB}     }
+  xNew = xA
+  opNew = A
+  for i in eachindex(xB)
     xNew, opNew = Usum_op(xNew, (xB[i],), opNew, B[i], sign)
-	end
-return xNew,opNew
+  end
+  return xNew,opNew
 end
 
 #unsigned sum: multivar AbstractOperator + AbstractOperator
 function Usum_op(xA::NTuple{N,Variable},
-		 xB::Tuple{Variable},
-		 A::AbstractOperator,
-		 B::AbstractOperator,sign::Bool) where {N}
-	if xB[1] in xA
+                 xB::Tuple{Variable},
+                 A::AbstractOperator,
+                 B::AbstractOperator,sign::Bool) where {N}
+  if xB[1] in xA
     Z = Zeros(A)       #this will be an HCAT
     xNew, opNew = Usum_op(xA,xB,Z,B,sign)
     opNew += A
-	else
+  else
     xNew  = (xA...,xB...)
     opNew = sign ? hcat(A,B) : hcat(A,-B)
-	end
-	return xNew, opNew
+  end
+  return xNew, opNew
 end
 
 """
@@ -184,19 +184,19 @@ julia> ex + b
 
 """
 function (+)(a::AbstractExpression, b::Union{AbstractArray,Number}) 
-	A = convert(Expression,a)
+  A = convert(Expression,a)
   return Expression{length(A.x)}(A.x,AffineAdd(affine(A),b))
 end
 
 (+)(a::Union{AbstractArray,Number}, b::AbstractExpression) = b+a
 
 function (-)(a::AbstractExpression, b::Union{AbstractArray,Number})
-	A = convert(Expression,a)
+  A = convert(Expression,a)
   return Expression{length(A.x)}(A.x,AffineAdd(affine(A),b,false))
 end
 
 function (-)(a::Union{AbstractArray,Number}, b::AbstractExpression)
-	B = convert(Expression,b)
+  B = convert(Expression,b)
   return Expression{length(B.x)}(B.x,-AffineAdd(affine(B),a))
 end
 # sum with array/scalar
@@ -204,9 +204,9 @@ end
 #broadcasted + -
 
 function Broadcast.broadcasted(::typeof(+),a::AbstractExpression, b::AbstractExpression)
-	A = convert(Expression,a)
-	B = convert(Expression,b)
-	if size(affine(A),1) != size(affine(B),1)
+  A = convert(Expression,a)
+  B = convert(Expression,b)
+  if size(affine(A),1) != size(affine(B),1)
     if prod(size(affine(A),1)) > prod(size(affine(B),1))
       B = Expression{length(B.x)}(variables(B),
                                   BroadCast(affine(B),size(affine(A),1)))
@@ -215,14 +215,14 @@ function Broadcast.broadcasted(::typeof(+),a::AbstractExpression, b::AbstractExp
                                   BroadCast(affine(A),size(affine(B),1)))
     end
     return A+B
-	end
-	return A+B
+  end
+  return A+B
 end
 
 function Broadcast.broadcasted(::typeof(-),a::AbstractExpression, b::AbstractExpression)
-	A = convert(Expression,a)
-	B = convert(Expression,b)
-	if size(affine(A),1) != size(affine(B),1)
+  A = convert(Expression,a)
+  B = convert(Expression,b)
+  if size(affine(A),1) != size(affine(B),1)
     if prod(size(affine(A),1)) > prod(size(affine(B),1))
       B = Expression{length(B.x)}(variables(B),
                                   BroadCast(affine(B),size(affine(A),1)))
@@ -231,6 +231,6 @@ function Broadcast.broadcasted(::typeof(-),a::AbstractExpression, b::AbstractExp
                                   BroadCast(affine(A),size(affine(B),1)))
     end
     return A-B
-	end
-	return A-B
+  end
+  return A-B
 end

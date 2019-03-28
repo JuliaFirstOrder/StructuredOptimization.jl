@@ -72,9 +72,9 @@ julia> ex = fft(x)+[1.+im*2.;0.;3.+im*4];
 
 julia> displacement(ex)
 3-element Array{Complex{Float64},1}:
- 1.0+2.0im
- 0.0+0.0im
- 3.0+4.0im
+1.0+2.0im
+0.0+0.0im
+3.0+4.0im
 
 ```
 """

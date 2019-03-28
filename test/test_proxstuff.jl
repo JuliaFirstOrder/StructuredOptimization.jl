@@ -20,12 +20,16 @@ grad_f_x_ref = 3.0 * ( expx ./ (1 .+ expx).^2 ) .* (1.0 ./ (1.0 .+ expmx) - b)
 #with vectors
 l,m1,m2,n1,n2 = 2,3,4,5,6
 x = ArrayPartition(randn(m1,m2),randn(n1,n2))
-A = randn(l,m1)
-B = randn(m2,n1)
+A = MatrixOp(randn(l,m1),m2)
+B = MatrixOp(randn(m2,n1),n2)
 r = randn(l,n2)
 
 b = randn(l,n2)
-G = AffineAdd(NonLinearCompose( MatrixOp(A,m2), MatrixOp(B,n2) ),b,false)
+G = AffineAdd(Ax_mul_Bx( 
+              HCAT(A,Zeros(codomainType(B), size(B,2), size(A,1) )), 
+              HCAT(Zeros(codomainType(A), size(A,2), size(B,1) ),B)
+                       ), 
+              b,false)
 
 g = SqrNormL2(3.0)
 f = StructuredOptimization.PrecomposeNonlinear(g, G)
