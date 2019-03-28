@@ -26,8 +26,8 @@ r = randn(l,n2)
 
 b = randn(l,n2)
 G = AffineAdd(Ax_mul_Bx( 
-                        HCAT(A,Zeros(codomainType(B), size(B,2), size(A,1) )), 
-                        HCAT(Zeros(codomainType(A), size(A,2), size(B,1) ),B)
+              HCAT(A,Zeros(codomainType(B), size(B,2), size(A,1) )), 
+              HCAT(Zeros(codomainType(A), size(A,2), size(B,1) ),B)
                        ), 
               b,false)
 
