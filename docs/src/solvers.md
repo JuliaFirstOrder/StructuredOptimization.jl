@@ -32,7 +32,7 @@ directions to accelerate convergence.
 proposed in [[4]](https://doi.org/10.1109/CDC.2017.8263933), also using
 L-BFGS directions.
 
-## Build and solve
+## Parse and solve
 
 The macro [`@minimize`](@ref) automatically parse and solve the problem.
 An alternative syntax is given by the function [`problem`](@ref) and [`solve`](@ref).
