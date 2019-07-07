@@ -1,11 +1,12 @@
 export build
 
 """
-`build(terms::Tuple, solver_opt::ForwardBackwardSolver)`
+    parse_problem(terms::Tuple, solver::ForwardBackwardSolver)
 
-Takes as input a tuple containing the terms defining the problem and the solver options.
+Takes as input a tuple containing the terms defining the problem and the solver.
 
-Returns a tuple containing the optimization variables and the built solver.
+Returns a tuple containing the optimization variables and the problem terms
+to be fed into the solver.
 
 # Example
 
@@ -18,82 +19,37 @@ julia> A, b = randn(10,4), randn(10);
 julia> p = problem( ls(A*x - b ) , norm(x) <= 1 );
 
 julia> build(p, PG());
-
 ```
-
 """
-function build(terms::Tuple, solver::ForwardBackwardSolver)
+function parse_problem(terms::Tuple, solver::T) where T <: ForwardBackwardSolver
   x = extract_variables(terms)
   # Separate smooth and nonsmooth
   smooth, nonsmooth = split_smooth(terms)
-  # Separate quadratic and nonquadratic
-  quadratic, smooth = split_quadratic(smooth)
-  kwargs = Array{Any, 1}()
   if is_proximable(nonsmooth)
     g = extract_proximable(x, nonsmooth)
-    append!(kwargs, [(:g, g)])
-    if !isempty(quadratic)
-      fq = extract_functions(quadratic)
-      Aq = extract_operators(x, quadratic)
-      append!(kwargs, [(:fq, fq)])
-      append!(kwargs, [(:Aq, Aq)])
-    end
+    kwargs = Dict{Symbol, Any}(:g => g)
     if !isempty(smooth)
       if is_linear(smooth)
-        fs = extract_functions(smooth)
-        As = extract_operators(x, smooth)
-        append!(kwargs, [(:As, As)])
-      else
-        fs = extract_functions_nodisp(smooth)
-        As = extract_affines(x, smooth)
-        fs = PrecomposeNonlinear(fs, As)
+        f = extract_functions(smooth)
+        A = extract_operators(x, smooth)
+        kwargs[:A] = A
+      else  # ??
+        f = extract_functions_nodisp(smooth)
+        A = extract_affines(x, smooth)
+        f = PrecomposeNonlinear(f, A)
       end
-      append!(kwargs, [(:fs, fs)])
+      kwargs[:f] = f
     end
-    return build_iterator(x, solver; kwargs...)
+    return (x, kwargs)
   end
-  error("Sorry, I cannot solve this problem")
-end
-
-################################################################################
-export solve!
-
-"""
-`solve!( x_solver )`
-
-Takes as input a tuple containing the optimization variables and the built solver.
-
-Solves the problem returning a tuple containing the iterations taken and the build solver.
-
-# Example
-
-```julia
-julia> x = Variable(4)
-Variable(Float64, (4,))
-
-julia> A, b = randn(10,4), randn(10);
-
-julia> p = problem( ls(A*x - b ) , norm(x) <= 1 );
-
-julia> x_solver = build(p, PG(verbose = 0));
-
-julia> solve!(x_solver);
-
-```
-
-"""
-function solve!(x_and_iter::Tuple{Tuple{Vararg{Variable}}, ProximalAlgorithms.ProximalAlgorithm})
-  x, iterator = x_and_iter
-  it, x_star = ProximalAlgorithms.run!(iterator)
-  ~x .= x_star
-  return it, iterator 
+  error("Sorry, I cannot parse this problem for solver of type $(T)")
 end
 
 
 export solve
 
 """
-`solve(terms::Tuple, solver_opt::ForwardBackwardSolver)`
+    solve(terms::Tuple, solver::ForwardBackwardSolver)
 
 Takes as input a tuple containing the terms defining the problem and the solver options.
 
@@ -102,22 +58,26 @@ Solves the problem returning a tuple containing the iterations taken and the bui
 # Example
 
 ```julia
-
 julia> x = Variable(4)
 Variable(Float64, (4,))
 
 julia> A, b = randn(10,4), randn(10);
 
-julia> solve(p,PG());
-it |      gamma |        fpr |
-------|------------|------------|
-1 | 7.6375e-02 | 1.8690e+00 |
-12 | 7.6375e-02 | 9.7599e-05 |
+julia> p = problem(ls(A*x - b ), norm(x) <= 1);
 
+julia> solve(p, ProximalAlgorithms.ForwardBackward());
+
+julia> ~x
+4-element Array{Float64,1}:
+ -0.6427139974173074
+ -0.29043653211431103
+ -0.6090539651510192
+  0.36279278640995494
 ```
-
 """
 function solve(terms::Tuple, solver::ForwardBackwardSolver)
-  built_slv = build(terms, solver)
-  return solve!(built_slv)
+    x, kwargs = parse_problem(terms, solver)
+    x_star, it = solver(~x; kwargs...)
+    ~x .= x_star
+    return x, it
 end

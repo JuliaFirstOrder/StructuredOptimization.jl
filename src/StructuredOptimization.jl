@@ -9,7 +9,18 @@ using ProximalOperators
 using ProximalAlgorithms
 
 include("syntax/syntax.jl")
-include("calculus/precomposeNonlinear.jl") #TODO move to ProximalOperators?
-include("solvers/solvers.jl")
+include("calculus/precomposeNonlinear.jl") # TODO move to ProximalOperators?
+include("arraypartition.jl") # TODO move to ProximalOperators?
+
+# problem parsing
+include("solvers/terms_extract.jl")
+include("solvers/terms_properties.jl")
+include("solvers/terms_splitting.jl")
+
+# solver calls
+include("solvers/solvers_options.jl")
+include("solvers/build_solve.jl")
+include("solvers/minimize.jl")
+
 
 end
