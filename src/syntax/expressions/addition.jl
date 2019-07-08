@@ -1,9 +1,9 @@
 import Base: +, -
 
 """
-`+(ex1::AbstractExpression, ex2::AbstractExpression)`
+    +(ex1::AbstractExpression, ex2::AbstractExpression)
 
-Add two expressions. 
+Add two expressions.
 
 # Examples
 
@@ -20,22 +20,22 @@ julia> ex2 = randn(5,2)*z
 
 ```
 
-Notice that in order for two expressions to be added toghether their associated `AbstractOperator` 
+Notice that in order for two expressions to be added toghether their associated `AbstractOperator`
 must have the same codomain:
 
 ```julia
 julia> operator(ex1)
-[I,I]  ℝ^5  ℝ^5 -> ℝ^5 
+[I,I]  ℝ^5  ℝ^5 -> ℝ^5
 
 julia> operator(ex2)
-▒  ℝ^2 -> ℝ^5 
+▒  ℝ^2 -> ℝ^5
 
 julia> ex3 = ex1 + ex2
 
 ```
 
 It is also possible to use broadcasted addition:
-```julia 
+```julia
 julia> z = Variable(1)
 Variable(Float64, (1,))
 
@@ -79,7 +79,7 @@ end
 function Usum_op(xA::Tuple{Variable},
                  xB::Tuple{Variable},
                  A::AbstractOperator,
-                 B::AbstractOperator,sign::Bool) 
+                 B::AbstractOperator,sign::Bool)
   xNew  = (xA...,xB...)
   opNew = sign ? hcat(A,B) : hcat(A,-B)
   return xNew, opNew
@@ -152,9 +152,9 @@ function Usum_op(xA::NTuple{N,Variable},
 end
 
 """
-`+(ex::AbstractExpression, b::Union{AbstractArray,Number})`
+    +(ex::AbstractExpression, b::Union{AbstractArray,Number})
 
-Add a scalar or an `Array` to an expression: 
+Add a scalar or an `Array` to an expression:
 
 # Example
 
@@ -166,8 +166,8 @@ julia> ex = x+4
 
 ```
 
-Notice that in order to add an array to `ex`, `b` must belong to the codomain 
-of the associated `AbstractOperator` of `ex`. 
+Notice that in order to add an array to `ex`, `b` must belong to the codomain
+of the associated `AbstractOperator` of `ex`.
 
 ```julia
 julia> b = randn(10);
@@ -183,7 +183,7 @@ julia> ex + b
 ```
 
 """
-function (+)(a::AbstractExpression, b::Union{AbstractArray,Number}) 
+function (+)(a::AbstractExpression, b::Union{AbstractArray,Number})
   A = convert(Expression,a)
   return Expression{length(A.x)}(A.x,AffineAdd(affine(A),b))
 end

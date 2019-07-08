@@ -7,7 +7,7 @@ end
 
 # constructors
 """
-`Variable([T::Type,] dims...)`
+	Variable([T::Type,] dims...)
 
 Returns a `Variable` of dimension `dims` initialized with an array of all zeros.
 
@@ -16,7 +16,7 @@ Returns a `Variable` of dimension `dims` initialized with an array of all zeros.
 Returns a `Variable` of dimension `size(x)` initialized with `x`
 
 """
-function Variable(T::Type, args::Vararg{I,N}) where {I <: Integer,N} 
+function Variable(T::Type, args::Vararg{I,N}) where {I <: Integer,N}
 	Variable{T,N,Array{T,N}}(zeros(T, args...))
 end
 
@@ -32,7 +32,7 @@ end
 
 
 """
-`~(x::Variable)`
+	~(x::Variable)
 
 Returns the `Array` of the variable `x`
 """

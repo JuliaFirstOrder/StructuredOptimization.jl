@@ -7,7 +7,7 @@ convert(::Type{Expression},x::Variable{T,N,A}) where {T,N,A} =
 Expression{1}((x,),Eye(T,size(x)))
 
 """
-`variables(ex::Expression)`
+    variables(ex::Expression)
 
 Returns a tuple containing the `Variable`s of expression `ex`.
 
@@ -28,7 +28,7 @@ variables(A::Expression)    = A.x
 variables(x::Variable)    = x
 
 """
-`operator(ex::Expression)`
+    operator(ex::Expression)
 
 Returns the `AbstractOperator` of expression `ex`.
 
@@ -49,7 +49,7 @@ operator(A::Expression) = remove_displacement(A.L)
 operator(x::Variable)   = Eye(~x)
 
 """
-`affine(ex::Expression)`
+    affine(ex::Expression)
 
 Returns the `AbstractOperator` of expression `ex` keeping any affine addition.
 
@@ -58,7 +58,7 @@ affine(A::Expression) = A.L
 affine(x::Variable)   = Eye(~x)
 
 """
-`displacement(ex::Expression)`
+    displacement(ex::Expression)
 
 Returns the displacement of expression `ex`.
 
