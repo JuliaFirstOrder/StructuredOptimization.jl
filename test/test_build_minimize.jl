@@ -27,13 +27,13 @@ A = randn(10, 5)
 b = randn(10)
 
 println("\nTesting @minimize nonlinear \n")
-slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ProximalAlgorithms.ForwardBackward()
+slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ProximalAlgorithms.ForwardBackward(tol = 1e-6)
 xpg = copy(~x)
 ~x .= 0.
-slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ProximalAlgorithms.ZeroFPR()
+slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ProximalAlgorithms.ZeroFPR(tol = 1e-6)
 xz = copy(~x)
 ~x .= 0.
-slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ProximalAlgorithms.PANOC()
+slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ProximalAlgorithms.PANOC(tol = 1e-6)
 xp = copy(~x)
 ~x .= 0.
 

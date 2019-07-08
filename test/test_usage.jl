@@ -190,40 +190,40 @@ b = A*x_orig + randn(m)
 x_pg = Variable(n)
 expr = ls(A*x_pg - b)
 prob = problem(expr, x_pg in [lb, ub])
-@time sol = solve(prob, ProximalAlgorithms.ForwardBackward(tol=1e-8, verbose=false))
+@time sol = solve(prob, ProximalAlgorithms.ForwardBackward(tol=1e-6, verbose=false))
 
 @test norm(~x_pg - max.(lb, min.(ub, ~x_pg)), Inf) <= 1e-12
-@test norm(~x_pg - max.(lb, min.(ub, ~x_pg - A'*(A*~x_pg - b))), Inf)/(1+norm(~x_pg, Inf)) <= 1e-8
+@test norm(~x_pg - max.(lb, min.(ub, ~x_pg - A'*(A*~x_pg - b))), Inf)/(1+norm(~x_pg, Inf)) <= 1e-6
 
 # Solve with FPG
 
 x_fpg = Variable(n)
 expr = ls(A*x_fpg - b)
 prob = problem(expr, x_fpg in [lb, ub])
-@time sol = solve(prob, ProximalAlgorithms.ForwardBackward(fast=true, tol=1e-8, verbose=false))
+@time sol = solve(prob, ProximalAlgorithms.ForwardBackward(fast=true, tol=1e-6, verbose=false))
 
 @test norm(~x_fpg - max.(lb, min.(ub, ~x_fpg)), Inf) <= 1e-12
-@test norm(~x_fpg - max.(lb, min.(ub, ~x_fpg - A'*(A*~x_fpg - b))), Inf)/(1+norm(~x_fpg, Inf)) <= 1e-8
+@test norm(~x_fpg - max.(lb, min.(ub, ~x_fpg - A'*(A*~x_fpg - b))), Inf)/(1+norm(~x_fpg, Inf)) <= 1e-6
 
 # Solve with ZeroFPR
 
 x_zerofpr = Variable(n)
 expr = ls(A*x_zerofpr - b)
 prob = problem(expr, x_zerofpr in [lb, ub])
-@time sol = solve(prob, ProximalAlgorithms.ZeroFPR(tol=1e-8, verbose=false))
+@time sol = solve(prob, ProximalAlgorithms.ZeroFPR(tol=1e-6, verbose=false))
 
 @test norm(~x_zerofpr - max.(lb, min.(ub, ~x_zerofpr)), Inf) <= 1e-12
-@test norm(~x_zerofpr - max.(lb, min.(ub, ~x_zerofpr - A'*(A*~x_zerofpr - b))), Inf)/(1+norm(~x_zerofpr, Inf)) <= 1e-8
+@test norm(~x_zerofpr - max.(lb, min.(ub, ~x_zerofpr - A'*(A*~x_zerofpr - b))), Inf)/(1+norm(~x_zerofpr, Inf)) <= 1e-6
 
 # Solve with PANOC
 
 x_panoc = Variable(n)
 expr = ls(A*x_panoc - b)
 prob = problem(expr, x_panoc in [lb, ub])
-@time sol = solve(prob, ProximalAlgorithms.PANOC(tol=1e-8, verbose=false))
+@time sol = solve(prob, ProximalAlgorithms.PANOC(tol=1e-6, verbose=false))
 
 @test norm(~x_panoc - max.(lb, min.(ub, ~x_panoc)), Inf) <= 1e-12
-@test norm(~x_panoc - max.(lb, min.(ub, ~x_panoc - A'*(A*~x_panoc - b))), Inf)/(1+norm(~x_panoc, Inf)) <= 1e-8
+@test norm(~x_panoc - max.(lb, min.(ub, ~x_panoc - A'*(A*~x_panoc - b))), Inf)/(1+norm(~x_panoc, Inf)) <= 1e-6
 
 # Solve with minimize, default solver/options
 
@@ -296,8 +296,8 @@ expr = ls(A*x_panoc - b)
 prob = problem(expr, x_panoc >= 0.0)
 @time sol = solve(prob, ProximalAlgorithms.PANOC(tol=1e-8, verbose=false))
 
-@test all(~x_zerofpr .>= 0.0)
-@test norm(~x_zerofpr - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
+@test all(~x_panoc .>= 0.0)
+@test norm(~x_panoc - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
 
 # Solve with minimize, default solver/options
 
