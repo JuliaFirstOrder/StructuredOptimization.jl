@@ -9,7 +9,7 @@
 !!! note "Problem warm-starting"
 
     By default *warm-starting* is always enabled.
-    For example, if two problems that utilize the same variables are solved consecutively,
+    For example, if two problems that involve the same variables are solved consecutively,
     the second one will be automatically warm-started by the solution of the first one.
     That is because the variables are always linked to their respective data vectors.
     If one wants to avoid this, the optimization variables needs to be manually re-initialized
@@ -18,22 +18,21 @@
 
 ## Specifying solver and options
 
-As shown above it is possible to choose the type of algorithm and specify its options by creating a `Solver` object.
-Currently, the following algorithms are supported:
+You can pick the algorithm to use as `Solver` object from the
+[`ProximalAlgorithms.jl`](https://github.com/kul-forbes/ProximalAlgorithms.jl))
+package. Currently, the following algorithms are supported:
 
-* *Proximal Gradient (PG)* [[1]](http://www.mit.edu/~dimitrib/PTseng/papers/apgm.pdf), [[2]](http://epubs.siam.org/doi/abs/10.1137/080716542)
-* *Fast Proximal Gradient (FPG)* [[1]](http://www.mit.edu/~dimitrib/PTseng/papers/apgm.pdf), [[2]](http://epubs.siam.org/doi/abs/10.1137/080716542)
-* *ZeroFPR* [[3]](https://arxiv.org/abs/1606.06256)
-* *PANOC* [[4]](https://doi.org/10.1109/CDC.2017.8263933)
+* `ProximalAlgorithms.ForwardBackward`, also known as *proximal gradient*
+method [[1]](http://www.mit.edu/~dimitrib/PTseng/papers/apgm.pdf), [[2]](http://epubs.siam.org/doi/abs/10.1137/080716542). Nesterov acceleration can be enabled, which significantly
+improves its performance for convex problems.
+* `ProximalAlgorithms.ZeroFPR`, a Newton-type forward-backward algorithm,
+proposed in [[3]](https://arxiv.org/abs/1606.06256), using L-BFGS
+directions to accelerate convergence.
+* `ProximalAlgorithms.PANOC`, another Newton-type forward-backward algorithm,
+proposed in [[4]](https://doi.org/10.1109/CDC.2017.8263933), also using
+L-BFGS directions.
 
-```@docs
-PG
-FPG
-ZeroFPR
-PANOC
-```
-
-## Build and solve
+## Parse and solve
 
 The macro [`@minimize`](@ref) automatically parse and solve the problem.
 An alternative syntax is given by the function [`problem`](@ref) and [`solve`](@ref).
@@ -43,18 +42,8 @@ problem
 solve
 ```
 
-It is important to stress out that the `Solver` objects created using
-the functions above ([`PG`](@ref), [`FPG`](@ref), etc.)
-specify only the type of algorithm to be used together with its options.
-The actual solver
-(namely the one of [`ProximalAlgorithms.jl`](https://github.com/kul-forbes/ProximalAlgorithms.jl))
-is constructed altogether with the problem formulation.
-The problem parsing procedure can be separated from the solver application using the functions [`build`](@ref) and [`solve!`](@ref).
-
-```@docs
-build
-solve!
-```
+Once again, the `Solver` objects is to be picked from
+[`ProximalAlgorithms.jl`](https://github.com/kul-forbes/ProximalAlgorithms.jl)).
 
 ## References
 

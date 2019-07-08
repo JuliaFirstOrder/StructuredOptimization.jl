@@ -27,7 +27,7 @@ end
   include("test_build_minimize.jl")
 end
 
-@testset "Integration tests" begin
+@testset "End-to-end tests" begin
   include("test_usage_small.jl")
   include("test_usage.jl")
 end
