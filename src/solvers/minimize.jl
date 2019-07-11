@@ -8,38 +8,23 @@ Minimize a given problem with cost function `cost`, constraints `ctr` and solver
 # Example
 
 ```julia
-julia> using StructuredOptimization, ProximalAlgorithms
+julia> using StructuredOptimization
 
 julia> A, b, x = randn(10,4), randn(10), Variable(4);
 
 julia> @minimize ls(A*x-b) + 0.5*norm(x);
 
-julia> ~x
-4-element Array{Float64,1}:
- -0.3606117955906451
-  0.21231949195945288
-  0.022423882830584645
-  0.19560804140788765
+julia> ~x  # access array with solution
 
 julia> @minimize ls(A*x-b) st x >= 0.;
 
-julia> ~x
-4-element Array{Float64,1}:
- 0.0
- 0.2682589660003247
- 0.0
- 0.2297141914608737
+julia> ~x  # access array with solution
 
-julia> @minimize ls(A*x-b) st norm(x) == 2.0 with ProximalAlgorithms.ForwardBackward(fast=true);
+julia> using ProximalAlgorithms: ForwardBackward
 
-julia> ~x
-4-element Array{Float64,1}:
- -0.7217037749126615
-  0.9835726063727642
-  0.634450485411672
-  1.452308910263514
+julia> @minimize ls(A*x-b) st norm(x) == 2.0 with ForwardBackward(fast=true);
 
-julia>
+julia> ~x  # access array with solution
 ```
 
 Returns as output a tuple containing the optimization variables and the number
