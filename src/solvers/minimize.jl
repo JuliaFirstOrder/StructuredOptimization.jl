@@ -20,8 +20,6 @@ julia> @minimize ls(A*x-b) st x >= 0.;
 
 julia> ~x  # access array with solution
 
-julia> using ProximalAlgorithms: ForwardBackward
-
 julia> @minimize ls(A*x-b) st norm(x) == 2.0 with ForwardBackward(fast=true);
 
 julia> ~x  # access array with solution

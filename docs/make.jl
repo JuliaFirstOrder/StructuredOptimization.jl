@@ -1,7 +1,8 @@
-using Documenter, StructuredOptimization, LinearAlgebra, DSP, FFTW, AbstractOperators
+using Documenter, StructuredOptimization, 
+LinearAlgebra, DSP, FFTW, AbstractOperators, ProximalAlgorithms
 
 makedocs(
-  modules = [StructuredOptimization],
+  modules = [StructuredOptimization,ProximalAlgorithms],
   format = Documenter.HTML(),
   sitename = "StructuredOptimization",
   authors = "Niccolò Antonello and Lorenzo Stella",

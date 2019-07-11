@@ -20,19 +20,14 @@
 
 You can pick the algorithm to use as `Solver` object from the
 [`ProximalAlgorithms.jl`](https://github.com/kul-forbes/ProximalAlgorithms.jl)
-package. Currently, the following algorithms are supported:
+package. Currently, the following algorithms are supported.
 
-* `ProximalAlgorithms.ForwardBackward`, also known as *proximal gradient*
-  method [[1]](http://www.mit.edu/~dimitrib/PTseng/papers/apgm.pdf),
-  [[2]](http://epubs.siam.org/doi/abs/10.1137/080716542).
-  Nesterov acceleration can be enabled, which significantly improves the
-  performance on convex problems.
-* `ProximalAlgorithms.ZeroFPR`, a Newton-type forward-backward algorithm,
-  proposed in [[3]](https://arxiv.org/abs/1606.06256), using L-BFGS
-  directions to accelerate convergence.
-* `ProximalAlgorithms.PANOC`, another Newton-type forward-backward algorithm,
-  proposed in [[4]](https://doi.org/10.1109/CDC.2017.8263933), also using
-  L-BFGS directions.
+```@docs
+ForwardBackward
+ZeroFPR
+PANOC
+```
+
 
 ## Parse and solve
 
