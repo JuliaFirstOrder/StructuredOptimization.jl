@@ -9,13 +9,13 @@ b = randn(5)
 println("\nTesting @minimize \n")
 ~x .= 0.
 ~y .= 0.
-slv, = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with ProximalAlgorithms.ForwardBackward()
+slv, = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with ForwardBackward()
 ~x .= 0.
-slv, = @minimize ls(A*x - b) st norm(x, 1) <= 1.0 with ProximalAlgorithms.ForwardBackward()
+slv, = @minimize ls(A*x - b) st norm(x, 1) <= 1.0 with ForwardBackward()
 ~x .= 0.
 slv, = @minimize ls(A*x - b) st norm(x, 1) <= 1.0
 ~x .= 0.
-slv, = @minimize ls(A*x - b) + norm(x, 1) with ProximalAlgorithms.ForwardBackward()
+slv, = @minimize ls(A*x - b) + norm(x, 1) with ForwardBackward()
 ~x .= 0.
 slv, = @minimize ls(A*x - b) + norm(x, 1)
 ~x .= 0.
@@ -27,13 +27,13 @@ A = randn(10, 5)
 b = randn(10)
 
 println("\nTesting @minimize nonlinear \n")
-slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ProximalAlgorithms.ForwardBackward(tol = 1e-6)
+slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ForwardBackward(tol = 1e-6)
 xpg = copy(~x)
 ~x .= 0.
-slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ProximalAlgorithms.ZeroFPR(tol = 1e-6)
+slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ZeroFPR(tol = 1e-6)
 xz = copy(~x)
 ~x .= 0.
-slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ProximalAlgorithms.PANOC(tol = 1e-6)
+slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PANOC(tol = 1e-6)
 xp = copy(~x)
 ~x .= 0.
 
@@ -41,7 +41,7 @@ xp = copy(~x)
 @test norm(xp-xpg) <= 1e-4
 
 # test nonconvex Rosenbrock function with known minimum
-solvers = [ProximalAlgorithms.ZeroFPR(tol = 1e-6), ProximalAlgorithms.PANOC(tol = 1e-6)]
+solvers = [ZeroFPR(tol = 1e-6), PANOC(tol = 1e-6)]
 for solver in solvers
     x = Variable(1)
     y = Variable(1)
