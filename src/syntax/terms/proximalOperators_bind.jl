@@ -4,9 +4,9 @@ import LinearAlgebra: norm
 export norm
 
 """
-`norm(x::AbstractExpression, p=2, [q,] [dim=1])`
+	norm(x::AbstractExpression, p=2, [q,] [dim=1])
 
-Returns the norm of `x`. 
+Returns the norm of `x`.
 
 Supported norms:
 
@@ -20,7 +20,7 @@ Supported norms:
 
 * `p = *` nuclear norm
 
-* `p = 2`, `q = 1` ``l_{2,1}`` mixed norm (aka Sum-of-``l_2``-norms) 
+* `p = 2`, `q = 1` ``l_{2,1}`` mixed norm (aka Sum-of-``l_2``-norms)
 ```math
 f(\\mathbf{X}) = \\sum_i \\| \\mathbf{x}_i \\|
 ```
@@ -50,7 +50,7 @@ end
 # Mixed Norm
 function norm(ex::AbstractExpression, p1::Int, p2::Int, dim::Int = 1 )
 	if p1 == 2 && p2 == 1
-		f = NormL21(1.0,dim) 
+		f = NormL21(1.0,dim)
 	else
 		error("function not implemented")
 	end
@@ -62,7 +62,7 @@ end
 export ls
 
 """
-`ls(x::AbstractExpression)`
+	ls(x::AbstractExpression)
 
 Returns the squared norm (least squares) of `x`:
 
@@ -90,9 +90,9 @@ end
 export hingeloss
 
 """
-`hingeloss(x::AbstractExpression, y::Array)`
+	hingeloss(x::AbstractExpression, y::Array)
 
-Applies the Hinge loss function 
+Applies the Hinge loss function
 ```math
 f( \\mathbf{x} ) = \\sum_{i} \\max\\{0, 1 - y_i x_i \\},
 ```
@@ -106,9 +106,9 @@ Term(HingeLoss(b), ex)
 export sqrhingeloss
 
 """
-`sqrhingeloss(x::AbstractExpression, y::Array)`
+	sqrhingeloss(x::AbstractExpression, y::Array)
 
-Applies the squared Hinge loss function 
+Applies the squared Hinge loss function
 ```math
 f( \\mathbf{x} ) = \\sum_{i} \\max\\{0, 1 - y_i x_i \\}^2,
 ```
@@ -122,9 +122,9 @@ Term(SqrHingeLoss(b), ex)
 export crossentropy
 
 """
-`crossentropy(x::AbstractExpression, y::Array)`
+	crossentropy(x::AbstractExpression, y::Array)
 
-Applies the cross entropy loss function: 
+Applies the cross entropy loss function:
 ```math
 f(\\mathbf{x}) = -1/N \\sum_{i}^{N} y_i \\log (x_i)+(1-y_i) \\log (1-x_i),
 ```
@@ -138,11 +138,11 @@ Term(CrossEntropy(b), ex)
 export logisticloss
 
 """
-`logbarrier(x::AbstractExpression, y::AbstractArray)`
+	logbarrier(x::AbstractExpression, y::AbstractArray)
 
-Applies the logistic loss function: 
+Applies the logistic loss function:
 ```math
-f(\\mathbf{x}) = \\sum_{i} \\log(1+ \\exp(-y_i x_i)), 
+f(\\mathbf{x}) = \\sum_{i} \\log(1+ \\exp(-y_i x_i)),
 ```
 where `y` is an array containing ``y_i``.
 """
@@ -154,9 +154,9 @@ Term(LogisticLoss(y, 1.0), ex)
 export logbarrier
 
 """
-`logbarrier(x::AbstractExpression)`
+	logbarrier(x::AbstractExpression)
 
-Applies the log barrier function: 
+Applies the log barrier function:
 ```math
 f(\\mathbf{x}) = -\\sum_i \\log( x_i ).
 ```
@@ -169,9 +169,9 @@ Term(LogBarrier(1.0), ex)
 export huberloss
 
 """
-`huberloss(x::AbstractExpression, ρ=1.0)`
+	huberloss(x::AbstractExpression, ρ=1.0)
 
-Applies the Huber loss function: 
+Applies the Huber loss function:
 ```math
 f(\\mathbf{x}) = \\begin{cases}
   \\tfrac{1}{2}\\| \\mathbf{x} \\|^2 & \\text{if} \\ \\| \\mathbf{x} \\| \\leq \\rho \\\\
@@ -185,9 +185,9 @@ Term(HuberLoss(rho), ex)
 import Base: maximum
 
 """
-`maximum(x::AbstractExpression)`
+	maximum(x::AbstractExpression)
 
-Applies the function: 
+Applies the function:
 ```math
 f(\\mathbf{x}) = \\max \\{x_i : i = 1,\\ldots, n \\}.
 ```
@@ -198,9 +198,9 @@ Term(Maximum(), ex)
 export sumpositive
 
 """
-`sumpositive(x::AbstractExpression, ρ=1.0)`
+	sumpositive(x::AbstractExpression, ρ=1.0)
 
-Applies the function: 
+Applies the function:
 ```math
 f(\\mathbf{x}) = \\sum_i \\max \\{x_i, 0\\}.
 ```
@@ -212,9 +212,9 @@ import LinearAlgebra: dot
 export dot
 
 """
-`dot(c::AbstractVector, x::AbstractExpression)`
+	dot(c::AbstractVector, x::AbstractExpression)
 
-Applies the function: 
+Applies the function:
 ```math
 f(\\mathbf{x}) = \\mathbf{c}^{T}\\mathbf{x}.
 ```
@@ -227,23 +227,23 @@ Term(Linear(c), ex)
 
 import Base: <=
 """
-Inequalities constrains 
+Inequalities constrains
 
 ## Norm Inequalities constraints
 
-* `norm(x::AbstractExpression, 0) <= n::Integer` 
+* `norm(x::AbstractExpression, 0) <= n::Integer`
 
   ``\\mathrm{nnz}(\\mathbf{x}) \\leq n``
 
-* `norm(x::AbstractExpression, 1) <= r::Number` 
+* `norm(x::AbstractExpression, 1) <= r::Number`
 
   ``\\sum_i \\| x_i \\| \\leq r``
 
-* `norm(x::AbstractExpression, 2) <= r::Number` 
+* `norm(x::AbstractExpression, 2) <= r::Number`
 
   ``\\| \\mathbf{x} \\| \\leq r``
 
-* `norm(x::AbstractExpression, Inf) <= r::Number` 
+* `norm(x::AbstractExpression, Inf) <= r::Number`
 
   `` \\max \\{ x_1, x_2, \\dots \\}  \\leq r``
 
@@ -263,9 +263,9 @@ Inequalities constrains
 
 * `rank(X::AbstractExpression) <= n::Integer`
 
-  ``\\mathrm{rank}(\\mathbf{X}) \\leq r`` 
+  ``\\mathrm{rank}(\\mathbf{X}) \\leq r``
 
-  Notice that the expression `X` must have a codomain with dimension equal to 2. 
+  Notice that the expression `X` must have a codomain with dimension equal to 2.
 
 """
 (<=)(t::Term{T1,T2,T3}, r::Integer) where {T1,T2 <: NormL0,T3} =
@@ -315,7 +315,7 @@ Equalities constraints
 
 ## Affine space constraint
 
-* `ex == b::Union{Real,AbstractArray}` 
+* `ex == b::Union{Real,AbstractArray}`
 
   Requires expression to be affine.
 
@@ -324,19 +324,19 @@ Equalities constraints
   julia> A,b  = randn(10,5), randn(10);
 
   julia> x = Variable(5);
-  
+
   julia> A*x == b
   ```
 
 ## Norm equality constraint
 
-* `norm(x::AbstractExpression) == r::Number` 
+* `norm(x::AbstractExpression) == r::Number`
 
   ``\\| \\mathbf{x} \\| = r``
 
 ## Binary constraint
 
-* `x::AbstractExpression == (l, u)` 
+* `x::AbstractExpression == (l, u)`
 
   ``\\mathbf{x} = \\mathbf{l}`` or ``\\mathbf{x} = \\mathbf{u}``
 
@@ -344,12 +344,12 @@ Equalities constraints
 (==)(t::Term{T1,T2,T3}, r::Real)  where {T1,T2 <: NormL2,T3} = Term(IndSphereL2(r/t.lambda), t.A)
 # IndSphereL2
 
-(==)(ex::AbstractExpression, lu::Tuple{Union{Real,AbstractArray},Union{Real,AbstractArray}}) = 
+(==)(ex::AbstractExpression, lu::Tuple{Union{Real,AbstractArray},Union{Real,AbstractArray}}) =
 Term(IndBinary(lu...), ex)
 # IndBinary
 
 # IndAffine
-function (==)(ex::AbstractExpression, b::Union{Real,AbstractArray}) 
+function (==)(ex::AbstractExpression, b::Union{Real,AbstractArray})
     op = operator(ex)
     d  = displacement(ex)
     if typeof(op) <: MatrixOp
@@ -368,7 +368,7 @@ end
 import Base: conj
 
 """
-`conj(t::Term)`
+	conj(t::Term)
 
 Returns the convex conjugate transform of `t`:
 ```math
@@ -387,9 +387,9 @@ julia> t = conj(norm(x,1))
 ```
 
 """
-function conj(t::Term) 
-	if typeof(operator(t)) <: Eye 
-		return Term(1.0,Conjugate(Postcompose(t.f,t.lambda)),t.A) 
+function conj(t::Term)
+	if typeof(operator(t)) <: Eye
+		return Term(1.0,Conjugate(Postcompose(t.f,t.lambda)),t.A)
 	else
 		error("cannot perform convex conjugation")
 	end
@@ -400,7 +400,7 @@ end
 export smooth
 
 """
-`smooth(t::Term, gamma = 1.0)`
+	smooth(t::Term, gamma = 1.0)
 
 Smooths the nonsmooth term `t` using Moreau envelope:
 
@@ -420,9 +420,9 @@ julia> t = smooth(norm(x,1))
 ```
 
 """
-function smooth(t::Term, gamma = 1.0) 
+function smooth(t::Term, gamma = 1.0)
     if !is_smooth(t)
-        return Term(1.0,MoreauEnvelope(Postcompose(t.f,t.lambda),gamma),t.A) 
+        return Term(1.0,MoreauEnvelope(Postcompose(t.f,t.lambda),gamma),t.A)
     else
         return t
     end

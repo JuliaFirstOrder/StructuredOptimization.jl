@@ -1,7 +1,7 @@
 export problem
 
 """
-`problems(terms...)`
+	problems(terms...)
 
 Constructs a problem.
 

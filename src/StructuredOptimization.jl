@@ -8,6 +8,9 @@ using AbstractOperators
 using ProximalOperators
 using ProximalAlgorithms
 
+import ProximalAlgorithms:ForwardBackward, ZeroFPR, PANOC
+export ForwardBackward, ZeroFPR, PANOC
+
 include("syntax/syntax.jl")
 include("calculus/precomposeNonlinear.jl") # TODO move to ProximalOperators?
 include("arraypartition.jl") # TODO move to ProximalOperators?

@@ -18,7 +18,7 @@ julia> A, b = randn(10,4), randn(10);
 
 julia> p = problem( ls(A*x - b ) , norm(x) <= 1 );
 
-julia> build(p, PG());
+julia> StructuredOptimization.parse_problem(p, ForwardBackward());
 ```
 """
 function parse_problem(terms::Tuple, solver::T) where T <: ForwardBackwardSolver
@@ -65,14 +65,9 @@ julia> A, b = randn(10,4), randn(10);
 
 julia> p = problem(ls(A*x - b ), norm(x) <= 1);
 
-julia> solve(p, ProximalAlgorithms.ForwardBackward());
+julia> solve(p, ForwardBackward());
 
 julia> ~x
-4-element Array{Float64,1}:
- -0.6427139974173074
- -0.29043653211431103
- -0.6090539651510192
-  0.36279278640995494
 ```
 """
 function solve(terms::Tuple, solver::ForwardBackwardSolver)

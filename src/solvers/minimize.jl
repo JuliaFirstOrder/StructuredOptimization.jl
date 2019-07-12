@@ -1,37 +1,32 @@
-export @minimize 
+export @minimize
 
 """
-`@minimize cost [st ctr] [with slv_opt]`
+    @minimize cost [st ctr] [with slv_opt]
 
-Minimize a given problem with cost function `cost`, constraints `ctr` and solver options `slv_opt`. 
+Minimize a given problem with cost function `cost`, constraints `ctr` and solver options `slv_opt`.
 
 # Example
 
 ```julia
-julia> A, b = randn(10,4), randn(10);
+julia> using StructuredOptimization
+
+julia> A, b, x = randn(10,4), randn(10), Variable(4);
 
 julia> @minimize ls(A*x-b) + 0.5*norm(x);
-    it |      gamma |        fpr |        tau |        FBE |
- ------|------------|------------|------------|------------|
-     1 | 2.9152e-02 | 2.7656e+00 | 1.0000e+00 | 5.5181e+00 |
-     9 | 2.9152e-02 | 9.9682e-05 | 1.0000e+00 | 4.4086e+00 |
+
+julia> ~x  # access array with solution
 
 julia> @minimize ls(A*x-b) st x >= 0.;
-    it |      gamma |        fpr |        tau |        FBE |
- ------|------------|------------|------------|------------|
-     1 | 5.8304e-02 | 1.0068e+00 | 1.0000e+00 | 6.6282e+00 |
-     3 | 5.8304e-02 | 9.5210e-16 | 1.0000e+00 | 6.5654e+00 |
 
-julia> it, slv = @minimize ls(A*x-b) st norm(x) == 2.0 with PG(maxit = 5);
-    it |      gamma |        fpr |
- ------|------------|------------|
-     1 | 6.1373e-02 | 2.2090e+01 |
-     5 | 3.0686e-02 | 5.5190e-01 |
+julia> ~x  # access array with solution
 
+julia> @minimize ls(A*x-b) st norm(x) == 2.0 with ForwardBackward(fast=true);
+
+julia> ~x  # access array with solution
 ```
 
-Returns as output a tuple containing the number of iterations and the constructed solver.
-
+Returns as output a tuple containing the optimization variables and the number
+of iterations spent by the solver algorithm.
 """
 macro minimize(cf::Union{Expr, Symbol})
 	cost = esc(cf)
