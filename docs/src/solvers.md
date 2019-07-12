@@ -1,6 +1,6 @@
 # Solvers
 
-## Minimizing a problem
+## Minimizing a function
 
 ```@docs
 @minimize
