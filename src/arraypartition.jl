@@ -34,3 +34,7 @@ end
     h::ProximalOperators.ProximableFunction,
     x::RecursiveArrayTools.ArrayPartition
 ) = ProximalOperators.gradient!(y.x, h, x.x)
+
+# fix to https://github.com/JuliaDiffEq/RecursiveArrayTools.jl/issues/68
+# possibly remove it once issue is resolved
+Base.copyto!(x::ArrayPartition, y::ArrayPartition) = x .= y
