@@ -15,11 +15,11 @@ Clipped audio sample
 
 (**Warning** there are severe distortions and you might want to turn down your volume before playing)
 ```@raw html        
-<audio src="assets/clipped.wav" controls preload></audio>
+<audio src="https://raw.githubusercontent.com/kul-forbes/StructuredOptimization.jl/master/docs/src/assets/clipped.wav" controls preload></audio>
 ```
 
 De-clipped audio sample 
 
 ```@raw html        
-<audio src="assets/declipped.wav" controls preload></audio>
+<audio src="https://raw.githubusercontent.com/kul-forbes/StructuredOptimization.jl/master/docs/src/assets/declipped.wav" controls preload></audio>
 ```
