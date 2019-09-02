@@ -1,5 +1,3 @@
-__precompile__()
-
 module StructuredOptimization
 
 using LinearAlgebra
@@ -24,6 +22,5 @@ include("solvers/terms_splitting.jl")
 include("solvers/solvers_options.jl")
 include("solvers/build_solve.jl")
 include("solvers/minimize.jl")
-
 
 end
