@@ -62,4 +62,4 @@ julia> ~x                             # inspect solution
 [...]
 ```
 
-See the [documentation](https://kul-forbes.github.io/StructuredOptimization.jl/latest) for more details about the type of problems StructuredOptimization.jl can handle and the [demos](https://kul-forbes.github.io/StructuredOptimization.jl/latest/demos.html) to check out some examples.
+See the [documentation](https://kul-forbes.github.io/StructuredOptimization.jl/latest) for more details about the type of problems StructuredOptimization.jl can handle and the [demos](https://kul-forbes.github.io/StructuredOptimization.jl/stable/demos/) to check out some examples.
