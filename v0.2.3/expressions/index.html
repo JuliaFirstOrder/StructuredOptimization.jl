@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Expressions · StructuredOptimization</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../assets/documenter.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link href="../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>StructuredOptimization</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../">Home</a></li><li><a class="toctext" href="../tutorial/">Quick Tutorial Guide</a></li><li class="current"><a class="toctext" href>Expressions</a><ul class="internal"><li><a class="toctext" href="#Variables-1">Variables</a></li><li><a class="toctext" href="#Summing-expressions-1">Summing expressions</a></li><li><a class="toctext" href="#Multiplying-expressions-1">Multiplying expressions</a></li><li><a class="toctext" href="#Mappings-1">Mappings</a></li><li><a class="toctext" href="#Utilities-2">Utilities</a></li></ul></li><li><a class="toctext" href="../functions/">Functions</a></li><li><a class="toctext" href="../solvers/">Solvers</a></li><li><a class="toctext" href="../demos/">Demos</a></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Expressions</a></li></ul><a class="edit-page" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/master/docs/src/expressions.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Expressions</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Expressions-1" href="#Expressions-1">Expressions</a></h1><p>With <code>StructuredOptimization.jl</code> you can easily create mathematical expressions. Firstly, <a href="#Variables-1">Variables</a> must be defined: various <a href="#Mappings-1">Mappings</a> can then be applied following the application of <a href="../functions/#Functions-and-constraints-1">Functions and constraints</a> to create the <code>Term</code>s  that define the optimization problem.</p><h2><a class="nav-anchor" id="Variables-1" href="#Variables-1">Variables</a></h2><h3><a class="nav-anchor" id="Creating-Variables-1" href="#Creating-Variables-1">Creating Variables</a></h3><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StructuredOptimization.Variable" href="#StructuredOptimization.Variable"><code>StructuredOptimization.Variable</code></a> — <span class="docstring-category">Type</span>.</div><div><div><pre><code class="language-julia">Variable([T::Type,] dims...)</code></pre><p>Returns a <code>Variable</code> of dimension <code>dims</code> initialized with an array of all zeros.</p><p><code>Variable(x::AbstractArray)</code></p><p>Returns a <code>Variable</code> of dimension <code>size(x)</code> initialized with <code>x</code></p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/variable.jl#L9-L18">source</a></section><div class="admonition note"><div class="admonition-title">Note</div><div class="admonition-text"><p><code>StructuredOptimization.jl</code> supports complex variables. It is possible to create them by specifying the type <code>Variable(Complex{Float64}, 10)</code> or by initializing them with a complex array <code>Variable(randn(10)+im*randn(10))</code>.</p></div></div><h3><a class="nav-anchor" id="Utilities-1" href="#Utilities-1">Utilities</a></h3><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.:~" href="#Base.:~"><code>Base.:~</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">~(x::Variable)</code></pre><p>Returns the <code>Array</code> of the variable <code>x</code></p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/variable.jl#L34-L38">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.size" href="#Base.size"><code>Base.size</code></a> — <span class="docstring-category">Function</span>.</div><div><div><p>size(x::Variable, [dim...])</p><p>Like <code>size(A::AbstractArray, [dims...])</code> returns the tuple containing the dimensions of the variable <code>x</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/variable.jl#L43-L47">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.eltype" href="#Base.eltype"><code>Base.eltype</code></a> — <span class="docstring-category">Function</span>.</div><div><div><p>eltype(x::Variable)</p><p>Like <code>eltype(x::AbstractArray)</code> returns the type of the elements of <code>x</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/variable.jl#L51-L55">source</a></section><h2><a class="nav-anchor" id="Summing-expressions-1" href="#Summing-expressions-1">Summing expressions</a></h2><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.:+" href="#Base.:+"><code>Base.:+</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">+(ex1::AbstractExpression, ex2::AbstractExpression)</code></pre><p>Add two expressions.</p><p><strong>Examples</strong></p><pre><code class="language-julia">julia&gt; x,y = Variable(5), Variable(5)
+(Variable(Float64, (5,)), Variable(Float64, (5,)))
+
+julia&gt; ex1 = x+y
+
+julia&gt; z = Variable(2)
+Variable(Float64, (2,))
+
+julia&gt; ex2 = randn(5,2)*z
+</code></pre><p>Notice that in order for two expressions to be added toghether their associated <code>AbstractOperator</code> must have the same codomain:</p><pre><code class="language-julia">julia&gt; operator(ex1)
+[I,I]  ℝ^5  ℝ^5 -&gt; ℝ^5
+
+julia&gt; operator(ex2)
+▒  ℝ^2 -&gt; ℝ^5
+
+julia&gt; ex3 = ex1 + ex2
+</code></pre><p>It is also possible to use broadcasted addition:</p><pre><code class="language-julia">julia&gt; z = Variable(1)
+Variable(Float64, (1,))
+
+julia&gt; ex3.+z
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/addition.jl#L3-L46">source</a><div><div><pre><code class="language-none">+(ex::AbstractExpression, b::Union{AbstractArray,Number})</code></pre><p>Add a scalar or an <code>Array</code> to an expression:</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(10)
+Variable(Float64, (10,))
+
+julia&gt; ex = x+4
+</code></pre><p>Notice that in order to add an array to <code>ex</code>, <code>b</code> must belong to the codomain of the associated <code>AbstractOperator</code> of <code>ex</code>.</p><pre><code class="language-julia">julia&gt; b = randn(10);
+
+julia&gt; size(b), eltype(b)
+((10,), Float64)
+
+julia&gt; size(affine(ex),1), codomainType(affine(ex))
+((10,), Float64)
+
+julia&gt; ex + b
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/addition.jl#L154-L185">source</a></section><h2><a class="nav-anchor" id="Multiplying-expressions-1" href="#Multiplying-expressions-1">Multiplying expressions</a></h2><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.:*" href="#Base.:*"><code>Base.:*</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">*(A::AbstractOperator, ex::AbstractExpression)</code></pre><p>Multiply an &#39;AbstractExpression<code>by an</code>AbstractOperator`.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; A = FiniteDiff(Float64, (10,))
+δx  ℝ^10 -&gt; ℝ^9
+
+julia&gt; x = Variable(10);
+
+julia&gt; ex = A*x;
+
+julia&gt; B = DCT(9)
+ℱc  ℝ^9 -&gt; ℝ^9
+
+julia&gt; ex2 = B*ex;
+
+julia&gt; affine(ex2)
+ℱc*δx  ℝ^10 -&gt; ℝ^9</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/multiplication.jl#L3-L27">source</a><div><div><pre><code class="language-none">*(A::AbstractMatrix, ex::AbstractExpression)</code></pre><p>Multiply an <code>AbstractExpression</code> by an <code>AbstractMatrix</code>.</p><pre><code class="language-julia">julia&gt; A = randn(10,5);
+
+julia&gt; x = Variable(5)
+Variable(Float64, (5,))
+
+julia&gt; A*x
+</code></pre><p>Other types of multiplications are also possible:</p><ul><li>left array multiplication</li></ul><pre><code class="language-julia">julia&gt; X = Variable(10,5)
+Variable(Float64, (10, 5))
+
+julia&gt; X*randn(5,6)
+</code></pre><ul><li>scalar multiplication:</li></ul><pre><code class="language-julia">julia&gt; π*X
+</code></pre><ul><li>elementwise multiplication:</li></ul><pre><code class="language-julia">julia&gt; randn(10,5).*X
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/multiplication.jl#L33-L71">source</a><div><div><pre><code class="language-none">*(A::AbstractExpression, ex::AbstractExpression)</code></pre><p>Multiply an <code>AbstractExpression</code> by another <code>AbstractExpression</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia">julia&gt; W1 = Variable(10,5)
+Variable(Float64, (10, 5))
+
+julia&gt; W2 = Variable(5,15)
+Variable(Float64, (5, 15))
+
+julia&gt; ex = W1*σ(W2);
+
+julia&gt; affine(ex)
+I*σ  ℝ^(10, 5)  ℝ^(5, 15) -&gt; ℝ^(10, 15)
+</code></pre><p><code>.*(A::AbstractExpression, ex::AbstractExpression)</code></p><p>Elementwise multiplication between <code>AbstractExpression</code> (i.e. Hadamard product).</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/multiplication.jl#L102-L127">source</a></section><h2><a class="nav-anchor" id="Mappings-1" href="#Mappings-1">Mappings</a></h2><p>As shown in the <a href="../tutorial/#Quick-tutorial-guide-1">Quick tutorial guide</a> it is possible to apply different mappings to the variables using a simple syntax.</p><p>Alternatively, as shown in <a href="#Multiplying-expressions-1">Multiplying expressions</a>, it is possible to define the mappings using <a href="https://github.com/kul-forbes/ProximalAlgorithms.jl"><code>AbstractOperators.jl</code></a> and to apply them to the variable (or expression) through multiplication.</p><h3><a class="nav-anchor" id="Basic-mappings-1" href="#Basic-mappings-1">Basic mappings</a></h3><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.getindex" href="#Base.getindex"><code>Base.getindex</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">getindex(x::AbstractExpression, dims...)</code></pre><p>Slices the codomain of <code>ex</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(10)
+Variable(Float64, (10,))
+
+julia&gt; getindex(x,1:4)
+
+julia&gt; X = Variable(10,4)
+Variable(Float64, (10, 4))
+
+julia&gt; X[:,1:3]
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L101-L120">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.reshape" href="#Base.reshape"><code>Base.reshape</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">reshape(x::AbstractExpression, dims...)</code></pre><p>Reshapes the codomain of the expression.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; A,b = randn(10,3), randn(10);
+
+julia&gt; reshape(A*x-b,2,5)
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L5-L18">source</a></section><h3><a class="nav-anchor" id="DSP-mappings-1" href="#DSP-mappings-1">DSP mappings</a></h3><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="AbstractFFTs.fft" href="#AbstractFFTs.fft"><code>AbstractFFTs.fft</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">fft(x::AbstractExpression)</code></pre><p>Applies the Fourier transform. See documentation for <code>Base.fft</code> and <code>AbstractOperator.DFT</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(10)
+Variable(Float64, (10,))
+
+julia&gt; ex = fft(x)
+
+julia&gt; operator(ex)
+ℱ  ℝ^10 -&gt; ℂ^10
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L123-L141">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="AbstractFFTs.ifft" href="#AbstractFFTs.ifft"><code>AbstractFFTs.ifft</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">ifft(x::AbstractExpression)</code></pre><p>Applies the inverse Fourier transform. See documentation for <code>Base.ifft</code> and <code>AbstractOperator.IDFT</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(10)
+Variable(Float64, (10,))
+
+julia&gt; ex = ifft(x)
+
+julia&gt; operator(ex)
+ℱ⁻¹  ℝ^10 -&gt; ℂ^10
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L165-L183">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="AbstractFFTs.rfft" href="#AbstractFFTs.rfft"><code>AbstractFFTs.rfft</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">rfft(x::AbstractExpression, [, dims] )</code></pre><p>Applies the Fourier transform exploiting the conjugate symmetry. See documentation for <code>Base.rfft</code> and <code>AbstractOperator.RDFT</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(10)
+Variable(Float64, (10,))
+
+julia&gt; ex = rfft(x)
+
+julia&gt; operator(ex)
+ℱ  ℝ^10 -&gt; ℂ^6
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L144-L162">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="AbstractFFTs.irfft" href="#AbstractFFTs.irfft"><code>AbstractFFTs.irfft</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">irfft(x::AbstractExpression, d, [, dims] )</code></pre><p>Applies the inverse Fourier transform exploiting the conjugate symmetry.</p><p><code>d</code> must indicate the length of the real codomain.</p><p>See documentation for <code>Base.irfft</code> and <code>AbstractOperator.IRDFT</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(Complex{Float64}, 10)
+Variable(Float64, (10,))
+
+julia&gt; ex = irfft(x,19)
+
+julia&gt; operator(ex)
+ℱ⁻¹  ℂ^10 -&gt; ℝ^19
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L188-L209">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="FFTW.dct" href="#FFTW.dct"><code>FFTW.dct</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">dct(x::AbstractExpression)</code></pre><p>Applies the discrete cosine transform. See documentation for <code>Base.dct</code> and <code>AbstractOperator.DCT</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(10)
+Variable(Float64, (10,))
+
+julia&gt; ex = dct(x)
+
+julia&gt; operator(ex)
+ℱc  ℝ^10 -&gt; ℝ^10
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L212-L230">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="FFTW.idct" href="#FFTW.idct"><code>FFTW.idct</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">idct(x::AbstractExpression)</code></pre><p>Applies the inverse discrete cosine transform. See documentation for <code>Base.idct</code> and <code>AbstractOperator.IDCT</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(10)
+Variable(Float64, (10,))
+
+julia&gt; ex = idct(x)
+
+julia&gt; operator(ex)
+ℱc⁻¹  ℝ^10 -&gt; ℝ^10
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L233-L251">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="DSP.conv" href="#DSP.conv"><code>DSP.conv</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">conv(x::AbstractExpression, h::AbstractVector)</code></pre><p>Perform discrete convolution with <code>h</code>. See documentation for <code>Base.conv</code> and <code>AbstractOperator.Conv</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(10)
+Variable(Float64, (10,))
+
+julia&gt; ex = conv(x, randn(5))
+
+julia&gt; operator(ex)
+★  ℝ^10 -&gt; ℝ^14
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L254-L272">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="DSP.xcorr" href="#DSP.xcorr"><code>DSP.xcorr</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">xcorr(x::AbstractExpression, h::AbstractVector)</code></pre><p>Performs the cross correlation of the codomain of <code>ex</code> with <code>h</code>. See documentation for <code>Base.xcorr</code> and <code>AbstractOperator.Xcorr</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(10)
+Variable(Float64, (10,))
+
+julia&gt; ex = xcorr(x, randn(5))
+
+julia&gt; operator(ex)
+◎  ℝ^10 -&gt; ℝ^19
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L275-L293">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="DSP.filt" href="#DSP.filt"><code>DSP.filt</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">filt(x::AbstractExpression, b::AbstractVector, [a::AbstractVector])</code></pre><p>Filter with the finite impulse response (FIR) <code>b</code>. Alternatively infinite impulse responses filters (IIR) can be used as well by specifying the coefficients <code>a</code>.</p><p>See documentation for <code>Base.filt</code> and <code>AbstractOperator.Filt</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(10)
+Variable(Float64, (10,))
+
+julia&gt; ex = filt(x, [1.;0.;0.],[1.;0.;1.])
+
+julia&gt; operator(ex)
+IIR  ℝ^10 -&gt; ℝ^10
+
+julia&gt; ex = filt(x, [1.;0.;0.])
+
+julia&gt; operator(ex)
+FIR  ℝ^10 -&gt; ℝ^10
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L296-L321">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StructuredOptimization.mimofilt" href="#StructuredOptimization.mimofilt"><code>StructuredOptimization.mimofilt</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">mimofilt(X::AbstractExpression, B::Vector{AbstractVector}, [A::Vector{AbstractVector}])</code></pre><p>Multiple-input multiple-output filter: like <code>filt</code> but allows for multipule inputs.</p><div>\[\mathbf{y}_i = \sum_{j = 1}^{M} \mathbf{h}_{i,j} * \mathbf{x}_j\]</div><p>where <span>$\mathbf{y}_i$</span> and <span>$\mathbf{x}_j$</span> are the <span>$i$</span>-th and <span>$j$</span>-th columns of the output <code>Y</code> and input <code>X</code> matrices respectively.</p><p>The filters <span>$\mathbf{h}_{i,j}$</span> can be represented either by providing coefficients <code>B</code> and <code>A</code> (IIR) or <code>B</code> alone (FIR). These coefficients must be given in a <code>Vector</code> of <code>Vector</code>s.</p><p>For example for a <code>3</code> by <code>2</code> MIMO system (i.e. <code>size(X,2) == 3</code> inputs and <code>size(Y,2) == 2</code> outputs) <code>B</code> must be:</p><p><code>B = [b11, b12, b13, b21, b22, b23]</code></p><p>where <code>bij</code> are vector containing the filter coeffients of <code>h_{i,j}</code>.</p><p>See documentation of <code>AbstractOperator.MIMOFilt</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L373-L392">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StructuredOptimization.zeropad" href="#StructuredOptimization.zeropad"><code>StructuredOptimization.zeropad</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">zeropad(x::AbstractExpression, zp::Tuple)</code></pre><p>Performs zeropadding:</p><div>\[zp(\mathbf{x}) = [\mathbf{x}, 0, \dots, 0  ]^T\]</div><p>where <code>zp</code> is a tuple containing the number of nonzero elements that are added in each dimension.</p><p>See documentation of <code>AbstractOperator.ZeroPad</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L395-L405">source</a></section><h3><a class="nav-anchor" id="Finite-differences-mappings-1" href="#Finite-differences-mappings-1">Finite differences mappings</a></h3><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StructuredOptimization.finitediff" href="#StructuredOptimization.finitediff"><code>StructuredOptimization.finitediff</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">finitediff(X::AbstractExpression, dir = 1)</code></pre><p>Performs the discretized gradient over the specified direction <code>dir</code> obtained using forward finite differences.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; X = Variable(10,10)
+Variable(Float64, (10,10))
+
+julia&gt; ex = finitediff(X)
+
+julia&gt; operator(ex)
+δx  ℝ^(10, 10) -&gt; ℝ^(9, 10)
+
+julia&gt; ex = finitediff(X,2)
+
+julia&gt; operator(ex)
+δy  ℝ^(10, 10) -&gt; ℝ^(10, 9)
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L324-L346">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StructuredOptimization.variation" href="#StructuredOptimization.variation"><code>StructuredOptimization.variation</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">variation(X::AbstractExpression)</code></pre><p>Returns the variation of <code>X</code> using forward finite differences. Specifically if <code>X</code> is in <code>ℝ^(n, m)</code> the codomain of <code>variation(X)</code> will consist of <code>ℝ^(n*m,2)</code>, having in the <span>$i$</span>-th column the vectorized gradient over the <span>$i$</span>-th direction.</p><p>See documentation of <code>AbstractOperator.Variation</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; X = Variable(4,5,6)
+Variable(Float64, (4,5,6))
+
+julia&gt; ex = variation(X)
+
+julia&gt; operator(ex)
+Ʋ  ℝ^(4, 5, 6) -&gt; ℝ^(120, 3)
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L349-L370">source</a></section><h3><a class="nav-anchor" id="Nonlinear-mappings-1" href="#Nonlinear-mappings-1">Nonlinear mappings</a></h3><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.sin" href="#Base.sin"><code>Base.sin</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">sin(x::AbstractExpression)</code></pre><p>Sine function:</p><div>\[\sin( \mathbf{x}  )\]</div><p>See documentation of <code>AbstractOperator.Sin</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L434-L443">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.cos" href="#Base.cos"><code>Base.cos</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">cos(x::AbstractExpression)</code></pre><p>Cosine function:</p><div>\[\cos( \mathbf{x}  )\]</div><p>See documentation of <code>AbstractOperator.Cos</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L446-L455">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.atan" href="#Base.atan"><code>Base.atan</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">atan(x::AbstractExpression)</code></pre><p>Inverse tangent function:</p><div>\[\tan^{-1}( \mathbf{x}  )\]</div><p>See documentation of <code>AbstractOperator.Atan</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L458-L467">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.tanh" href="#Base.tanh"><code>Base.tanh</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">tanh(x::AbstractExpression)</code></pre><p>Hyperbolic tangent function:</p><div>\[\tanh ( \mathbf{x}  )\]</div><p>See documentation of <code>AbstractOperator.Tanh</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L470-L479">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="Base.exp" href="#Base.exp"><code>Base.exp</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">exp(x::AbstractExpression)</code></pre><p>Exponential function:</p><div>\[e^{ \mathbf{x}  }\]</div><p>See documentation of <code>AbstractOperator.Exp</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L422-L431">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StructuredOptimization.pow" href="#StructuredOptimization.pow"><code>StructuredOptimization.pow</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">pow(x::AbstractExpression, n)</code></pre><p>Elementwise <code>n</code>-th power of <code>x</code>:</p><div>\[x_i^{n} \ \forall \  i = 0,1, \dots\]</div><p>See documentation of <code>AbstractOperator.Pow</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L482-L491">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StructuredOptimization.sigmoid" href="#StructuredOptimization.sigmoid"><code>StructuredOptimization.sigmoid</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">sigmoid(x::AbstractExpression, γ = 1.0)</code></pre><p><code>σ(x::AbstractExpression, γ = 1.0)</code></p><p>Sigmoid function:</p><div>\[\sigma(\mathbf{x}) = \frac{1}{1+e^{-\gamma \mathbf{x} } }\]</div><p>See documentation of <code>AbstractOperator.Sigmoid</code>.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/abstractOperator_bind.jl#L408-L418">source</a></section><h2><a class="nav-anchor" id="Utilities-2" href="#Utilities-2">Utilities</a></h2><p>It is possible to access the variables, mappings and displacement of an expression. Notice that these commands work also for the <code>Term</code>s described in <a href="../functions/#Functions-and-constraints-1">Functions and constraints</a>.</p><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StructuredOptimization.variables" href="#StructuredOptimization.variables"><code>StructuredOptimization.variables</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">variables(ex::Expression)</code></pre><p>Returns a tuple containing the <code>Variable</code>s of expression <code>ex</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x,y = Variable(2),Variable(2);
+
+julia&gt; ex = x+y;
+
+julia&gt; variables(ex)
+(Variable(Float64, (2,)), Variable(Float64, (2,)))
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/utils.jl#L9-L26">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StructuredOptimization.operator" href="#StructuredOptimization.operator"><code>StructuredOptimization.operator</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">operator(ex::Expression)</code></pre><p>Returns the <code>AbstractOperator</code> of expression <code>ex</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(3)
+Variable(Float64, (3,))
+
+julia&gt; ex = fft(x);
+
+julia&gt; operator(ex)
+ℱ  ℝ^3 -&gt; ℂ^3
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/utils.jl#L30-L47">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="StructuredOptimization.affine" href="#StructuredOptimization.affine"><code>StructuredOptimization.affine</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">affine(ex::Expression)</code></pre><p>Returns the <code>AbstractOperator</code> of expression <code>ex</code> keeping any affine addition.</p></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/utils.jl#L51-L56">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="AbstractOperators.displacement" href="#AbstractOperators.displacement"><code>AbstractOperators.displacement</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">displacement(ex::Expression)</code></pre><p>Returns the displacement of expression <code>ex</code>.</p><p><strong>Example</strong></p><pre><code class="language-julia">julia&gt; x = Variable(3)
+Variable(Float64, (3,))
+
+julia&gt; ex = fft(x)+[1.+im*2.;0.;3.+im*4];
+
+julia&gt; displacement(ex)
+3-element Array{Complex{Float64},1}:
+1.0+2.0im
+0.0+0.0im
+3.0+4.0im
+</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/kul-forbes/StructuredOptimization.jl/blob/b293fb0f16902098a2e8d719fe4023efedd17897/src/syntax/expressions/utils.jl#L60-L80">source</a></section><footer><hr/><a class="previous" href="../tutorial/"><span class="direction">Previous</span><span class="title">Quick Tutorial Guide</span></a><a class="next" href="../functions/"><span class="direction">Next</span><span class="title">Functions</span></a></footer></article></body></html>
