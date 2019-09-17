@@ -1,6 +1,6 @@
 name = "StructuredOptimization"
 uuid = "46cd3e9d-64ff-517d-a929-236bc1a1fc9d"
-version = "0.2.2"
+version = "0.2.3"
 
 [deps]
 AbstractOperators = "d9c5613a-d543-52d8-9afd-8f241a8c3f1c"
