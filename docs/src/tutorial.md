@@ -59,10 +59,10 @@ Different initializations can be set during construction `x = Variable( [1.; 0.;
 Constrained optimization is also encompassed by the [Standard problem formulation](@ref): for a nonempty set $\mathcal{S}$ the constraint of
 
 ```math
-\begin{align*}
-\underset{ \mathbf{x} }{\text{minimize}} \ &  f(\mathbf{x}) \\
-\text{subject to} \ & \mathbf{x} \in \mathcal{S}
-\end{align*}
+\underset{\mathbf{x}}{\text{minimize}} \ 
+f(\mathbf{x}) \ 
+\text{s.t.} \ 
+\mathbf{x} \in \mathcal{S} 
 ```
 
 can be converted into an *indicator function*
@@ -79,10 +79,10 @@ This conversion is automatically performed by StructuredOptimization.jl.
 For example, the non-negative deconvolution problem:
 
 ```math
-\begin{align*}
-\underset{ \mathbf{x} }{\text{minimize}} \ &  \tfrac{1}{2} \| \mathbf{x} * \mathbf{h} - \mathbf{y} \|^2 \\
-\text{subject to} \ & \mathbf{x} \geq 0
-\end{align*}
+\underset{ \mathbf{x} }{\text{minimize}} \ 
+\tfrac{1}{2} \| \mathbf{x} * \mathbf{h} - \mathbf{y} \|^2 \ 
+\text{s.t.} \ 
+\mathbf{x} \geq 0 
 ```
 
 where $*$ stands for convolution and $\mathbf{h}$ contains the taps of a finite impulse response filter,
@@ -114,10 +114,10 @@ julia> @minimize ls(conv(x,h)-y) st x >= 0.
 It is possible to use multiple variables which are allowed to be matrices or even tensors. For example a non-negative matrix factorization problem:
 
 ```math
-\begin{align*}
-\underset{ \mathbf{X}_1, \mathbf{X}_2  }{\text{minimize}} \ &  \tfrac{1}{2} \| \mathbf{X}_1 \mathbf{X}_2 - \mathbf{Y} \| \\
-\text{subject to} \ & \mathbf{X}_1 \geq 0,  \ \mathbf{X}_2 \geq 0,
-\end{align*}
+\underset{ \mathbf{X}_1, \mathbf{X}_2  }{\text{minimize}} \ 
+\tfrac{1}{2} \| \mathbf{X}_1 \mathbf{X}_2 - \mathbf{Y} \|^2 \ 
+\text{s.t.} \ 
+\mathbf{X}_1 \geq 0, \ \mathbf{X}_2 \geq 0,
 ```
 
 can be solved using the following code:
