@@ -14,10 +14,10 @@ RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
 [compat]
 AbstractOperators = "0.1 - 0.2"
 DSP = "0.5.1 - 0.6"
-FFTW = "0.2.4 - 1"
+FFTW = "1"
 ProximalAlgorithms = "0.3 - 0.4"
 ProximalOperators = "0.8 - 0.14"
-RecursiveArrayTools = "0.18 - 2"
+RecursiveArrayTools = "1 - 2"
 julia = "1.4"
 
 [extras]
