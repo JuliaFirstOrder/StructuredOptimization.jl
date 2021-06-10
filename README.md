@@ -1,10 +1,10 @@
 # StructuredOptimization.jl
 
-[![Build status](https://github.com/kul-forbes/StructuredOptimization.jl/workflows/CI/badge.svg)](https://github.com/kul-forbes/StructuredOptimization.jl/actions?query=workflow%3ACI)
-[![codecov](https://codecov.io/gh/kul-forbes/StructuredOptimization.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/kul-forbes/StructuredOptimization.jl)
+[![Build status](https://github.com/kul-optec/StructuredOptimization.jl/workflows/CI/badge.svg)](https://github.com/kul-optec/StructuredOptimization.jl/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/kul-optec/StructuredOptimization.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/kul-optec/StructuredOptimization.jl)
 
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://kul-forbes.github.io/StructuredOptimization.jl/stable)
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://kul-forbes.github.io/StructuredOptimization.jl/latest)
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://kul-optec.github.io/StructuredOptimization.jl/stable)
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://kul-optec.github.io/StructuredOptimization.jl/latest)
 
 StructuredOptimization.jl is a high-level modeling language
 that utilizes a syntax that is very close to
@@ -14,11 +14,11 @@ This user-friendly interface
 acts as a parser to utilize
 three different packages:
 
-* [ProximalOperators.jl](https://github.com/kul-forbes/ProximalOperators.jl)
+* [ProximalOperators.jl](https://github.com/kul-optec/ProximalOperators.jl)
 
-* [AbstractOperators.jl](https://github.com/kul-forbes/AbstractOperators.jl)
+* [AbstractOperators.jl](https://github.com/kul-optec/AbstractOperators.jl)
 
-* [ProximalAlgorithms.jl](https://github.com/kul-forbes/ProximalAlgorithms.jl)
+* [ProximalAlgorithms.jl](https://github.com/kul-optec/ProximalAlgorithms.jl)
 
 StructuredOptimization.jl can handle large-scale convex and nonconvex problems with nonsmooth cost functions.
 
@@ -61,4 +61,4 @@ julia> ~x                             # inspect solution
 [...]
 ```
 
-See the [documentation](https://kul-forbes.github.io/StructuredOptimization.jl/latest) for more details about the type of problems StructuredOptimization.jl can handle and the [demos](https://kul-forbes.github.io/StructuredOptimization.jl/stable/demos/) to check out some examples.
+See the [documentation](https://kul-optec.github.io/StructuredOptimization.jl/latest) for more details about the type of problems StructuredOptimization.jl can handle and the [demos](https://kul-optec.github.io/StructuredOptimization.jl/stable/demos/) to check out some examples.
