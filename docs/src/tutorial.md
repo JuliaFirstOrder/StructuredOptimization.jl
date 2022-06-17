@@ -134,21 +134,32 @@ julia> @minimize ls(X1*X2-Y) st X1 >= 0., X2 >= 0.
 
 ## Limitations
 
-Currently StructuredOptimization.jl supports only *proximal gradient algorithms* (i.e., *forward-backward splitting* base), which require specific properties of the nonsmooth functions and constraint to be applicable. In particular, the nonsmooth functions must have an *efficiently computable proximal mapping* (affectionately, we say such a function is `prox`-able).
+Currently StructuredOptimization.jl supports only *proximal gradient algorithms* (i.e., *forward-backward splitting* base), which require specific properties of the nonsmooth functions and constraint to be applicable. In particular, the nonsmooth function $g$ must have an *efficiently computable proximal mapping*: 
+ 
+```math
+\text{prox}_{g,\lambda}\left(x\right)=\arg\min_{y}g\left(x\right)+\frac{\lambda}{2}\left\Vert y-x\right\Vert ^{2}
+```
 
+(we affectionately say such a function is prox-able).
+ 
 If we express the nonsmooth function $g$ as the composition of
-a function $\tilde{g}$ with a linear operator $A$:
+a prox-able function $\tilde{g}$ with a linear operator $A$:
 
 ```math
 g(\mathbf{x}) =
 \tilde{g}(A \mathbf{x})
 ```
 
-then $g$ is `prox`-able if both of the following hold:
+then $g$ is also `prox`-able if $A$ is a *tight frame*, namely it satisfies $A A^* = \mu Id$, where $\mu \geq 0$, $A^*$ is the adjoint of $A$, and $Id$ is the identity operator.
 
-1. Operator $A$ is a *tight frame*, namely it satisfies $A A^* = \mu Id$, where $\mu \geq 0$, $A^*$ is the adjoint of $A$, and $Id$ is the identity operator.
+More generally, a *separable sum* of prox-able functions $h_j$ is also prox-able:
 
-2. Function $\tilde{g}$ is a *separable sum* $g(\mathbf{x}) = \sum_j h_j (B_j \mathbf{x}_j)$, where $\mathbf{x}_j$ are non-overlapping slices of $\mathbf{x}$, and $B_j$ are tight frames.
+```math
+g(\mathbf{x}) =
+\sum_j h_j (B_j \mathbf{x}_j)
+```
+
+where $\mathbf{x}_j$ are non-overlapping slices of $\mathbf{x}$, and $B_j$ are tight frames.
 
 Let us analyze these rules with a series of examples.
 The LASSO example above satisfy the first rule:
@@ -176,15 +187,13 @@ cannot be solved by this package. Here the constraint would be converted into an
 g(\mathbf{x}) =\lambda \| \mathbf{x} \|_1 + \delta_{\mathcal{S}} (\mathbf{x})
 ```
 
-which is separable, but not in a way that is obvious to the package: the sum of two prox-able operators is not always proxable. 
+which is separable, but not in a way that is obvious to the package: a simple sum of two prox-able operators is not always proxable. 
 This can be worked around by extending the library with a (simple) new ProximalOperator. 
-On the other hand this problem would be accepted:
+On the other hand in this problem the sum is separable, and thus accepted:
 
 ```julia
 julia> @minimize ls( A*x - y ) + λ*norm(x[1:div(n,2)], 1) st x[div(n,2)+1:n] >= 1.0
 ```
-
-as the optimization variables $\mathbf{x}$ are partitioned into non-overlapping groups, preserving separability.
 
 !!! note
 
