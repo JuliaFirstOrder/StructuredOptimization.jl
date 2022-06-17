@@ -134,7 +134,7 @@ julia> @minimize ls(X1*X2-Y) st X1 >= 0., X2 >= 0.
 
 ## Limitations
 
-Currently StructuredOptimization.jl supports only *proximal gradient algorithms* (i.e., *forward-backward splitting* base), which require specific properties of the nonsmooth functions and constraint to be applicable. In particular, the nonsmooth functions must have an *efficiently computable proximal mapping*.
+Currently StructuredOptimization.jl supports only *proximal gradient algorithms* (i.e., *forward-backward splitting* base), which require specific properties of the nonsmooth functions and constraint to be applicable. In particular, the nonsmooth functions must have an *efficiently computable proximal mapping* (affectionately, we say such a function is `prox`-able).
 
 If we express the nonsmooth function $g$ as the composition of
 a function $\tilde{g}$ with a linear operator $A$:
@@ -144,11 +144,11 @@ g(\mathbf{x}) =
 \tilde{g}(A \mathbf{x})
 ```
 
-then the proximal mapping of $g$ is efficiently computable if either of the following hold:
+then $g$ is `prox`-able if both of the following hold:
 
 1. Operator $A$ is a *tight frame*, namely it satisfies $A A^* = \mu Id$, where $\mu \geq 0$, $A^*$ is the adjoint of $A$, and $Id$ is the identity operator.
 
-2. Function $g$ is a *separable sum* $g(\mathbf{x}) = \sum_j h_j (B_j \mathbf{x}_j)$, where $\mathbf{x}_j$ are non-overlapping slices of $\mathbf{x}$, and $B_j$ are tight frames.
+2. Function $\tilde{g}$ is a *separable sum* $g(\mathbf{x}) = \sum_j h_j (B_j \mathbf{x}_j)$, where $\mathbf{x}_j$ are non-overlapping slices of $\mathbf{x}$, and $B_j$ are tight frames.
 
 Let us analyze these rules with a series of examples.
 The LASSO example above satisfy the first rule:
@@ -157,7 +157,7 @@ The LASSO example above satisfy the first rule:
 julia> @minimize ls( A*x - y ) + λ*norm(x, 1)
 ```
 
-since the nonsmooth function $\lambda \| \cdot \|_1$ is not composed with any operator (or equivalently is composed with $Id$ which is a tight frame).
+since the nonsmooth function $\lambda \| \cdot \|_1$ is separable and not composed with any operator (or equivalently is composed with $Id$ which is a tight frame).
 Also the following problem would be accepted by StructuredOptimization.jl:
 
 ```julia
@@ -170,21 +170,22 @@ since the discrete cosine transform (DCT) is orthogonal and is therefore a tight
 julia> @minimize ls( A*x - y ) + λ*norm(x, 1) st x >= 1.0
 ```
 
-cannot be solved through proximal gradient algorithms, since the second rule would be violated.
-Here the constraint would be converted into an indicator function and the nonsmooth function $g$ can be written as the sum:
+cannot be solved by this package. Here the constraint would be converted into an indicator function and the nonsmooth function $g$ can be written as the sum:
 
 ```math
 g(\mathbf{x}) =\lambda \| \mathbf{x} \|_1 + \delta_{\mathcal{S}} (\mathbf{x})
 ```
 
-which is not separable. On the other hand this problem would be accepted:
+which is separable, but not in a way that is obvious to the package: the sum of two prox-able operators is not always proxable. 
+This can be worked around by extending the library with a (simple) new ProximalOperator. 
+On the other hand this problem would be accepted:
 
 ```julia
 julia> @minimize ls( A*x - y ) + λ*norm(x[1:div(n,2)], 1) st x[div(n,2)+1:n] >= 1.0
 ```
 
-as not the optimization variables $\mathbf{x}$ are partitioned into non-overlapping groups.
+as the optimization variables $\mathbf{x}$ are partitioned into non-overlapping groups, preserving separability.
 
 !!! note
 
-    When the problem is not accepted it might be still possible to solve it: see [Smoothing](@ref) and [Duality](@ref).
+    When the problem is not accepted it might be still possible to solve a variant: see [Smoothing](@ref) and [Duality](@ref).
