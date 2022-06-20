@@ -134,7 +134,7 @@ julia> @minimize ls(X1*X2-Y) st X1 >= 0., X2 >= 0.
 
 ## Limitations
 
-Currently StructuredOptimization.jl supports only *proximal gradient algorithms* (i.e., *forward-backward splitting* base), which require specific properties of the nonsmooth functions and constraint to be applicable. In particular, the nonsmooth function $g$ must have an *efficiently computable proximal mapping*: 
+Currently StructuredOptimization.jl supports only *proximal gradient algorithms* (i.e., *forward-backward splitting* based), which require specific properties of the nonsmooth functions and constraint to be applicable. In particular, the nonsmooth function $g$ must have an *efficiently computable proximal mapping*: 
  
 ```math
 \text{prox}_{g,\lambda}\left(x\right)=\arg\min_{y}g\left(x\right)+\frac{\lambda}{2}\left\Vert y-x\right\Vert ^{2}
