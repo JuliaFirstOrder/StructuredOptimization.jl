@@ -2,19 +2,19 @@ import ProximalOperators: gradient!, gradient # this can be removed when moved t
 
 export PrecomposeNonlinear
 
-struct PrecomposeNonlinear{P <: ProximableFunction, 
+struct PrecomposeNonlinear{P,
                            T <: AbstractOperator,
-                           D <: AbstractArray, 
+                           D <: AbstractArray,
                            C <: AbstractArray
-                          } <: ProximableFunction
-	g::P
+                          }
+    g::P
   G::T
   bufD::D
   bufC::C
   bufC2::C
 end
 
-function PrecomposeNonlinear(g::P, G::T) where {P, T} 
+function PrecomposeNonlinear(g::P, G::T) where {P, T}
   t, s = domainType(G), size(G,2)
   bufD = eltype(s) <: Int ? zeros(t,s) : ArrayPartition(zeros.(t,s))
   t, s = codomainType(G), size(G,1)

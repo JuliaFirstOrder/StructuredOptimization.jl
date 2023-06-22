@@ -18,7 +18,7 @@ julia> A, b = randn(10,4), randn(10);
 
 julia> p = problem( ls(A*x - b ) , norm(x) <= 1 );
 
-julia> StructuredOptimization.parse_problem(p, ForwardBackward());
+julia> StructuredOptimization.parse_problem(p, PANOCplus());
 ```
 """
 function parse_problem(terms::Tuple, solver::T) where T <: ForwardBackwardSolver
@@ -65,14 +65,14 @@ julia> A, b = randn(10,4), randn(10);
 
 julia> p = problem(ls(A*x - b ), norm(x) <= 1);
 
-julia> solve(p, ForwardBackward());
+julia> solve(p, PANOCplus());
 
 julia> ~x
 ```
 """
 function solve(terms::Tuple, solver::ForwardBackwardSolver)
     x, kwargs = parse_problem(terms, solver)
-    x_star, it = solver(~x; kwargs...)
+    x_star, it = solver(; x0 = ~x, kwargs...)
     ~x .= x_star
     return x, it
 end

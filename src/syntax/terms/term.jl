@@ -1,13 +1,13 @@
-struct Term{T1 <: Real, T2 <: ProximableFunction, T3 <: AbstractExpression}
-	lambda::T1
-	f::T2
-	A::T3
-	Term(lambda::T1, f::T2, ex::T3) where {T1,T2,T3} = new{T1,T2,T3}(lambda,f,ex)
+struct Term{T1 <: Real, T2, T3 <: AbstractExpression}
+    lambda::T1
+    f::T2
+    A::T3
+    Term(lambda::T1, f::T2, ex::T3) where {T1,T2,T3} = new{T1,T2,T3}(lambda,f,ex)
 end
 
-function Term(f::T, ex::AbstractExpression) where {T<:ProximableFunction}
-	A = convert(Expression,ex)
-	Term(1,f, A)
+function Term(f, ex::AbstractExpression)
+    A = convert(Expression,ex)
+    Term(1,f, A)
 end
 
 # Operations
@@ -28,12 +28,12 @@ import Base: +
 import Base: *
 
 function (*)(a::T1, t::Term{T,T2,T3}) where {T1<:Real, T, T2, T3}
-	coeff = *(promote(a,t.lambda)...)
-	Term(coeff, t.f, t.A)
+    coeff = *(promote(a,t.lambda)...)
+    Term(coeff, t.f, t.A)
 end
 
 function (*)(a::T1, t::T2) where {T1<:Real, N, T2 <: Tuple{Vararg{<:Term,N}} }
-	return a.*t 
+    return a.*t
 end
 
 # Properties
@@ -45,17 +45,17 @@ displacement(t::Term) = displacement(t.A)
 
 #importing properties from ProximalOperators
 import ProximalOperators:
-			  is_affine,
-			  is_cone,
-			  is_convex,
-			  is_generalized_quadratic,
-			  is_prox_accurate,
-			  is_quadratic,
-			  is_separable,
-			  is_set,
-			  is_singleton,
-			  is_smooth,
-			  is_strongly_convex
+              is_affine,
+              is_cone,
+              is_convex,
+              is_generalized_quadratic,
+              is_prox_accurate,
+              is_quadratic,
+              is_separable,
+              is_set,
+              is_singleton,
+              is_smooth,
+              is_strongly_convex
 
 #importing properties from AbstractOperators
 is_f = [:is_linear,
@@ -72,11 +72,11 @@ is_f = [:is_linear,
        ]
 
 for f in is_f
-	@eval begin
-		import AbstractOperators: $f
-		$f(t::Term) = $f(operator(t))
-		$f(t::NTuple{N,Term}) where {N} = all($f.(t))
-	end
+    @eval begin
+        import AbstractOperators: $f
+        $f(t::Term) = $f(operator(t))
+        $f(t::NTuple{N,Term}) where {N} = all($f.(t))
+    end
 end
 
 is_smooth(t::Term) = is_smooth(t.f)

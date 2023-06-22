@@ -23,9 +23,9 @@ You can pick the algorithm to use as `Solver` object from the
 package. Currently, the following algorithms are supported.
 
 ```@docs
-ForwardBackward
 ZeroFPR
 PANOC
+PANOCplus
 ```
 
 

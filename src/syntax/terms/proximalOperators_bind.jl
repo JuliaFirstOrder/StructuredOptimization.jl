@@ -4,7 +4,7 @@ import LinearAlgebra: norm
 export norm
 
 """
-	norm(x::AbstractExpression, p=2, [q,] [dim=1])
+    norm(x::AbstractExpression, p=2, [q,] [dim=1])
 
 Returns the norm of `x`.
 
@@ -28,33 +28,33 @@ where ``\\mathbf{x}_i`` is the ``i``-th column if `dim == 1` (or row if  `dim ==
 
 """
 function norm(ex::AbstractExpression, p::Real=2)
-	if p == 0
-		f = NormL0()
-	elseif p == 1
-		f = NormL1()
-	elseif p == 2
-		f = NormL2()
-	elseif p == Inf
-		f = NormLinf()
-	else
-		error("function not implemented")
-	end
-	return Term(f, ex)
+    if p == 0
+        f = NormL0()
+    elseif p == 1
+        f = NormL1()
+    elseif p == 2
+        f = NormL2()
+    elseif p == Inf
+        f = NormLinf()
+    else
+        error("function not implemented")
+    end
+    return Term(f, ex)
 end
 
 # Nuclear norm
 function norm(ex::AbstractExpression, ::typeof(*))
-	return Term(NuclearNorm(), ex)
+    return Term(NuclearNorm(), ex)
 end
 
 # Mixed Norm
 function norm(ex::AbstractExpression, p1::Int, p2::Int, dim::Int = 1 )
-	if p1 == 2 && p2 == 1
-		f = NormL21(1.0,dim)
-	else
-		error("function not implemented")
-	end
-	return Term(f, ex)
+    if p1 == 2 && p2 == 1
+        f = NormL21(1.0,dim)
+    else
+        error("function not implemented")
+    end
+    return Term(f, ex)
 end
 
 # Least square terms
@@ -62,7 +62,7 @@ end
 export ls
 
 """
-	ls(x::AbstractExpression)
+    ls(x::AbstractExpression)
 
 Returns the squared norm (least squares) of `x`:
 
@@ -77,12 +77,12 @@ ls(ex) = Term(SqrNormL2(), ex)
 import Base: ^
 
 function (^)(t::Term{T1,T2,T3}, exp::Integer) where {T1, T2  <: NormL2, T3}
-	if exp == 2
-		# The coefficient 2.0 is due to the fact that SqrNormL2 divides by 2.0
-		return t.lambda^2*Term(SqrNormL2(2.0), t.A)
-	else
-		error("function not implemented")
-	end
+    if exp == 2
+        # The coefficient 2.0 is due to the fact that SqrNormL2 divides by 2.0
+        return t.lambda^2*Term(SqrNormL2(2.0), t.A)
+    else
+        error("function not implemented")
+    end
 end
 
 # HingeLoss
@@ -90,7 +90,7 @@ end
 export hingeloss
 
 """
-	hingeloss(x::AbstractExpression, y::Array)
+    hingeloss(x::AbstractExpression, y::Array)
 
 Applies the Hinge loss function
 ```math
@@ -106,7 +106,7 @@ Term(HingeLoss(b), ex)
 export sqrhingeloss
 
 """
-	sqrhingeloss(x::AbstractExpression, y::Array)
+    sqrhingeloss(x::AbstractExpression, y::Array)
 
 Applies the squared Hinge loss function
 ```math
@@ -122,7 +122,7 @@ Term(SqrHingeLoss(b), ex)
 export crossentropy
 
 """
-	crossentropy(x::AbstractExpression, y::Array)
+    crossentropy(x::AbstractExpression, y::Array)
 
 Applies the cross entropy loss function:
 ```math
@@ -138,7 +138,7 @@ Term(CrossEntropy(b), ex)
 export logisticloss
 
 """
-	logbarrier(x::AbstractExpression, y::AbstractArray)
+    logbarrier(x::AbstractExpression, y::AbstractArray)
 
 Applies the logistic loss function:
 ```math
@@ -154,7 +154,7 @@ Term(LogisticLoss(y, 1.0), ex)
 export logbarrier
 
 """
-	logbarrier(x::AbstractExpression)
+    logbarrier(x::AbstractExpression)
 
 Applies the log barrier function:
 ```math
@@ -169,7 +169,7 @@ Term(LogBarrier(1.0), ex)
 export huberloss
 
 """
-	huberloss(x::AbstractExpression, ρ=1.0)
+    huberloss(x::AbstractExpression, ρ=1.0)
 
 Applies the Huber loss function:
 ```math
@@ -185,7 +185,7 @@ Term(HuberLoss(rho), ex)
 import Base: maximum
 
 """
-	maximum(x::AbstractExpression)
+    maximum(x::AbstractExpression)
 
 Applies the function:
 ```math
@@ -198,7 +198,7 @@ Term(Maximum(), ex)
 export sumpositive
 
 """
-	sumpositive(x::AbstractExpression, ρ=1.0)
+    sumpositive(x::AbstractExpression, ρ=1.0)
 
 Applies the function:
 ```math
@@ -212,7 +212,7 @@ import LinearAlgebra: dot
 export dot
 
 """
-	dot(c::AbstractVector, x::AbstractExpression)
+    dot(c::AbstractVector, x::AbstractExpression)
 
 Applies the function:
 ```math
@@ -284,10 +284,10 @@ import Base: <=, >=, in
 (>=)(ub, ex::AbstractExpression) = Term(IndBox(-Inf, ub), ex)
 
 function in(ex::AbstractExpression, bnds::AbstractArray)
-	if length(bnds) != 2
-		error("should provide 2 bounds!")
-	end
-	return Term(IndBox(bnds[1], bnds[2]), ex)
+    if length(bnds) != 2
+        error("should provide 2 bounds!")
+    end
+    return Term(IndBox(bnds[1], bnds[2]), ex)
 end
 
 # Rank constraints
@@ -299,9 +299,9 @@ export rank
 #   rank(X) <= r,
 # therefore here the parameter (1) doesn't really have a role.
 # We should probably fix this: it allows weird things in expressing problems.
-# Maybe we should have Rank <: ProximableFunction (with no prox! nor gradient!
+# Maybe we should have Rank (with no prox! nor gradient!
 # defined), that gives IndBallRank when combined with <=.
-struct Rank <: ProximableFunction end
+struct Rank end
 rank(ex::AbstractExpression) = Term(Rank(), ex)
 
 import Base: <=
@@ -368,7 +368,7 @@ end
 import Base: conj
 
 """
-	conj(t::Term)
+    conj(t::Term)
 
 Returns the convex conjugate transform of `t`:
 ```math
@@ -388,11 +388,11 @@ julia> t = conj(norm(x,1))
 
 """
 function conj(t::Term)
-	if typeof(operator(t)) <: Eye
-		return Term(1.0,Conjugate(Postcompose(t.f,t.lambda)),t.A)
-	else
-		error("cannot perform convex conjugation")
-	end
+    if typeof(operator(t)) <: Eye
+        return Term(1.0,Conjugate(Postcompose(t.f,t.lambda)),t.A)
+    else
+        error("cannot perform convex conjugation")
+    end
 
 end
 
@@ -400,7 +400,7 @@ end
 export smooth
 
 """
-	smooth(t::Term, gamma = 1.0)
+    smooth(t::Term, gamma = 1.0)
 
 Smooths the nonsmooth term `t` using Moreau envelope:
 
