@@ -1,6 +1,6 @@
 name = "StructuredOptimization"
 uuid = "46cd3e9d-64ff-517d-a929-236bc1a1fc9d"
-version = "0.3.0"
+version = "0.4.0-ci+20230622"
 
 [deps]
 AbstractOperators = "d9c5613a-d543-52d8-9afd-8f241a8c3f1c"
@@ -12,11 +12,11 @@ ProximalOperators = "a725b495-10eb-56fe-b38b-717eba820537"
 RecursiveArrayTools = "731186ca-8d62-57ce-b412-fbd966d074cd"
 
 [compat]
-AbstractOperators = "0.1 - 0.2"
-DSP = "0.5.1 - 0.6"
+AbstractOperators = "0.3"
+DSP = "0.5.1 - 0.7"
 FFTW = "1"
-ProximalAlgorithms = "0.3 - 0.4"
-ProximalOperators = "0.8 - 0.14"
+ProximalAlgorithms = "0.5"
+ProximalOperators = "0.15"
 RecursiveArrayTools = "1 - 2"
 julia = "1.4"
 

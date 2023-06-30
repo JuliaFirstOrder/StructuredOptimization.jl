@@ -15,13 +15,13 @@ b = randn(m)
 lam1 = 0.2
 lam2 = 1.0
 
-# Solve with FPG
+# Solve with PANOC+
 
 x1_fpg = Variable(n1)
 x2_fpg = Variable(n2)
 expr = ls(A1*x1_fpg + A2*x2_fpg - b) + lam1*norm(x1_fpg, 1) + lam2*norm(x2_fpg, 2)
 prob = problem(expr)
-@time sol = solve(prob, ForwardBackward(fast=true, tol=1e-10, verbose=false,maxit=20000))
+@time sol = solve(prob, PANOCplus(tol=1e-10, verbose=false,maxit=20000))
 
 # Solve with ZeroFPR
 
@@ -86,17 +86,17 @@ b = A*x_star + A'\y_star
 x_pg = Variable(n)
 expr = ls(A*x_pg - b) + lam*norm(x_pg, 1)
 prob = problem(expr)
-@time sol = solve(prob, ForwardBackward(tol=1e-10, verbose=false))
+@time sol = solve(prob, PANOCplus(tol=1e-10, verbose=false))
 
 @test norm(~x_pg - x_star, Inf) <= 1e-8
 @test norm(A'*(A*~x_pg - b) + lam*sign.(~x_pg)) <= 1e-6
 
-# Solve with FPG
+# Solve with PANOC+
 
 x_fpg = Variable(n)
 expr = ls(A*x_fpg - b) + lam*norm(x_fpg, 1)
 prob = problem(expr)
-@time sol = solve(prob, ForwardBackward(fast=true, tol=1e-10, verbose=false))
+@time sol = solve(prob, PANOCplus(tol=1e-10, verbose=false))
 
 @test norm(~x_fpg - x_star, Inf) <= 1e-8
 @test norm(A'*(A*~x_fpg - b) + lam*sign.(~x_fpg)) <= 1e-6
@@ -139,14 +139,14 @@ b = A*x_orig + randn(m)
 x_pg = Variable(n)
 expr = smooth(norm(A*x_pg - b, 2)) + lam*norm(x_pg, 1)
 prob = problem(expr)
-@time sol = solve(prob, ForwardBackward(tol=1e-6, verbose=false))
+@time sol = solve(prob, PANOCplus(tol=1e-6, verbose=false))
 
-# Solve with FPG
+# Solve with PANOC+
 
 x_fpg = Variable(n)
 expr = smooth(norm(A*x_fpg - b, 2)) + lam*norm(x_fpg, 1)
 prob = problem(expr)
-@time sol = solve(prob, ForwardBackward(fast=true, tol=1e-6, verbose=false))
+@time sol = solve(prob, PANOCplus(tol=1e-6, verbose=false))
 
 # Solve with ZeroFPR
 
@@ -190,17 +190,17 @@ b = A*x_orig + randn(m)
 x_pg = Variable(n)
 expr = ls(A*x_pg - b)
 prob = problem(expr, x_pg in [lb, ub])
-@time sol = solve(prob, ForwardBackward(tol=1e-6, verbose=false))
+@time sol = solve(prob, PANOCplus(tol=1e-6, verbose=false))
 
 @test norm(~x_pg - max.(lb, min.(ub, ~x_pg)), Inf) <= 1e-12
 @test norm(~x_pg - max.(lb, min.(ub, ~x_pg - A'*(A*~x_pg - b))), Inf)/(1+norm(~x_pg, Inf)) <= 1e-6
 
-# Solve with FPG
+# Solve with PANOC+
 
 x_fpg = Variable(n)
 expr = ls(A*x_fpg - b)
 prob = problem(expr, x_fpg in [lb, ub])
-@time sol = solve(prob, ForwardBackward(fast=true, tol=1e-6, verbose=false))
+@time sol = solve(prob, PANOCplus(tol=1e-6, verbose=false))
 
 @test norm(~x_fpg - max.(lb, min.(ub, ~x_fpg)), Inf) <= 1e-12
 @test norm(~x_fpg - max.(lb, min.(ub, ~x_fpg - A'*(A*~x_fpg - b))), Inf)/(1+norm(~x_fpg, Inf)) <= 1e-6
@@ -264,17 +264,17 @@ b = A*x_star + A'\y_star
 x_pg = Variable(n)
 expr = ls(A*x_pg - b)
 prob = problem(expr, x_pg >= 0.0)
-@time sol = solve(prob, ForwardBackward(tol=1e-8, verbose=false))
+@time sol = solve(prob, PANOCplus(tol=1e-8, verbose=false))
 
 @test all(~x_pg .>= 0.0)
 @test norm(~x_pg - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8
 
-# Solve with FPG
+# Solve with PANOC+
 
 x_fpg = Variable(n)
 expr = ls(A*x_fpg - b)
 prob = problem(expr, x_fpg >= 0.0)
-@time sol = solve(prob, ForwardBackward(fast=true, tol=1e-8, verbose=false))
+@time sol = solve(prob, PANOCplus(tol=1e-8, verbose=false))
 
 @test all(~x_fpg .>= 0.0)
 @test norm(~x_fpg - x_star, Inf)/(1+norm(x_star, Inf)) <= 1e-8

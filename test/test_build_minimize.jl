@@ -9,25 +9,26 @@ b = randn(5)
 println("\nTesting @minimize \n")
 ~x .= 0.
 ~y .= 0.
-slv, = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with ForwardBackward()
+slv, = @minimize ls(A*x - B*y + b) st norm(x, 2) <= 1e4, norm(y, 1) <= 1.0 with PANOCplus()
 ~x .= 0.
-slv, = @minimize ls(A*x - b) st norm(x, 1) <= 1.0 with ForwardBackward()
+slv, = @minimize ls(A*x - b) st norm(x, 1) <= 1.0 with PANOCplus()
 ~x .= 0.
 slv, = @minimize ls(A*x - b) st norm(x, 1) <= 1.0
 ~x .= 0.
-slv, = @minimize ls(A*x - b) + norm(x, 1) with ForwardBackward()
+slv, = @minimize ls(A*x - b) + norm(x, 1) with PANOCplus()
 ~x .= 0.
 slv, = @minimize ls(A*x - b) + norm(x, 1)
 ~x .= 0.
 slv, = @minimize ls(A*x - b)
 
 #TODO many many more tests
+Random.seed!(12345)
 x = Variable(5)
 A = randn(10, 5)
 b = randn(10)
 
 println("\nTesting @minimize nonlinear \n")
-slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ForwardBackward(tol = 1e-6)
+slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with PANOCplus(tol = 1e-6)
 xpg = copy(~x)
 ~x .= 0.
 slv, = @minimize ls(sigmoid(A*x,10) - b)+norm(x,1) with ZeroFPR(tol = 1e-6)

@@ -1,9 +1,5 @@
 using ProximalAlgorithms
 
-const ForwardBackwardSolver = Union{
-    ProximalAlgorithms.ForwardBackward,
-    ProximalAlgorithms.ZeroFPR,
-    ProximalAlgorithms.PANOC,
-}
+const ForwardBackwardSolver = ProximalAlgorithms.IterativeAlgorithm
 
 const default_solver = ProximalAlgorithms.PANOC
