@@ -1,0 +1,12 @@
+[deps]
+AbstractOperators = "d9c5613a-d543-52d8-9afd-8f241a8c3f1c"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Debugger = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
+ECOS = "e2685f51-7e38-5353-a97d-a921fd2c8199"
+ImageView = "86fae568-95e7-573e-a6b2-d8a6b900c9ef"
+Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
+MathProgBase = "fdba3010-5040-5b88-9595-932c9decdf73"
+SCS = "c946c3f1-0d1f-5ce8-9dea-7daa1f7e2d13"
+StructuredOptimization = "46cd3e9d-64ff-517d-a929-236bc1a1fc9d"
+TestImages = "5e47fb64-e119-507b-a336-dd2b206d9990"
